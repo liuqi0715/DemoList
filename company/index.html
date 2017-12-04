@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/animate.css">
+    
+    <script src="libs/jquery.js"></script>
+    <script src="libs/angular.js"></script>
+    <script src="laydate/laydate.js"></script>
+    <title>回收</title>
+</head>
+<body ng-app="myApp" ng-controller="myCtr">
+    <div class="header">
+        <div class="name">
+            <span id="companyName">
+               湖南废电池回收有限公司 
+            </span> 
+            <input type="text" id="date-range" placeholder="请选择您的帐期范围">
+          
+         
+        </div>
+        <div class="allIn">
+            <ul>
+                <li class="InAccount">到账</li>
+                <li class="creat">生成</li>
+                <li class="export">导出</li>
+            </ul>
+        </div>
+    </div>
+    <div class="center">
+        <div class="father">
+            <div class="center-left">
+                <div class="range" >
+                    <span class="topInfo">平台服务费</span>
+                    <div class="pie_right"> 
+                        <div class="right"></div>
+                        <div class="right2"></div>
+                        <div class="mask">
+                            
+                        </div> 
+                        <div class="range-info">
+                            <p>10% </p>
+                            <p>服务费比例</p> 
+                        </div>
+                         
+                    </div>
+                    
+                </div>
+                <div class="payAccount">
+                    <ul>
+                        <li class="dateRange">帐期: <span id=dateRange>{{dateRange}}</span> </li>
+                        <li class="numAccount">131.25.253</li>
+                        <li class="needPay">本期应付金额</li>
+                        <li class="numAccount">131.25.253</li>
+                        <li class="needPay">本期金额</li>
+                    </ul>
+                </div>
+                <div class="payDate">
+                    <ul>
+                        <li class="dateRange" >到期支付日：{{2017-12-3}}</li>
+                        <li class="numAccount">0</li>
+                        <li class="needPay">上次欠款金额</li>
+                        <li class="numAccount">131.25.253</li>
+                        <li class="needPay">帐期内支付金额</li>
+                    </ul>
+                </div>
+            
+            </div>
+            <div class="payInfo">
+                <ul>
+                    <li>本期金额=账期内支付金额*服务费比例</li>
+                    <li>本期应付金额=本期金额+上次欠款金额</li>
+                </ul>
+            </div>
+        </div>
+        <div class="father" id="marleft">
+
+  
+            <div class="center-right">
+                <div class="range">
+                    <span class="topInfo">商务拓展服务费</span>
+                    <div>
+
+                    </div>
+                    <div class="wrap">
+                    <div class="circle">
+                        
+                        
+                    </div>
+                    <div class="top2">
+                            
+                    </div>
+                    <div class="bottom2"></div>
+                    <div class="warpInfo">
+                        <p>500</p>
+                        <p>服务费单价</p>
+                    </div>
+                    </div>
+                </div>
+                <div class="payAccount" id="payAccount">
+                    <ul>
+                        <li class="dateRange" style="color:#B9B9B9">帐期:<span id="dateRange2">{{dateRange}}</span> </li>
+                        <li class="numAccount">131.25.253</li>
+                        <li class="needPay">本期应支付金额</li>
+                        <li class="numAccount">131.25.253</li>
+                        <li  class="needPay">本期金额</li>
+                    </ul>
+                </div>
+                <div class="payDate" id="payDate">
+                    <ul>
+                        <li  style="color:#B9B9B9">到期支付日：{{2017-12-3}}</li>
+                        <li class="numAccount">0</li>
+                        <li class="needPay">上次欠款金额</li>
+                        <li class="numAccount">131.25.253</li>
+                        <li  class="needPay">帐期内回收重量</li>
+                    </ul>
+                </div>
+                <div class="payInfo" id="payInfo">
+                    <ul>
+                        <li>本期金额=账期内回收重量*服务费单价</li>
+                        <li>本期应付金额=本期金额+上次欠款金额</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="bottom">
+        <table style="" cellpadding="0" cellspacing="0">
+            <tr>
+                <th>日期</th>   
+                <th>采购单号</th>
+                <th>重量</th>
+                <th>金额</th>
+            </tr>
+            <tr>
+                <td>2017-11-28</td>
+                <td>PO20171102</td>
+                <td>200KG</td>
+                <td>11151.26</td>
+            </tr>
+            <tr>
+                <td>2017-11-28</td>
+                <td>PO20171102</td>
+                <td>200KG</td>
+                <td>11151.26</td>
+            </tr>
+            <tr>
+                <td>2017-11-28</td>
+                <td>PO20171102</td>
+                <td>200KG</td>
+                <td>11151.26</td>
+            </tr>
+            <tr>
+                <td>2017-11-28</td>
+                <td>PO20171102</td>
+                <td>200KG</td>
+                <td>11151.26</td>
+            </tr>
+            <tr>
+                <td>2017-11-28</td>
+                <td>PO20171102</td>
+                <td>200KG</td>
+                <td>11151.26</td>
+            </tr>
+            <tr>
+                <td>2017-11-28</td>
+                <td>PO20171102</td>
+                <td>200KG</td>
+                <td>11151.26</td>
+            </tr>
+            <tr>
+                <td>2017-11-28</td>
+                <td>PO20171102</td>
+                <td>200KG</td>
+                <td>11151.26</td>
+            </tr>
+            <tr>
+                <td>2017-11-28</td>
+                <td>PO20171102</td>
+                <td>200KG</td>
+                <td>11151.26</td>
+            </tr>
+            <tr>
+                <td>2017-11-28</td>
+                <td>PO20171102</td>
+                <td>200KG</td>
+                <td>11151.26</td>
+            </tr>
+        </table>
+        <div class="cr_bottom">
+            <div id="next" @click="next()">下一页</div>
+            <div class="different_b"><span class="current">{{pageNo}}</span>/ <span class="all_num">{{pageAll}}</span></div>
+            <div @click="prve()">上一页</div>
+        </div>
+    </div>
+    <script>
+        angular.module("myApp",[])
+        .controller("myCtr",function($scope,$http) {
+
+            laydate.render({
+            elem: '#date-range',
+            position: 'absolute',
+            theme: 'grid',
+            change: function(value, date){ 
+                
+               
+            },
+           
+            done: function(value, date, endDate){
+                console.log("?");
+                console.log(value,"--");
+                $("#dateRange").text(value);
+                $("#dateRange2").text(value);
+                console.log("--value---",$scope.dateRange);
+            },
+            range: true
+        });
+       
+
+        })
+       
+    </script>
+</body>
+</html>

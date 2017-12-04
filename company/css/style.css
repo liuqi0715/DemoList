@@ -1,0 +1,448 @@
+*{
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    text-decoration: none;
+    box-sizing: border-box;
+}
+body{
+    width: 100%;
+    height: 100%;
+    background-color: #eeeeee;
+}
+.name{
+    float: left;
+    font-size: 25px;
+    line-height: 39px;
+    padding-left: 20px;
+}
+.header{
+    width: 100%;
+    height: 40px;
+    /* border: 1px solid red; */
+    background-color: #ffffff;
+}
+.header-top{
+    float: left;
+    margin-left: 20px;
+    font-size: 22px;
+
+}
+.allIn{
+    float: right;
+    margin-right: 20px;
+}
+.allIn ul li{
+    float: left;
+    font-size: 16px;
+    height: 25px;
+    color: #fff;
+    width: 80px;
+    cursor: pointer;
+    border-radius: 5px;
+    line-height: 25px;
+    text-align: center;
+    margin-top: 8px;
+    margin-right: 10px;
+}
+.InAccount{
+    background-color: #F3C468;
+    
+}
+
+.creat{
+    background-color: #43B196;
+}
+
+.export{
+    background-color: #DD7959;
+}
+.center{
+    width: 96%;
+    height: 330px;
+    margin: 20px auto;
+
+}
+.center-left,.center-right{
+    float: left;
+    width: 100%;
+    height: 260px; 
+}
+.center-left{
+    margin-right: 2%;
+}
+.father{
+    width: 49%;
+    float: left;
+    height: 100%;
+    padding: 10px 10px 0 10px;
+    /* border: 1px solid pink; */
+    background-color: white;
+}
+#marleft{
+    margin-left: 2%;
+
+}
+/*中间的两个支付相关+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+
+.range,.payAccount,.payDate{
+    width: 33.3%;
+    height: 260px;
+    float: left;
+    position: relative;
+}
+.payAccount ul li,.payDate ul li{
+    text-align: center;
+}
+#payDate ul li:nth-child(1){
+    olor: #9A9A9A;
+}
+#payAccount  ul li{
+    color: #419cF9
+}
+#payDate ul li{
+    color: #419cF9
+}
+.dateRange{
+    color: #9A9A9A;
+    margin-bottom: 30px;
+}
+.numAccount{
+    color: #FE7070;
+    font-size: 25px;
+}
+
+.needPay{
+    color: #FE7070;
+    font-size: 16px;
+}
+.payAccount ul li{
+    margin-bottom: 15px;
+}
+.payDate ul li{
+    margin-bottom: 15px;
+}
+.payDate ul li:nth-child(1){
+    margin-bottom: 30px;
+}
+.payAccount ul li:nth-child(1){
+    margin-bottom: 30px;
+}
+
+.topInfo{
+    font-size: 20px;
+}
+/*底部支付解释信息+++++++++++++++++++++++++*/
+
+.payInfo{
+    width: 100%;
+    height: 60px;
+    float: left;
+    background-image: url(../images/red.png);
+    background-size:100%;
+    background-repeat:no-repeat;  
+}
+#payInfo{
+    background-image: url(../images/green.png);
+    background-size:100%;
+    background-repeat:no-repeat;  
+}
+.payInfo ul li{
+    text-align: center;
+    line-height: 30px;
+    color: #fff;
+}
+.payInfo ul li:nth-child(1){
+    font-size: 20px;
+}
+
+.payInfo ul li:nth-child(2){
+    font-size: 14px;
+}
+
+.bottom{
+    width: 96%;
+    margin:  0 auto;
+    background-color: white;
+    height: 330px;
+    position: relative;
+}
+table{
+    width: 100%;
+    margin:  0 auto;
+    /* background-color: red; */
+    /* cellspacing="0" cellpadding="0" */
+    border: 0px solid skyblue;
+    color: #006666;
+    background-color: #ebebeb;
+}
+.cr_bottom{
+    width: 100%;
+    margin:  0 auto;
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+}
+th {
+    background-color: #59b2b2;
+    color: white;
+    border: none;
+    height: 25px;
+    line-height: 25px;
+    font-size: 16px;
+}
+tr,td{
+    border: none;
+    height: 25px;
+    line-height: 25px;
+    font-size: 16px;
+    cursor: pointer;
+}
+tr td{
+    text-align: center;
+    line-height: 20px;
+}
+tr:nth-child(odd){
+    background-color: #f2f2f2;   
+}
+
+tr:nth-child(even){
+    background-color:#EBEBEB;  
+}
+tr:hover{
+	background-color:#C9D6E0;
+}
+.cr_bottom div{
+    width: 80px;
+    font-size:14px;
+    height: 23px;
+    text-align: center;
+    color: white;
+    float: right;
+    line-height: 23px;
+    border-radius: 5px;
+    cursor: pointer;
+    background-color: #169BD5;
+    margin-top: 5px;
+  }
+  .cr_bottom div:nth-child(1){
+    margin-right: 1%;
+  }
+  .cr_bottom .different_b{
+    border: 1px solid #797979;
+    color: black;
+    border-radius: 2px;
+    background-color: white;
+    margin-left: 12px;
+    margin-right: 12px;
+  }
+
+
+
+.pie_right { 
+    width:200px; 
+    height:200px; 
+    position: absolute;
+    top: 60px;
+    left: 0; 
+    transform: rotate(270deg); 
+}
+.right { 
+    width:200px;
+    height:200px;
+    background:#00aacc;  
+
+    background-image: url(../images/date.png);
+    background-size:20px ;
+    background-repeat:no-repeat; 
+
+    background: linear-gradient(to right, #8CCDF7 , #34A3E8); /* 标准的语法 */
+    border-radius: 50%;
+    position: absolute;
+    top: 0;
+     left: 0;
+     z-index: 20
+ } 
+ .right2{
+    width:200px;
+    height:200px;
+    background: #555eeD;
+    border-radius: 50%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 2
+ }
+.pie_right, .right { clip:rect(0,auto,auto,100px); } 
+.mask {
+    width: 150px;
+    height: 150px; 
+    border-radius: 50%;
+    left: 25px; top: 25px; 
+   
+    background: #FFF; 
+    position: absolute; 
+    text-align: center; 
+    line-height: 150px;
+    font-size: 20px; 
+    /* mask 是不需要剪切的，此处只是为了让大家看到效果*/
+     clip:rect(0,auto,auto,75px); 
+    text-indent: 10px;
+    z-index: 89;
+   }
+   .mask span{
+    transform: rotate(90deg); 
+   }
+    .right {
+         transform: rotate(30deg); 
+       animation:right 0.5s linear;
+
+   }
+
+   @keyframes right{
+       0%{
+           transform: rotate(0deg)
+       }
+       32%{
+           transform: rotate(10deg)
+       }
+       60%{
+           transform: rotate(20deg)
+       }
+       100%{
+           transform: rotate(30deg)
+       }
+   }
+   .range-info p{
+       color: #3BA6EA;
+       text-align: center;
+   }
+.range-info{
+    position: absolute;
+    top: 70px;
+    left: 80px;
+    transform: rotate(90deg); 
+    z-index: 999;
+}
+#date-range{
+    width: 230px;
+    height: 30px;
+    border:  1px solid #B9B9B9;
+    border-radius: 9px;
+    font-size: 16px;
+    text-indent: 35px;
+    background-image: url(../images/date.png);
+    background-size:20px ;
+    background-repeat:no-repeat;  
+    background-position: 5px 3px;
+    float: left;
+    margin: 5px 0 0 20px;
+}
+#companyName{
+    float: left;
+}
+/*---------------------------------------------------------------------圆环-------------------------------------------------------------------*/
+
+
+.wrap{
+    position: relative;
+    left: 20px;
+    top: 20px;
+    width: 180px;
+    height: 180px;
+    overflow: hidden;
+}
+.circle{
+height: 100%;
+box-sizing: border-box;
+border: 20px solid #eeb487;
+border-radius: 50%;
+text-align: center;
+line-height: 150px;
+}
+.circle:before{
+content: '';
+position: absolute;
+display: block;
+width: 100%;
+height: 50%;
+box-sizing: border-box;
+top: 50%;
+left: 0;
+border: 20px solid rgb(241, 180, 136);
+border-top: transparent;
+border-radius:  0 0 50% 50%/ 0 0 100% 100%;
+z-index: 2;
+}
+.top2, .bottom2{
+position: absolute;
+left: 0px;
+width: 100%;
+height: 50%;
+box-sizing: border-box;
+background: white;
+
+}
+.top2{
+top: 0;
+z-index: 1;
+transform-origin: center bottom;
+animation: 1s back-half linear 1s;
+animation-fill-mode: forwards;
+}
+.bottom2{
+z-index: 3;
+top: 50%;
+transform-origin: center top;
+animation: 1s front-half linear;
+animation-fill-mode: forwards;
+}
+@keyframes front-half{
+0%{
+transform: rotate( 0 );
+}
+99%{
+transform: rotate( 180deg );
+opacity: 1;
+}
+100%{
+transform: rotate( 180deg );
+opacity: 0;
+}
+}
+@keyframes back-half{
+0%{
+transform: rotate( 0 );
+}
+99%{
+transform: rotate( 180deg );
+opacity: 1;
+}
+100%{
+transform: rotate( 180deg );
+opacity: 0;
+}
+}
+
+
+.warpInfo{
+    position: absolute;
+    top: 55px;
+    left: 50px;
+    text-align: center;
+    color:#f0954e;
+}
+.warpInfo p:nth-child(1){
+    font-size: 35px;
+}
+
+
+
+
+
+
+
+
+
+
+
