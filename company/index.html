@@ -12,6 +12,9 @@
     <script src="libs/jquery.js"></script>
     <script src="libs/angular.js"></script>
     <script src="laydate/laydate.js"></script>
+    <style>
+        .demo-input{padding-left: 10px; height: 38px; min-width: 262px; line-height: 38px; border: 1px solid #e6e6e6;  background-color: #fff;  border-radius: 2px;}
+    </style>
     <title>回收</title>
 </head>
 <body ng-app="myApp" ng-controller="myCtr">
@@ -21,6 +24,7 @@
                湖南废电池回收有限公司 
             </span> 
             <input type="text" id="date-range" placeholder="请选择您的帐期范围">
+          
          
         </div>
         <div class="allIn">
@@ -54,7 +58,7 @@
                     <ul>
                         <li class="dateRange">帐期: <span id=dateRange>{{dateRange}}</span> </li>
                         <li class="numAccount">131.25.253</li>
-                        <li class="needPay">本期应付金额</li>
+                        <li class="needPay needPay2" >本期应付金额</li>
                         <li class="numAccount">131.25.253</li>
                         <li class="needPay">本期金额</li>
                     </ul>
@@ -63,7 +67,7 @@
                     <ul>
                         <li class="dateRange" >到期支付日：{{2017-12-3}}</li>
                         <li class="numAccount">0</li>
-                        <li class="needPay">上次欠款金额</li>
+                        <li class="needPay needPay2">上次欠款金额</li>
                         <li class="numAccount">131.25.253</li>
                         <li class="needPay">帐期内支付金额</li>
                     </ul>
@@ -105,7 +109,7 @@
                     <ul>
                         <li class="dateRange" style="color:#B9B9B9">帐期:<span id="dateRange2">{{dateRange}}</span> </li>
                         <li class="numAccount">131.25.253</li>
-                        <li class="needPay">本期应支付金额</li>
+                        <li class="needPay needPay2" >本期应支付金额</li>
                         <li class="numAccount">131.25.253</li>
                         <li  class="needPay">本期金额</li>
                     </ul>
@@ -114,22 +118,23 @@
                     <ul>
                         <li  style="color:#B9B9B9">到期支付日：{{2017-12-3}}</li>
                         <li class="numAccount">0</li>
-                        <li class="needPay">上次欠款金额</li>
+                        <li class="needPay needPay2" >上次欠款金额</li>
                         <li class="numAccount">131.25.253</li>
                         <li  class="needPay">帐期内回收重量</li>
                     </ul>
                 </div>
-                <div class="payInfo" id="payInfo">
+                
+            </div>
+            <div class="payInfo" id="payInfo">
                     <ul>
                         <li>本期金额=账期内回收重量*服务费单价</li>
                         <li>本期应付金额=本期金额+上次欠款金额</li>
                     </ul>
-                </div>
             </div>
         </div>
     </div>
     <div class="bottom">
-        <table style="" cellpadding="0" cellspacing="0">
+        <table style="" cellpadding="0" cellspacing="0" id="table">
             <tr>
                 <th>日期</th>   
                 <th>采购单号</th>
@@ -196,6 +201,7 @@
             <div class="different_b"><span class="current">{{pageNo}}</span>/ <span class="all_num">{{pageAll}}</span></div>
             <div @click="prve()">上一页</div>
         </div>
+        <input type="text" class="demo-input" placeholder="请选择日期" id="test1">
     </div>
     <script>
         angular.module("myApp",[])
@@ -205,8 +211,9 @@
             elem: '#date-range',
             position: 'absolute',
             theme: 'grid',
-            change: function(value, date){
-
+            change: function(value, date){ 
+                
+               
             },
            
             done: function(value, date, endDate){
@@ -218,7 +225,24 @@
             },
             range: true
         });
-       
+        laydate.render({
+			elem: '#test1', //指定元素
+            position: 'absolute',
+            theme: 'grid',
+            change: function(value, date){ 
+                
+               
+            },
+           
+            done: function(value, date, endDate){
+                console.log("?");
+                console.log(value,"--");
+               // $("#dateRange").text(value);
+                //$("#dateRange2").text(value);
+                console.log("--value---",$scope.dateRange);
+            },
+            range: true
+      });
 
         })
        
