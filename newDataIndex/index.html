@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="js/angular.js"></script>
+
+    <script src="js/echarts.js"></script>
+    <script src="libs/index.js"></script>
+    <script src="js/jquery-1.9.1.js"></script>
+    <script type="text/javascript" src="http://api.map.baidu.com/getscript?v=2.0&ak=S2XBCnEYouwQYSpqxcpX2BP1"></script>
+    <script src="libs/baiduMapW.js"></script>
+    <link rel="stylesheet" href="css/index.css">
+    <title>报表数据</title>
+</head>
+<body>
+    <div class="overspread" ng-app="myHome" ng-controller="myCtrl">
+        <div id="contain">
+            <div class="top">
+                <div class="notRecovered" onclick="declaration(this)">
+                    <div class="notRecovered_left">
+                        <span class="notRe">
+                            下单数量
+                        </span>
+                        <img src="images/jinrihuishou.png" alt="">
+                    </div>
+                    <div class="notRecovered_right">
+                        <p>
+                            <img src="images/fresh.png" alt="" id="fresh01">
+                            <img src="images/fresh2.gif" alt="" id="fresh1">
+                        </p>
+                        <div id="reInfo">
+                            <span class="Renum">0</span>
+                            <span class="Redan">单</span>
+                        </div>
+
+                    </div>
+                    <div id="bottom">
+                        <a  href="javascript:void(0)">点击查看详情</a>
+                        <p>下单总重量 &nbsp : &nbsp
+                            <span class="ReWeight">0</span> kg </p>
+                    </div>
+                </div>
+            <!-- 第二个方块成交数量 -->
+
+                <div class="recovered" onclick="poOrder(this)">
+                    <div class="notRecovered_left">
+                        <span class="notRe">
+                            成交重量
+                        </span>
+                        <img src="images/jifeng.png" alt="">
+
+                    </div>
+                    <div class="notRecovered_right">
+                        <p>
+                            <img src="images/fresh.png" alt="" id="fresh02">
+                            <img src="images/fresh2.gif" alt="" id="fresh2">
+                        </p>
+                        <div id="reInfo2">
+                            <span class="Renum2">0</span>
+                            <span class="Redan">单</span>
+                        </div>
+
+                    </div>
+                    <div id="bottom2">
+                        <a href="javascript:void(0)" >点击查看详情</a>
+                        <p>回收总重量 &nbsp : &nbsp
+                            <span class="ReWeight2">0</span> kg </p>
+                    </div>
+                </div>
+                <!-- 顶部第三个Echarts数据图 -->
+                <div id="inwentory" >
+                   
+                </div>
+                <!-- 底部第四个Echarts数据图 -->
+                <div id="pieChart">
+                    <span class="pieInfo">点击查看详情</span>
+                    <div id="onePie">
+
+                    </div>
+                    <div id="twoPie">
+
+                    </div>
+                </div>
+               
+
+            </div>
+             <!-- 第二部分中间的线图 -->
+             <div class="line">
+                <div id="line">
+                    
+                </div>
+                <div id="lineInfo">
+                        <div class="oneLine">
+                                <span class="danshu"></span>
+                                单数
+                        </div>
+                        <div class="twoLine">
+                                <span class="weight"></span>
+                                重量
+                        </div>
+                        <div class="threeLine">
+                                <span class="money"></span>
+                                金额
+                        </div>
+                </div>
+             </div>
+             <!-- //第三部分表格和地图部分------------------------------ -->
+             <div class="mapTable">
+                <div class="thLeftTable">
+                    <table>
+                        <tr>
+                            <th>店名</th>
+                            <th>负责人</th>
+                            <th>手机</th>
+                            <th>交易次数</th>
+                            <th>满意度</th>
+                            <th>产废量</th>
+                            <th>成交金额</th>
+                            <th>最近成交日期</th>
+                        </tr>
+                        <tr>
+                            <td>长风电动车行</td>
+                            <td>李金币</td>
+                            <td>13596354561</td>
+                            <td>12次</td>
+                            <td>4.5分</td>
+                            <td>561kg</td>
+                            <td>3656元</td>
+                            <td>2017.11.28</td>
+                        </tr>
+                        <tr>
+                            <td>长风电动车行</td>
+                            <td>李金币</td>
+                            <td>13596354561</td>
+                            <td>12次</td>
+                            <td>4.5分</td>
+                            <td>561kg</td>
+                            <td>3656元</td>
+                            <td>2017.11.28</td>
+                        </tr>
+                        <tr>
+                            <td>长风电动车行</td>
+                            <td>李金币</td>
+                            <td>13596354561</td>
+                            <td>12次</td>
+                            <td>4.5分</td>
+                            <td>561kg</td>
+                            <td>3656元</td>
+                            <td>2017.11.28</td>
+                        </tr>
+                        <tr>
+                            <td>长风电动车行</td>
+                            <td>李金币</td>
+                            <td>13596354561</td>
+                            <td>12次</td>
+                            <td>4.5分</td>
+                            <td>561kg</td>
+                            <td>3656元</td>
+                            <td>2017.11.28</td>
+                        </tr>
+                        <tr>
+                            <td>长风电动车行</td>
+                            <td>李金币</td>
+                            <td>13596354561</td>
+                            <td>12次</td>
+                            <td>4.5分</td>
+                            <td>561kg</td>
+                            <td>3656元</td>
+                            <td>2017.11.28</td>
+                        </tr>
+                        <tr>
+                            <td>长风电动车行</td>
+                            <td>李金币</td>
+                            <td>13596354561</td>
+                            <td>12次</td>
+                            <td>4.5分</td>
+                            <td>561kg</td>
+                            <td>3656元</td>
+                            <td>2017.11.28</td>
+                        </tr>
+                        <tr>
+                            <td>长风电动车行</td>
+                            <td>李金币</td>
+                            <td>13596354561</td>
+                            <td>12次</td>
+                            <td>4.5分</td>
+                            <td>561kg</td>
+                            <td>3656元</td>
+                            <td>2017.11.28</td>
+                        </tr>
+                        <tr>
+                            <td>长风电动车行</td>
+                            <td>李金币</td>
+                            <td>13596354561</td>
+                            <td>12次</td>
+                            <td>4.5分</td>
+                            <td>561kg</td>
+                            <td>3656元</td>
+                            <td>2017.11.28</td>
+                        </tr>
+                        <tr>
+                            <td>长风电动车行</td>
+                            <td>李金币</td>
+                            <td>13596354561</td>
+                            <td>12次</td>
+                            <td>4.5分</td>
+                            <td>561kg</td>
+                            <td>3656元</td>
+                            <td>2017.11.28</td>
+                        </tr>
+                        <tr>
+                            <td>长风电动车行</td>
+                            <td>李金币</td>
+                            <td>13596354561</td>
+                            <td>12次</td>
+                            <td>4.5分</td>
+                            <td>561kg</td>
+                            <td>3656元</td>
+                            <td>2017.11.28</td>
+                        </tr>
+                        <tr>
+                            <td>长风电动车行</td>
+                            <td>李金币</td>
+                            <td>13596354561</td>
+                            <td>12次</td>
+                            <td>4.5分</td>
+                            <td>561kg</td>
+                            <td>3656元</td>
+                            <td>2017.11.28</td>
+                        </tr>
+                    </table>
+                    <div class="cr_bottom">
+                        <div>下一页</div>
+                        <div class="different_b"><span class="current">1</span>/ <span class="all_num">6</span></div>
+                        <div>上一页</div>
+                    </div>
+                </div> 
+                <div class="map">
+                    <div id="address">
+                        <p class="adress">选择地址</p>
+                        <select name="" id="provice">
+                            <option value="0">请选择省份</option>
+                            <option value="1">广东省</option>
+                        </select>
+                        <select name="" id="city">
+                            <option value="0">请选择城市</option>
+                            <option value="1">深圳省</option>
+                        </select>
+                        <select name="" id="area">
+                            <option value="0">请选择区域</option>
+                            <option value="1">福田区</option>
+                        </select>
+                    </div>
+                    <div id="date">
+                        <p class="date">请选择日期</p>
+                        <select name="" id="city">
+                                <option value="0">请选择开始日期</option>
+                             
+                        </select>
+                        <select name="" id="area">
+                            <option value="0">请选择结束日期</option>
+                            
+                        </select>
+                        <p class="userStyle">用户类型</p>
+                        <input type="radio" name="all">全部用户
+                        <input type="radio" name="all">30天未交易用户
+                        <input type="radio" name="all">不知道用户
+                        <button id="search"> 查询</button>
+                    </div>
+                    <div id="mapDiu">
+
+                    </div>
+                    
+                </div>
+             </div>
+             <!-- ------------------第四部分底部表格-------------------- -->
+             <div id="bottomTable">
+                <table>
+                    <tr>
+                        <th>订单产生时间</th>
+                        <th>订单状态</th>
+                        <th>总数量</th>
+                        <th>总重量</th>
+                        <th>总金额</th>
+                        <th>回收单号</th>
+                        <th>回收员</th>
+                        <th>回收员电话</th>
+                        <th>图片</th>
+                    </tr>
+                    <tr>
+                        <td>2017.11.27</td>
+                        <td>一结算</td>
+                        <td>150吨</td>
+                        <td>352kg</td>
+                        <td>3055元</td>                       
+                        <td>SQZ1201456203451</td>
+                        <td>于海龙</td>
+                        <td>1869562356</td>
+                        <td><img src="images/jinrihuishou.png" alt="图片" class="tdImg"></td>
+                    </tr> 
+                  
+                </table>
+                <div class="cr_bottom">
+                    <div>下一页</div>
+                    <div class="different_b"><span class="current">1</span>/ <span class="all_num">6</span></div>
+                    <div>上一页</div>
+                </div>
+             </div>
+        </div>
+    </div>
+
+</body>
+<script>
+    $(function(){
+    var fontH = (window.innerHeight-50)/850
+    var hRate2 = $(window).height() - 23;
+    $("#contain").css({ "height": hRate2 + "px" });
+    $(".Renum").css({"font-size":fontH*50+"px"})
+    $(".Renum2").css({"font-size":fontH*50+"px"})
+    $(".Renum3").css({"font-size":fontH*50+"px"})
+})
+</script>
+</html>
