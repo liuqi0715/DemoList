@@ -1,0 +1,790 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<link rel="stylesheet" type="text/css"
+	href="../../themes/default/easyui.css">
+<link rel="stylesheet" type="text/css" href="../../themes/icon.css">
+<link rel="stylesheet" type="text/css" href="../../themes/demo.css">
+<script type="text/javascript" src="../../js/jquery.min.js"></script>
+<script type="text/javascript" src="../../js/jquery.easyui.min.js"></script>
+<script type="text/javascript"
+	src="../../js/locale/easyui-lang-zh_CN.js"></script>
+<script type="text/javascript" src="../global.js"></script>
+<script type="text/javascript">
+			var accountId = null;//资金方资金账号 在提交充值和分配额度需要
+			var rechargeToken = null;//在提交充值需要
+			var allocationToken = null;//在分配额度需要
+			var orgAccountId = null;//组织资金账号id
+			$(function () {	
+				$('#theFundingParty').combobox({                                   
+				    url:'accountLoginList/getAllPaymentCardInfo',                  
+				    valueField : 'pciId',                                          
+				    textField : 'name',                                            
+				    accountId : 'accountId',                                       
+				    editable : false,                                              
+				    onLoadSuccess : function(){
+				    	var rows = $('#theFundingParty').combobox('getData');
+				    	if(rows.length>0){
+				    		$('#theFundingParty').combobox('select',rows[0].pciId);   
+				    	}
+				    },                                                             
+				    onSelect : function(record){                                   
+				    	accountId = record.accountId;                              
+				    	push();	                                                   
+				    }                                                              
+				});  
+		        $(".mDivide_con_input .textbox").css({"width":180 + "px","height":30 + "px"});
+		        $(".mDivide_con_input,.mDivide_con_input1").css({"line-height":50 + "px"});
+		        $(".mDivide_con_input1 .textbox,.mDivide_head>P .textbox").css({"width":240 + "px","height":30 + "px"});
+		        var wRate = $(window).width() == 1755?1:$(window).width()/1755*0.98;
+		        var hRate = $(window).width() == 1755?1:$(window).height()/858*0.98;
+		        function adaptWin(){
+		          $(".mDivide_head").css({"height":50*hRate + "px"});
+		          $(".mDivide_head>P").css({"margin-top":10*hRate + "px"});
+		          $(".mDivide_con1").css({"margin-bottom":20*hRate + "px"});
+		          $(".mDivide_con_nav").css({"height":40*hRate + "px","line-height":40*hRate + "px","padding-left":20*wRate + "px","font-size":16*hRate + "px"});
+		          $(".mDivide_con_block1,.mDivide_con_block2,.mDivide_con_input").css({"margin-bottom":10*hRate + "px","height":210*hRate + "px","line-height":210*hRate + "px"});
+		          $(".mDivide_con_block1,.mDivide_con_block2").css({"margin-right":20*wRate + "px"});
+		          $(".mDivide_con_block1 span,.mDivide_con_block2 span").css({"font-size":40*wRate + "px","margin-left":50*wRate + "px"});
+		          $(".mDivide_con_wrap").css({"padding-top":20*wRate + "px","padding-right":20*wRate + "px","padding-left":20*wRate + "px"});
+		          $(".mDivide_con_block1,.mDivide_con_block2").css({"margin-right":24*wRate + "px"});
+		          $(".mDivide_con_title").css({"width":240*wRate + "px","height":30*hRate + "px","line-height":30*hRate + "px","font-size":18*wRate + "px","text-indent":20*wRate + "px"});
+		          $(".mDivide_con_block1 .mDivide_con_imgBox").css({"width":137*wRate + "px","height":121*hRate + "px","margin-top":-60*hRate + "px"});
+		          $(".mDivide_con_block2 .mDivide_con_imgBox").css({"width":123*wRate + "px","height":103*hRate + "px","margin-top":-51*hRate + "px"});
+		          $(".mDivide_con_outer").css({"height":440*hRate + "px"});
+		          $(".mDivide_con_wrap1").css({"margin-top":20*hRate + "px","margin-left":20*wRate + "px"});
+		          $(".mDivide_con_wrap2").css({"margin-top":20*hRate + "px","height":400*hRate + "px","margin-right":30*wRate + "px","margin-left":20*wRate + "px"});
+		          $(".mDivide_con_block3,.mDivide_con_block4").css({"height":170*hRate + "px"});
+		          $(".mDivide_con_block3").eq(0).css({"margin-bottom":20*hRate + "px"});
+		          $(".mDivide_con_block5").css({"height":170*hRate + "px","line-height":170*hRate + "px"});
+		          $(".mDivide_con_block5 span").css({"font-size":40*wRate + "px"});
+		          $(".mDivide_con_block5 img").css({"width":64*hRate + "px","height":64*hRate + "px","bottom":-40*hRate + "px","margin-left":-32*hRate + "px"});
+		          $(".icon_triangle").css({"border-top-width":10*hRate + "px","border-bottom-width":10*hRate + "px","bottom-left-width":15*wRate + "px"});
+		          $(".mDivide_con_icon").css({"width":102*hRate + "px","height":102*hRate + "px","margin-left":-51*hRate + "px","margin-top":-51*hRate + "px"});
+		          $(".mDivide_con_block3 h5,.mDivide_con_block4 h5").css({"margin":20*wRate + "px","font-size":20*wRate + "px"});
+		          $(".mDivide_con_block3 h3,.mDivide_con_block4 h3").css({"margin-top":30*wRate + "px","font-size":38*wRate + "px"});
+		          $(".mDivide_con_block3 h3 span, .mDivide_con_block4 h3 span").css({"margin-left":5*wRate + "px","font-size":38*wRate + "px"});
+		          $(".mDivide_con_input1").css({"height":150*hRate + "px"});
+		          $(".mDivide_con_input .mDivide_con_inputArea").eq(0).css({"margin-top":16*hRate + "px"});
+		          $(".mDivide_con_input .mDivide_btn").css({"margin-top":20*hRate + "px"});
+		          $(".mDivide_con_input1 .mDivide_btn").css({"margin-left":20*wRate + "px"});
+		          $(".mDivide_con_input .textbox").css({"height":30*hRate + "px"});
+		          $(".mDivide_con_input1 .textbox,.mDivide_head>P .textbox").css({"height":30*hRate + "px"});
+		          $(".mDivide_con_input,.mDivide_con_input1").css({"line-height":50*hRate + "px"});
+		          $(".mDivide_con_input .mDivide_con_inputArea,.mDivide_con_input1 .mDivide_con_inputArea").css({"line-height":50*wRate + "px"});
+		          $(".mDivide_con_dotPane").css({"bottom":20*hRate + "px"});
+		          $(".mDivide_con_dotPane ul>li").css({"width":36*hRate + "px","height":24*hRate + "px","line-height":24*hRate + "px","font-size":16*hRate + "px"});
+		          if($(window).width()<=1300 && $(window).width()>1184){
+		            $(".mDivide_con_inputArea").addClass("mDivide_con_inputArea1");
+		            $(".mDivide_con_input label,.mDivide_con_input1 label").css({"margin-right":20*hRate + "px","font-size":18*wRate + "px"});
+		            $(".mDivide_btn span").css({"font-size":20*hRate + "px","line-height":42*hRate + "px"});
+		            $(".mDivide_con_input .mDivide_con_inputArea").eq(0).css({"margin-top":20});
+		            $(".mDivide_con_input1").css({"width":500,"margin-left":-250});
+		            $(".mDivide_btn").css({"height":42*hRate + "px"});
+		            $(".mDivide_con_block1 span a,.mDivide_con_block2 span a,.mDivide_con_block5 span a").css({"font-size":32});
+		            $(".mDivide_con_input .mDivide_btn").css({"width":190});
+		            $(".mDivide_con_input1 .mDivide_btn").css({"width":190});
+		            $(".mDivide_con_wrap2").css({"height":322,"margin-right":18});
+		          }else if($(window).width()<=1184){
+		            $(".mDivide_con_inputArea").addClass("mDivide_con_inputArea1");
+		            $(".mDivide_con_input label,.mDivide_con_input1 label").css({"margin-right":20*hRate + "px","font-size":18*wRate + "px"});
+		            $(".mDivide_btn span").css({"font-size":20*hRate + "px","line-height":42*hRate + "px"});
+		            $(".mDivide_head .combo").css({"margin-right":14});
+		            $(".mDivide_con1, .mDivide_con2").css({"width":1100,"margin-top":5});
+		            $(".mDivide_con_wrap").css({"padding-top":10,"padding-left":24,"padding-bottom":5});
+		            $(".mDivide_con_outer").css({"height":260});
+		            $(".mDivide_con_block1, .mDivide_con_block2").css({"width":330,"height":120,"margin-bottom":0});
+		            $(".mDivide_con_input").css({"width":350,"height":120,"margin-bottom":0});
+		            $(".mDivide_con_input .mDivide_con_inputArea").eq(0).css({"margin-top":5});
+		            $(".mDivide_con_input .mDivide_btn").css({"margin-top":10,"width":190});
+		            $(".mDivide_con_input1 .mDivide_btn").css({"width":190,"top":-2});
+		            $(".mDivide_con_block1 span a,.mDivide_con_block2 span a,.mDivide_con_block5 span a").css({"font-size":28});
+		            $(".mDivide_con_block1 span, .mDivide_con_block2 span").css({"margin-left":20});
+		            $(".mDivide_con_wrap1").css({"margin-left":20});
+		            $(".mDivide_con_wrap2").css({"height":270,"margin-left":10});
+		            $(".mDivide_con_input1").css({"width":500,"margin-left":-250});
+		            $(".mDivide_btn").css({"height":42*hRate + "px"});
+		            $(".mDivide_con_dotPane").css({"bottom":16});
+		          }
+		        }
+		        if(wRate!=1 && hRate!=1){
+		          adaptWin();  
+		        }
+			});
+			function push(){
+				var pciId = $('#theFundingParty').combobox('getValue');
+				console.log(pciId);
+				$.ajax({                                                             
+					url : "accountLoginList/getPaymentCardInfo",                     
+					type : "post",                                                   
+					data : {                                                         
+						id : pciId                                            
+					},                                                               
+					success : function(result) {                                     
+						console.log(result);                                         
+						$('#totalAmount').html(result.totalAmount); //系统总余额   
+						$('#availableBalance').html(result.balance);  //银行总余额
+						$('#cashAmount').html(result.cashAmount);  //可分配额度
+/* 						$('#cashAmount').textbox('readonly');   */
+/* 						$('#totalAmount').textbox('readonly');   */                      
+/* 						$('#availableBalance').textbox('readonly'); */
+						var orgs = result.orgs; //组织数组    对象里面的属性 cashAmount 组织余额 ;orgName 组织名; orgAccountId 组织资金账号
+						var orgGroup = [],orgArray = [],step = 0,nums = 2,currentPage = 0;
+						var orgsLen = orgs.length%2 == 0 ? parseInt(orgs.length/2):parseInt(orgs.length/2)+1;
+						function renderOrgs(currentArray){
+							if(currentArray[0]){
+								$(".mDivide_orgs").eq(0).find("h5").html(currentArray[0].orgName);
+								$(".mDivide_orgs").eq(0).find("h3 span").html(currentArray[0].cashAmount);
+							}else{
+								$(".mDivide_orgs").eq(0).find("h5").html("---");
+								$(".mDivide_orgs").eq(0).find("h3 span").html("0.00");
+							}
+							if(currentArray[1]){
+								$(".mDivide_orgs").eq(1).find("h5").html(currentArray[1].orgName);
+								$(".mDivide_orgs").eq(1).find("h3 span").html(currentArray[1].cashAmount);
+							}else{
+								$(".mDivide_orgs").eq(1).find("h5").html("---");
+								$(".mDivide_orgs").eq(1).find("h3 span").html("0.00");
+							}
+						}
+						for(var a = 0;a<orgsLen;a++){
+							orgGroup = [];
+							for(step;step<nums;step++){
+								if(orgs[step]){
+								   orgGroup.push(orgs[step]);
+								}
+							}
+							nums = nums+2;
+							orgArray.push(orgGroup);
+						}
+						$(".mDivide_con_dotPane").find("ul").empty();
+						if(orgsLen>0){
+							for(var i=0;i<orgsLen;i++){
+								var li = $('<li></li>');
+								if(i == 0){
+									li.addClass("mDivide_slcLi");
+								}
+								li.html(i+1);
+								$(".mDivide_con_dotPane").find("ul").append(li);
+							}
+							renderOrgs(orgArray[currentPage]);
+						}
+						$(".mDivide_con_dotPane").find("li").each(function(){
+							$(this).click(function(){
+								$(".mDivide_con_dotPane").find("li").removeClass("mDivide_slcLi");
+								currentPage = $(this).html()-1;
+								$(this).addClass("mDivide_slcLi");
+								renderOrgs(orgArray[currentPage]);
+							});
+						});
+						$('#orgs').combobox({                          
+						    data : orgs,         
+						    valueField : 'orgAccountId',                                 
+						    textField : 'orgName',
+						    cashAmount : 'cashAmount', 
+						    editable : false,                                     
+						    onLoadSuccess : function(){
+						    	var rows = $('#orgs').combobox('getData');
+						    	if(rows.length>0){
+						    		$('#orgs').combobox('select',rows[0].orgAccountId); 
+						    	}
+						    },
+						    onSelect : function(record){
+						    	console.log(record);
+						    	orgAccountId = record.orgAccountId;
+						    	$('#orgAmount').textbox('setValue', record.cashAmount); //系统总余额   
+						    	$('#orgAmount').textbox('readonly');  
+						    }
+						});                                                       
+						allocationToken = result.allocationToken;                    
+						rechargeToken = result.rechargeToken;                        
+					},                                                               
+					error : function(jqXHR, textStatus, errorThrown) {               
+						$.messager.alert('提示', '操作失败', 'error');                     
+					}                                                                
+				});                                                                  
+			}
+			//充值
+			function recharge() {
+				var rechargeAmount = $('#rechargeAmount').textbox("getValue");
+				var bankSn = $('#bankSn').textbox("getValue");
+				if (rechargeAmount == '') {
+					$.messager.alert('提示', '操作失败!金额不能为空', 'error');
+					return;
+				}
+				if (bankSn == '') {
+					$.messager.alert('提示', '操作失败!银行流水号不能为空', 'error');
+					return;
+				}
+				if (isNaN(rechargeAmount)) {
+					$.messager.alert('提示', '操作失败!金额必须是数字', 'error');
+					return;
+				}
+				if(rechargeToken == null || accountId == null){
+					$.messager.alert('提示', '操作失败!请刷新本页面', 'error');
+					return;
+				}
+				$.ajax({
+					url : "accountLoginList/accountRecharge",
+					type : "post",
+					data : {
+						rechargeAmount : rechargeAmount,
+						bankSn : bankSn,
+						rechargeToken : rechargeToken,
+						accountId : accountId
+					},
+					success : function(result) {
+						console.log(result);
+						if(result.success=='Y'){
+							$.messager.alert('提示', '操作成功!', 'info');
+							$('#rechargeAmount').textbox("reset");
+							$('#bankSn').textbox("reset");
+							push();
+						}else{
+							$.messager.alert('提示', result.errorMsg, 'info');
+							rechargeToken = result.rechargeToken;
+						}
+					},
+					error : function(jqXHR, textStatus, errorThrown) {
+						$.messager.alert('提示', '操作失败', 'error');
+					}
+				});
+			}
+			//分配额度
+			function allocation() {
+				var allocationsAmount = $('#allocationsAmount').textbox("getValue");
+				var cashAmount = $('#cashAmount').html();  //可分配额度
+				if (allocationsAmount == '') {
+					$.messager.alert('提示', '操作失败!金额不能为空', 'error');
+					return;
+				}
+				if (isNaN(allocationsAmount)) {
+					$.messager.alert('提示', '操作失败!金额必须是数字', 'error');
+					return;
+				}
+				if(parseFloat(allocationsAmount) > parseFloat(cashAmount)){
+					$.messager.alert('提示', '操作失败!分配金额大于可分配金额', 'error');
+					return;
+				}
+				if(allocationToken == null || accountId == null){
+					$.messager.alert('提示', '操作失败!请刷新本页面', 'error');
+					return;
+				}
+				if(allocationToken == null || accountId == null){
+					$.messager.alert('提示', '操作失败!改组织没账号不能分配额度', 'error');
+					return;
+				}
+				$.ajax({
+					url : "accountLoginList/allocation",
+					type : "post",
+					data : {
+						allocationsAmount : allocationsAmount,
+						orgAccountId : orgAccountId,
+						allocationToken : allocationToken,
+						accountId : accountId
+					},
+					success : function(result) {
+						//console.log(result);
+						if(result.success=='Y'){
+							$.messager.alert('提示', '操作成功!', 'info');
+							$('#allocationsAmount').textbox("reset");
+							push();
+						}else{
+							$.messager.alert('提示', result.errorMsg, 'info');
+							allocationToken = result.allocationToken;
+						}
+					},
+					error : function(jqXHR, textStatus, errorThrown) {
+						$.messager.alert('提示', '操作失败', 'error');
+					}
+				});
+			}
+		</script>
+<title>客户帐号</title>
+</head>
+<body style="background: #F9F2F2; padding: 0;" id="recharge">
+	<nav class="mDivide_head">
+		<p>
+			<span>资金方：</span> <input id="theFundingParty" type="text"
+				name="availableBalance" class="easyui-textbox" />
+		</p>
+	</nav>
+	<section class="mDivide_con1">
+		<div class="mDivide_con_nav">
+			<img src="../../images/mDivide/bar.png" alt="bar" width="38px" height="9px"
+				style="margin-right: 10px;" /> 资金方账号信息
+		</div>
+		<div class="mDivide_con_wrap">
+			<div class="mDivide_con_block1">
+				<div class="mDivide_con_title">系统账户余额</div>
+				<span>¥<a id="totalAmount">0.00</a></span>
+				<div class="mDivide_con_imgBox">
+					<img src="../../images/mDivide/zhanghuyue.png" alt="icon1" width="100%"
+						height="100%" />
+				</div>
+			</div>
+			<div class="mDivide_con_block2">
+				<div class="mDivide_con_title">银行卡余额</div>
+				<span>¥<a id="availableBalance">0.00</a></span>
+				<div class="mDivide_con_imgBox">
+					<img src="../../images/mDivide/yinhangka.png" alt="icon1" width="100%"
+						height="100%" />
+				</div>
+			</div>
+			<div class="mDivide_con_input">
+				<div class="mDivide_con_inputArea">
+					<label>充值金额</label> <input id="rechargeAmount" type="text"
+						name="rechargeAmount" class="easyui-numberbox"
+						data-options="min:0,precision:2" />
+				</div>
+				<div class="mDivide_con_inputArea">
+					<label>银行流水</label> <input id="bankSn" name="bankSn"
+						class="easyui-textbox" />
+				</div>
+				<a class="easyui-linkbutton mDivide_btn" onclick="recharge();">充值</a>
+			</div>
+		</div>
+	</section>
+	<section class="mDivide_con2">
+		<div class="mDivide_con_nav">
+			<img src="../../images/mDivide/bar.png" alt="bar" width="38px" height="9px"
+				style="margin-right: 10px;" /> 回收商系统账号余额
+		</div>
+		<div class="mDivide_con_outer">
+			<div class="mDivide_con_wrap1">
+				<div class="mDivide_con_block3 mDivide_orgs">
+					<h5>---</h5>
+					<h3>
+						¥<span>0.00</span>
+					</h3>
+					<div class="mDivide_con_iconBox">
+						<div class="mDivide_con_icon">
+							<img src="../../images/mDivide/2.png" alt="icon2" width="100%"
+								height="100%" />
+						</div>
+						<label class="icon_triangle"></label>
+					</div>
+				</div>
+				<div class="mDivide_con_block4 mDivide_orgs">
+					<h5>---</h5>
+					<h3>
+						¥<span>0.00</span>
+					</h3>
+					<div class="mDivide_con_iconBox">
+						<div class="mDivide_con_icon">
+							<img src="../../images/mDivide/1.png" alt="icon1" width="100%"
+								height="100%" />
+						</div>
+						<label class="icon_triangle"></label>
+					</div>
+				</div>
+				<div class="mDivide_con_dotPane">
+					<ul>
+						<li class="easyui-linkbutton">1</li>
+						<li class="easyui-linkbutton">2</li>
+						<li class="easyui-linkbutton">3</li>
+					</ul>
+				</div>
+			</div>
+			<div class="mDivide_con_wrap2">
+				<div class="mDivide_con_block5">
+					<div class="mDivide_con_title">可分配金额</div>
+					<span>¥<a id="cashAmount">0.00</a></span> <img
+						src="../../images/mDivide/kefenpeiyue.png" alt="icon1" width="100%"
+						height="100%" />
+				</div>
+				<div class="mDivide_con_input1">
+					<div class="mDivide_con_inputArea">
+						<label>分配组织</label> <input id="orgs" type="text" name="orgs"
+							class="easyui-textbox" />
+					</div>
+					<div class="mDivide_con_inputArea">
+						<label>分配金额</label> <input id="allocationsAmount" type="text"
+							name="allocationsAmount" class="easyui-numberbox"
+							data-options="min:0,precision:2" /> <a
+							class="easyui-linkbutton mDivide_btn" onclick="allocation();">分配额度</a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</section>
+</body>
+</html>
+<style>
+.mDivide_head, .mDivide_con1, .mDivide_con2 {
+	position: relative;
+	width: 94%;
+	margin: 0 auto;
+	overflow: hidden;
+}
+
+.mDivide_head {
+	height: 50px;
+}
+
+.mDivide_head>P {
+	margin-top: 10px;
+	float: right;
+}
+
+.mDivide_head .combo {
+	margin-right: 0;
+}
+
+.mDivide_con1, .mDivide_con2 {
+	background: #FFF;
+}
+
+.mDivide_con1 {
+	margin-bottom: 20px;
+}
+
+.mDivide_con_nav {
+	width: 100%;
+	height: 40px;
+	line-height: 40px;
+	padding-left: 20px;
+	color: #808080;
+	font-size: 16px;
+	font-weight: bold;
+	border-bottom: 1px solid #ECECEC;
+}
+
+.mDivide_con_wrap {
+	width: 100%;
+	padding: 20px 20px 0 20px;
+}
+
+.mDivide_con_block1, .mDivide_con_block2, .mDivide_con_input {
+	display: inline-block;
+	height: 210px;
+	margin-bottom: 10px;
+	line-height: 210px;
+}
+
+.mDivide_con_block1, .mDivide_con_block2 {
+	position: relative;
+	width: 33%;
+	border-radius: 6px;
+}
+
+.mDivide_con_block1 span, .mDivide_con_block2 span {
+	float: left;
+	color: #FFF;
+	font-size: 40px;
+	font-weight: bold;
+	margin-left: 50px;
+}
+
+.mDivide_con_block5 span {
+	color: #FFF;
+	font-size: 40px;
+	font-weight: bold;
+}
+
+.mDivide_con_block1 span a, .mDivide_con_block2 span a,
+	.mDivide_con_block5 span a {
+	font-size: 40px;
+	margin-left: 5px;
+	color: #FFF !important;
+}
+
+.mDivide_con_block1 {
+	margin-right: 24px;
+	background: #6a8bbd;
+}
+
+.mDivide_con_block2 {
+	margin-right: 24px;
+	background: #ff8472;
+}
+
+.mDivide_con_title {
+	position: absolute;
+	top: 16px;
+	width: 240px;
+	height: 30px;
+	line-height: 30px;
+	font-size: 18px;
+	text-align: left;
+	text-indent: 20px;
+	color: #FFF;
+	border-radius: 0 20px 20px 0;
+}
+
+.mDivide_con_block1 .mDivide_con_imgBox {
+	position: absolute;
+	width: 137px;
+	height: 121px;
+	top: 50%;
+	right: 20px;
+	margin-top: -60px;
+}
+
+.mDivide_con_block2 .mDivide_con_imgBox {
+	position: absolute;
+	width: 123px;
+	height: 103px;
+	top: 50%;
+	right: 20px;
+	margin-top: -51px;
+}
+
+.mDivide_con_input {
+	width: 28%;
+	overflow: hidden;
+	border: 1px solid #E9E9E9;
+}
+
+.mDivide_con_outer {
+	height: 440px;
+}
+
+.mDivide_con_wrap1 {
+	position: relative;
+	width: 35%;
+	float: left;
+	margin: 20px 0 0 20px;
+	padding-bottom: 60px;
+}
+
+.mDivide_con_wrap2 {
+	position: relative;
+	width: 60%;
+	float: right;
+	margin: 20px 30px 0 20px;
+	height: 400px;
+	border-radius: 6px;
+	border: 1px solid #E5E5E5;
+}
+
+.mDivide_con_block3, .mDivide_con_block4 {
+	position: relative;
+	width: 100%;
+	height: 170px;
+	border-radius: 0 6px 6px 0;
+	border: 1px solid #E9E9E9;
+}
+
+.mDivide_con_block3:nth-child(1) {
+	margin-bottom: 20px;
+}
+
+.mDivide_con_dotPane {
+	position: absolute;
+	left: 50%;
+	bottom: 20px;
+	transform: translateX(-50%);
+	-webkit-transform: translateX(-50%);
+	-ms-transform: translateX(-50%);
+	-moz-transform: translateX(-50%);
+	-o-transform: translateX(-50%);
+}
+
+.mDivide_con_dotPane ul {
+	margin: 0;
+	padding: 0;
+}
+
+.mDivide_con_dotPane ul>li {
+	display: inline-block;
+	width: 36px;
+	height: 24px;
+	text-align: center;
+	font-size: 16px;
+	line-height: 24px;
+	color: #FFF;
+	cursor: pointer;
+	margin-right: 5px;
+	border-radius: 6px;
+	background: #49C9CA;
+}
+
+.mDivide_slcLi {
+	background: #F78374 !important;
+}
+
+.mDivide_con_block5 {
+	position: absolute;
+	height: 150px;
+	background: #49C9CA;
+	top: -1px;
+	left: -1px;
+	right: -1px;
+	border-radius: 6px 6px 0 0;
+	border: 1px solid #49C9CA;
+	line-height: 150px;
+	text-align: center;
+}
+
+.mDivide_con_block5 img {
+	position: absolute;
+	width: 64px;
+	height: 64px;
+	bottom: -40px;
+	left: 50%;
+	margin-left: -32px;
+}
+
+.mDivide_con_iconBox {
+	position: absolute;
+	width: 45%;
+	right: -1px;
+	top: -1px;
+	bottom: -1px;
+}
+
+.icon_triangle {
+	display: block;
+	position: absolute;
+	top: 50%;
+	left: -1px;
+	width: 0;
+	height: 0;
+	transform: translateY(-50%);
+	-webkit-transform: translateY(-50%);
+	-ms-transform: translateY(-50%);
+	-moz-transform: translateY(-50%);
+	-o-transform: translateY(-50%);
+	border-top: 10px solid transparent;
+	border-left: 15px solid #FFF;
+	border-bottom: 10px solid transparent;
+}
+
+.mDivide_con_block3 .mDivide_con_iconBox {
+	background: #F8D347;
+	border: 1px solid #F8D347;
+}
+
+.mDivide_con_block4 .mDivide_con_iconBox {
+	background: #83B9DB;
+	border: 1px solid #83B9DB;
+}
+
+.mDivide_con_icon {
+	position: absolute;
+	width: 102px;
+	height: 102px;
+	top: 50%;
+	left: 50%;
+	margin-left: -51px;
+	margin-top: -51px;
+}
+
+.mDivide_con_block3 h5, .mDivide_con_block4 h5 {
+	margin: 20px;
+	font-size: 20px;
+	color: #888888;
+}
+
+.mDivide_con_block3 h3 {
+	color: #F8D347;
+	font-size: 38px;
+	width: 55%;
+	text-align: center;
+	margin-top: 30px;
+}
+
+.mDivide_con_block4 h3 {
+	color: #83B9DB;
+	font-size: 38px;
+	width: 55%;
+	text-align: center;
+	margin-top: 30px;
+}
+
+.mDivide_con_block3 h3 span, .mDivide_con_block4 h3 span {
+	font-size: 38px;
+	margin-left: 5px;
+}
+
+.mDivide_con_block1 .mDivide_con_title {
+	background: #6280ac;
+}
+
+.mDivide_con_block2 .mDivide_con_title {
+	background: #f67461;
+}
+
+.mDivide_con_block5 .mDivide_con_title {
+	background: #49babb;
+}
+
+.mDivide_con_input, .mDivide_con_input1 {
+	text-align: center;
+	color: #808080;
+	font-weight: bold;
+	line-height: 50px;
+}
+
+.mDivide_con_input1 {
+	width: 650px;
+	height: 150px;
+	text-align: left;
+	overflow: hidden;
+	position: absolute;
+	left: 50%;
+	margin-left: -325px;
+	bottom: 0;
+}
+
+.mDivide_con_input label, .mDivide_con_input1 label {
+	margin-right: 20px;
+	font-size: 18px;
+}
+
+.mDivide_btn {
+	width: 270px;
+	height: 42px;
+	background: #49c9ca;
+	font-size: 20px;
+	border-radius: 6px;
+}
+
+.mDivide_con_input .mDivide_btn {
+	margin-top: 20px;
+}
+
+.mDivide_con_input1 .mDivide_btn {
+	position: relative;
+	top: -5px;
+	margin-left: 20px;
+}
+
+.mDivide_btn span {
+	font-size: 20px;
+	line-height: 42px;
+}
+
+.mDivide_con_inputArea .textbox {
+	width: 180px !important;
+	height: 30px !important;
+}
+
+.mDivide_con_input .mDivide_con_inputArea:nth-child(1) {
+	margin-top: 14px;
+}
+
+.mDivide_con_input1 .mDivide_con_inputArea .textbox {
+	width: 240px !important;
+	height: 30px !important;
+}
+
+.mDivide_con_input1 .mDivide_con_inputArea .combo {
+	width: 220px !important;
+}
+
+.mDivide_con_inputArea1 .textbox {
+	width: 130px !important;
+	height: 24px !important;
+}
+
+.mDivide_con_input1 .mDivide_con_inputArea1 .textbox {
+	width: 190px !important;
+	height: 24px !important;
+}
+
+.mDivide_con_input1 .mDivide_con_inputArea1 .combo {
+	width: 170px !important;
+}
+</style>

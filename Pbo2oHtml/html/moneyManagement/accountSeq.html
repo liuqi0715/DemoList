@@ -1,0 +1,361 @@
+
+
+<!DOCTYPE HTML>
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="../../themes/default/easyui.css">
+<link rel="stylesheet" type="text/css" href="../../themes/icon.css">
+<link rel="stylesheet" type="text/css" href="../../themes/demo.css">
+<script type="text/javascript" src="../../js/jquery.min.js"></script>
+<script type="text/javascript" src="../../js/jquery.easyui.min.js"></script>
+<script type="text/javascript" src="../../js/datagrid-detailview.js"></script>
+<script type="text/javascript" src="../../js/locale/easyui-lang-zh_CN.js"></script>
+<script type="text/javascript" src="../global.js"></script>
+<script type="text/javascript">
+var url;
+/*这是注释*/
+$(function () {	
+	/* 账号资金变动 */	
+	$('#province').combobox({
+        valueField:'PROVINCE_ID', //值字段
+        textField:'PROVINCE_NAME', //显示的字段
+        url:'getAllProvince',
+        editable:false,//不可编辑，只能选择
+        width:'100',
+        value:'--请选择--',
+        onSelect:function(){
+        	/* push(); */
+        	var province = $(this).combobox('getValue');
+            $('#city').combobox({
+            valueField:'CITY_ID', 
+            textField:'CITY_NAME',
+            url:'getCityByProvinceId?provinceId='+province,
+            required:true,
+            editable:false,//不可编辑，只能选择
+            value:'--请选择--' 
+          }); 
+        },
+     });
+	$('#city').combobox({
+        editable:false,
+        width:'100',
+        value:'请先选择省份',
+       	onSelect:function(){
+        	var city = $(this).combobox('getValue');
+            $('#area').combobox({
+            valueField:'AREA_ID', 
+            textField:'AREA_NAME',
+            url:'getAreaByCityId?cityId='+city,
+            required:true,
+            editable:false,//不可编辑，只能选择
+            value:'--请选择--'
+           });
+       	},
+     	onLoadSuccess:function(){
+       		$('#area').combobox({
+		 		width:'100',
+		 		editable:false,
+       			value:'请先选择城市',
+       			
+			});
+    	}
+     });
+	$('#area').combobox({
+	 		width:'100',
+	 		editable:false,
+	 		value:'请先选择城市',
+        onSelect:function(){
+        	/* push(); */
+        	var areaId = $(this).combobox('getValue');
+            $('#street').combobox({
+                valueField:'ST_ID', 
+                textField:'ST_NAME',
+                url:'getStreetByArea?areaId='+areaId,
+                required:true,
+                editable:false,//不可编辑，只能选择
+                value:'--请选择--' 
+          }); 
+        },
+     	onLoadSuccess:function(){
+       		$('#street').combobox({
+		 		width:'100',
+		 		editable:false,
+       			value:'请先选择区/县',
+       			
+			});
+    	}
+	});		
+	$('#accountTypeName').combobox({
+ 		width:'80',
+        valueField:'value', //值字段
+        textField:'label', //显示的字段
+        editable:false,//不可编辑，只能选择
+        value:'--请选择--',
+        data: [{
+			label: '客户',
+			value: '1'
+		},{
+			label: '内部人员',
+			value: '2'
+		}]
+        
+     });
+	$('#seqFlag').combobox({
+ 		width:'80',
+        valueField:'value', //值字段
+        textField:'label', //显示的字段
+        editable:false,//不可编辑，只能选择
+        value:'--请选择--',
+        data: [{
+			label: '来帐',
+			value: '0'
+		},{
+			label: '往帐',
+			value: '1'
+		}]
+        
+     });
+	
+	$('#changeType').combobox({
+ 		width:'80',
+        valueField:'value', //值字段
+        textField:'label', //显示的字段
+        editable:false,//不可编辑，只能选择
+        value:'--请选择--',
+        data: [{
+			label: '预付',
+			value: '2'
+		},{
+			label: '结算',
+			value: '3'
+		},{
+			label: '退款',
+			value: '4'
+		},{
+			label: '充值',
+			value: '7'
+		},{
+			label: '手续费',
+			value: '6'
+		},{
+			label: '分配额度',
+			value: '1'
+		},{
+			label: '内部调账',
+			value: '5'
+		}]
+     });
+	
+	$('#start').datebox({    
+	    width:'100px',
+	    onSelect:function(start){
+	    	var now = new Date();
+	    	if(start > now){
+	    		$.messager.alert('提示','操作失败!日期不能超过当前时间','error');
+	    		$('#start').datebox('setValue','');
+	    	}
+	    	
+ 		}
+	});
+
+	$('#end').datebox({    
+	    width:'100px',
+	    onSelect:function(date){
+	    	var now = new Date();
+	    	if(date > now){
+	    		$.messager.alert('提示','操作失败!日期不能超过当前时间','error');
+	    		$('#end').datebox('setValue','');
+	    	}
+	    	var start = $('#start').datebox('getValue');
+	    	var end = $('#end').datebox('getValue');
+	    	if(start>end){
+	    		$.messager.alert('提示','操作失败!起始时间不能晚于结束时间','error');
+	    		$('#end').datebox('setValue','');
+	    	}
+ 		}
+	});	
+	var tableH = Math.max(document.documentElement.scrollHeight,document.body.scrollHeight)-($('#dg').offset().top+10);
+    $('#dg').datagrid({
+    	iconCls: 'icon-save',
+    	width: "100%",
+    	height:tableH,
+        nowrap: true,
+        autoRowHeight: false,
+        striped: true,
+        collapsible: true,
+        url: 'accountSeq/searchaccountSeq',
+        remoteSort: false,
+        rownumbers:true,
+    	singleSelect:true,
+    	idField: "sn",  
+        columns: [[    
+            { field: 'Sn', title: '账户资金变动流水号', width: 200, align:'center'},
+            { field: 'accountId', title: '账户ID', width: 100, align:'center' ,hidden:true},
+            { field: 'accountTypeName', title: '账户类型', width: 100, align:'center'},
+            { field: 'custId', title: '客户编号', width: 100, align:'center',hidden:true},
+            { field: 'custName', title: '用户名', width: 100, align:'center'  },
+            { field: 'seqFlagName', title: '帐务变动方向', width: 100, align:'center'  },
+            { field: 'changeTypeName', title: '交易类型', width: 100, align:'center'  },
+            { field: 'Amount', title: '来往金额', width: 100, align:'center' ,formatter: function (value, row, index) {
+                if (row != null) {
+                    return (parseFloat(value).toFixed(2) + '').replace(/\d{1,3}(?=(\d{3})+(\.\d*)?$)/g, '$&,');
+              }
+              } },
+            { field: 'preAmount', title: '变动前总金额', width: 100, align:'center' ,formatter: function (value, row, index) {
+                if (row != null) {
+                    return (parseFloat(value).toFixed(2) + '').replace(/\d{1,3}(?=(\d{3})+(\.\d*)?$)/g, '$&,');
+              }
+              } },
+            { field: 'aftAmount', title: '变动后总金额', width: 100, align:'center',formatter: function (value, row, index) {
+                if (row != null) {
+                    return (parseFloat(value).toFixed(2) + '').replace(/\d{1,3}(?=(\d{3})+(\.\d*)?$)/g, '$&,');
+              }
+              }},
+            { field: 'preCashAmount', title: '变动前可用金额', width: 100, align:'center' ,formatter: function (value, row, index) {
+                if (row != null) {
+                    return (parseFloat(value).toFixed(2) + '').replace(/\d{1,3}(?=(\d{3})+(\.\d*)?$)/g, '$&,');
+              }
+              } },
+            { field: 'aftCashAmount', title: '变动后可用金额', width: 100, align:'center' ,formatter: function (value, row, index) {
+                if (row != null) {
+                    return (parseFloat(value).toFixed(2) + '').replace(/\d{1,3}(?=(\d{3})+(\.\d*)?$)/g, '$&,');
+              }
+              } },
+            { field: 'preUncashAmount', title: '变动前冻结金额', width: 100, align:'center',formatter: function (value, row, index) {
+                if (row != null) {
+                    return (parseFloat(value).toFixed(2) + '').replace(/\d{1,3}(?=(\d{3})+(\.\d*)?$)/g, '$&,');
+              }
+              }  },
+            { field: 'aftUncashAmount', title: '变动后冻结金额', width: 100, align:'center',formatter: function (value, row, index) {
+                if (row != null) {
+                    return (parseFloat(value).toFixed(2) + '').replace(/\d{1,3}(?=(\d{3})+(\.\d*)?$)/g, '$&,');
+              }
+              } },
+            { field: 'preLiquidatedDamages', title: '变动前违约金额', width: 100, align:'center',formatter: function (value, row, index) {
+                if (row != null) {
+                    return (parseFloat(value).toFixed(2) + '').replace(/\d{1,3}(?=(\d{3})+(\.\d*)?$)/g, '$&,');
+              }
+              }  },
+            { field: 'aftLiquidatedDamages', title: '变动后违约金额', width: 100, align:'center' ,formatter: function (value, row, index) {
+                if (row != null) {
+                    return (parseFloat(value).toFixed(2) + '').replace(/\d{1,3}(?=(\d{3})+(\.\d*)?$)/g, '$&,');
+              }
+              } },
+            { field: 'businessSn', title: '交易流水号', width: 200, align:'center'  },
+            { field: 'createTime', title: '创建时间', width: 150, align:'center'  },
+            { field: 'Note', title: '备注', width: 100, align:'center'  },
+            { field: 'workDate', title: '会计日期', width: 150, align:'center'  },
+        ]],
+        pagination: true,
+    	pageSize : 40, 
+    	pageList : [ 40, 80, 120],
+  		toolbar: [
+			{
+    			id: 'total',
+   				text: '<div>总来往金额(元)：<input  style="display:none;border:0px;" readonly="readonly" id="totalMoney"></div>',
+			}
+		   ],
+			onLoadSuccess: function(data){
+				if(data.totalMoney!=null){
+				document.getElementById("totalMoney").style.display= "";
+				     $('#totalMoney').val(data.totalMoney);
+				}
+			}
+    });
+});
+
+function doSearch() {
+	/* var province = $('#province').combobox('getValue');
+	var city = $('#city').combobox('getValue');
+	var area = $('#area').combobox('getValue'); */
+	var custName = $('#custName').textbox("getValue");
+	var accountTypeName = $('#accountTypeName').textbox("getValue");
+	var seqFlag = $('#seqFlag').combobox('getValue'); 
+	var changeType = $('#changeType').combobox('getValue');
+	var start = $('#start').datebox('getValue');
+	var end = $('#end').datebox('getValue');
+	var areaId;
+	/* if (province == "--请选择--" || province == "") {
+		province = "isEmpty";
+	}else{
+		areaId = province;
+	}
+	if (city != "--请选择--" && city != "请先选择省份" && city != "") {
+		areaId = city;
+	}
+	if (area != "--请选择--" && area != "请先选择城市" && area != "") {
+		areaId = area;
+	} */
+	if (custName != "") {
+		custName = custName;
+	}else{
+		custName ="isEmpty";
+	}
+	if (accountTypeName != "--请选择--" &&  accountTypeName != "") {
+		accountTypeName = accountTypeName;
+	}else{
+		accountTypeName ="isEmpty";
+	}
+	if (seqFlag != "--请选择--" &&  seqFlag != "") {
+		seqFlag = seqFlag;
+	}else{
+		seqFlag ="isEmpty";
+	}
+	if (changeType != "--请选择--" &&  changeType != "") {
+		changeType = changeType;
+	}else{
+		changeType ="isEmpty";
+	}
+	$('#dg').datagrid({
+		url: 'accountSeq/searchaccountSeq',
+		queryParams: {
+			areaId : areaId,
+			custName : custName,
+			accountTypeName:accountTypeName,
+			seqFlag : seqFlag,
+			changeType:changeType,
+			start:start,
+	    	end:end
+		},
+		toolbar: [
+			{
+	   			id: 'total',
+	  				text: '<div>总金额(元)：<input  style="display:none;border:0px;" readonly="readonly" id="totalMoney"></div>',
+			}
+		   ],
+			onLoadSuccess: function(data){
+				if(data.totalMoney!=null){
+				document.getElementById("totalMoney").style.display= "";
+				     $('#totalMoney').val(data.totalMoney);
+				}
+			}
+	});
+}
+
+</script>
+<title>账号资金变动交易流水</title>
+</head>
+<body>
+
+<div id="tb" style="margin-bottom:10px;">
+   	<form action=" " method="post" id="form1">
+   	<!-- <input id="province" name="province" >省<input id="city" name="city">市<input id="area" name="area">区
+		&nbsp;&nbsp;&nbsp; -->
+		<div class="inputArea1">
+			<label>用户名</label>：<input type="text" class="easyui-textbox" id="custName" name = "custName">
+			<label>账户类型</label>：<input type="text" class="easyui-combobox" id="accountTypeName" name = "accountTypeName">												
+			<label>变动方向</label>：<input id="seqFlag" name="seqFlag" class="easyui-combobox">
+			<label>交易类型</label>：<input id="changeType" name="changeType" class="easyui-combobox">
+		</div>
+		<div class="inputArea1">
+	  		<label>创建时间</label>：<input id="start" type="text"></input> 
+			<label style="margin-right: 14px; text-align: center;text-align-last: center;">至</label><input id="end" type="text"></input>
+			<a class="easyui-linkbutton" data-options="iconCls:'icon-search'" onclick="doSearch()">查询</a>
+			<a class="easyui-linkbutton" data-options="iconCls:'icon-reload'" onclick="$('#form1').form('clear');">清空</a>
+		</div>
+    </form>
+</div>
+
+<table id="dg" style="align:center"></table>		
+</body>
+</html>

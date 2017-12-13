@@ -1,0 +1,849 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="../../themes/default/easyui.css">
+<link rel="stylesheet" type="text/css" href="../../themes/icon.css">
+<link rel="stylesheet" type="text/css" href="../../themes/demo.css">
+<script type="text/javascript" src="../../js/jquery.min.js"></script>
+<script type="text/javascript" src="../../js/jquery.easyui.min.js"></script>
+<script type="text/javascript" src="../../js/locale/easyui-lang-zh_CN.js"></script>
+<script type="text/javascript" src="../global.js"></script>
+<script type="text/javascript">
+	$(document).ready(function(){
+		$("#submit").bind("click", function() {
+			submitSaveThird();
+		});
+		
+		$("#submitBank").bind("click", function() {
+			submitSave();
+		});	
+	}); 
+var hig=0,tableH = 0;
+var url;
+/*这是注释*/
+$(function () {	
+	
+	$('#province').combobox({
+		valueField:'provinceId', //值字段
+        textField:'provinceName', //显示的字段
+        url:'areaController/getAllProvince',
+        editable:false,//不可编辑，只能选择
+        width:'100',
+        value:'--请选择--',
+        onSelect:function(){
+        	/* push(); */
+        	var province = $(this).combobox('getValue');
+            $('#city').combobox({
+                valueField:'cityId', 
+                textField:'cityName',
+                url:'areaController/getCityByProvinceId?provinceId='+province,
+            required:true,
+            editable:false,//不可编辑，只能选择
+            value:'--请选择--' 
+          }); 
+        },
+     });
+	$('#city').combobox({
+        editable:false,
+        width:'100',
+        value:'请选择省份',
+       	onSelect:function(){
+        	var city = $(this).combobox('getValue');
+            $('#area').combobox({
+                valueField:'areaId', 
+                textField:'areaName',
+                url:'areaController/getAreaByCityId?cityId='+city,
+            required:true,
+            editable:false,//不可编辑，只能选择
+            value:'--请选择--'
+           });
+       	},
+     	onLoadSuccess:function(){
+       		$('#area').combobox({
+		 		width:'100',
+		 		editable:false,
+       			value:'请先选择城市',
+       			
+			});
+    	}
+     });
+	$('#area').combobox({
+	 		width:'100',
+	 		editable:false,
+	 		value:'请先选择城市',
+        	onSelect:function(){
+        	/* push(); */
+        	var areaId = $(this).combobox('getValue');
+            $('#street').combobox({
+                valueField:'ST_ID', 
+                textField:'ST_NAME',
+                url:'getStreetByArea?areaId='+areaId,
+                required:true,
+                editable:false,//不可编辑，只能选择
+                value:'--请选择--' 
+          }); 
+        },
+     	onLoadSuccess:function(){
+       		$('#street').combobox({
+		 		width:'100',
+		 		editable:false,
+       			value:'请先选择区/县',
+       			
+			});
+    	}
+		});
+	
+	$('#start').datebox({    
+	    width:'100px',
+	    onSelect:function(start){
+	    	var now = new Date();
+	    	if(start > now){
+	    		$.messager.alert('提示','操作失败!日期不能超过当前时间','error');
+	    		$('#start').datebox('setValue','');
+	    	}
+	    	
+ 		}
+	});
+
+	$('#end').datebox({    
+	    width:'100px',
+	    onSelect:function(date){
+	    	var now = new Date();
+	    	if(date > now){
+	    		$.messager.alert('提示','操作失败!日期不能超过当前时间','error');
+	    		$('#end').datebox('setValue','');
+	    	}
+	    	var start = $('#start').datebox('getValue');
+	    	var end = $('#end').datebox('getValue');
+	    	if(start>end){
+	    		$.messager.alert('提示','操作失败!起始时间不能晚于结束时间','error');
+	    		$('#end').datebox('setValue','');
+	    	}
+ 		}
+	});
+
+	$('#property1').combobox({
+ 		width:'60',
+        valueField:'value', //值字段
+        textField:'label', //显示的字段
+        editable:false,//不可编辑，只能选择
+        value:'--请选择--',
+        data: [{
+			label: '个人',
+			value: '1'
+		},{
+			label: '企业',
+			value: '2'
+		}]
+     });
+	
+	
+	$('#accountType1').combobox({
+ 		width:'60',
+        valueField:'value', //值字段
+        textField:'label', //显示的字段
+        editable:false,//不可编辑，只能选择
+        value:'--请选择--',
+        data: [{
+			label: '客户',
+			value: '1'
+		},{
+			label: '内部人员',
+			value: '2'
+		}]
+     });
+	$('#state').combobox({
+ 		width:'60',
+        valueField:'value', //值字段
+        textField:'label', //显示的字段
+        editable:false,//不可编辑，只能选择
+        value:'--请选择--',
+        data: [{
+			label: '生效',
+			value: '1'
+		},{
+			label: '冻结',
+			value: '2'
+		},{
+			label: '注销',
+			value: '3'
+		}]
+     });
+	
+	$('#isDefault').combobox({
+		width:'80',
+        valueField:'value', //值字段
+        textField:'label', //显示的字段
+        editable:false,//不可编辑，只能选择
+        value:'--请选择--',
+        data: [{
+			label: '默认',
+			value: '1'
+		},{
+			label: '非默认',
+			value: '0'
+		}]
+     });
+     $('#bankState').combobox({
+  		 width:'80',
+         valueField:'value', //值字段
+         textField:'label', //显示的字段
+         editable:false,//不可编辑，只能选择
+         value:'--请选择--',
+         data: [{
+ 			label: '已解绑',
+ 			value: '1'
+ 		},{
+ 			label: '使用中',
+ 			value: '2'
+ 		},{
+ 			label: '已作废',
+ 			value: '3'
+ 		}]
+      });
+     $('#IsFouriemchecked').combobox({
+  		 width:'80',
+         valueField:'value', //值字段
+         textField:'label', //显示的字段
+         editable:false,//不可编辑，只能选择
+         value:'--请选择--',
+         data: [{
+ 			label: '未验证',
+ 			value: '0'
+ 		},{
+ 			label: '已验证',
+ 			value: '1'
+ 		}]
+      });
+     $('#isOnline').combobox({
+  		 width:'150',
+         valueField:'value', //值字段
+         textField:'label', //显示的字段
+         editable:false,//不可编辑，只能选择
+         value:'--请选择--',
+         data: [{
+ 			label: '可以线上支付',
+ 			value: '1'
+ 		},{
+ 			label: '不可以线上支付',
+ 			value: '2'
+ 		}]
+      });		
+	    
+	/*创建银行卡窗口 */
+	$('#addBank').dialog({
+		title: '新增银行卡',
+    	width:'500',
+    	height:'300',
+    	resizable:false, 
+    	closed:true,
+        minimizable: false,
+        maximizable: false,
+        collapsible: false,
+        onOpen:function(){
+			$.ajax({
+		        url: 'accountCustList/getToken',
+		        type: "post",
+		        success: function (text) {
+		        	console.log(text);
+		        	$('#accountCustList').val(text.accountCustList);
+		        	console.log($('#accountCustList').val());
+		        	
+		        },
+		        error: function (jqXHR, textStatus, errorThrown) {
+		        	$.messager.show({
+						title: 'Error',
+						msg: jqXHR.responseText
+					});
+		        }
+		    });
+        },
+	});
+	
+	/*创建第三方窗口 */
+	/* win = $('#addThird').dialog({
+		title: '新增第三方支付',
+    	width:'500',
+    	height:'300',
+    	resizable:false, 
+    	closed:true,
+        minimizable: false,
+        maximizable: false,
+        collapsible: false
+	}); */
+	$('#thirdType').combobox({
+ 		 width:'80',
+        valueField:'value', //值字段
+        textField:'label', //显示的字段
+        editable:false,//不可编辑，只能选择
+        value:'--请选择--',
+        data: [{
+			label: '微信',
+			value: '1'
+		},{
+			label: '支付宝',
+			value: '2'
+		},{
+			label: 'QQ',
+			value: '3'
+		}]
+     });
+	$('#thirdState').combobox({
+ 		 width:'80',
+        valueField:'value', //值字段
+        textField:'label', //显示的字段
+        editable:false,//不可编辑，只能选择
+        value:'--请选择--',
+        data: [{
+			label: '已解绑',
+			value: '1'
+		},{
+			label: '使用中',
+			value: '2'
+		},{
+			label: '已作废',
+			value: '3'
+		}]
+     });
+	
+	/*显示所有奖品*/
+	tableH = Math.max(document.documentElement.scrollHeight,document.body.scrollHeight)-($('#dg').offset().top+10);
+    $('#dg').datagrid({
+        iconCls: 'icon-save',
+        width: "100%",
+    	height:tableH,
+        nowrap: true,
+        onClickCell:function(index, field, value){ 
+        	if(0==hig){
+        		hig=tableH/2
+        	}
+  			check(index);
+  		},
+  		fitColumns:true,
+        autoRowHeight: false,
+        striped: true,
+        collapsible: true,
+        url: 'accountCustList/searchOfflineAccount',  	    
+        remoteSort: false,
+        rownumbers:true,
+    	singleSelect:true,
+    	idField: "Id",
+        columns: [[
+            { field: 'Id', title: '账户编号', width: 60 ,align:'center'},
+            { field: 'custId', title: '客户编号', width: 100, align:'center' },
+            { field: 'custName', title: '账户姓名', width: 100, align:'center'  },
+            { field: 'custPhone', title: '电话', width:120, align:'center' },
+            { field: 'Amount', title: '总金额', width: 100, align:'center' ,formatter: function (value, row, index) {
+                if (row != null) {
+                    return (parseFloat(value).toFixed(2) + '').replace(/\d{1,3}(?=(\d{3})+(\.\d*)?$)/g, '$&,');
+              }
+              } },
+            { field: 'cashAmount', title: '可用金额', width: 100, align:'center' ,formatter: function (value, row, index) {
+                if (row != null) {
+                    return (parseFloat(value).toFixed(2) + '').replace(/\d{1,3}(?=(\d{3})+(\.\d*)?$)/g, '$&,');
+              }
+              } },
+            { field: 'uncashAmount', title: '预付金额', width: 100, align:'center' ,formatter: function (value, row, index) {
+                if (row != null) {
+                    return (parseFloat(value).toFixed(2) + '').replace(/\d{1,3}(?=(\d{3})+(\.\d*)?$)/g, '$&,');
+              }
+              } },
+            { field: 'liquidatedDamages', title: '违约金额', width: 100, align:'center' ,formatter: function (value, row, index) {
+                if (row != null) {
+                    return (parseFloat(value).toFixed(2) + '').replace(/\d{1,3}(?=(\d{3})+(\.\d*)?$)/g, '$&,');
+              }
+              } },
+            { field: 'accountType', title: '账户类型', width: 100, align:'center'},
+            { field: 'Property', title: '账户性质', width: 100, align:'center'},
+            { field: 'State', title: '状态', width: 100, align:'center'  },
+            { field: 'Version', title: '校验码', width: 150, align:'center' ,hidden:true },
+            { field: 'createTime', title: '创建时间', width: 180, align:'center'  },
+            { field: 'lastUpdateTime', title: '最后修改时间', width: 180, align:'center'  },  
+        ]],
+        pagination: true,
+    	pageSize : 40, 
+    	pageList : [ 40, 80, 120],
+    	toolbar: [
+			{
+	   			id: 'total1',
+	  				text: '<div>总金额(元)：<input  style="display:none;border:0px;width:80px;" readonly="readonly" id="totalMoney"></div>',
+			},
+			{
+	   			id: 'total2',
+	  				text: '<div>可用金额 (元)：<input  style="display:none;border:0px;width:80px;" readonly="readonly" id="cashTotalMoney"></div>',
+			},
+			{
+	   			id: 'total3',
+	  				text: '<div>预付金额 (元)：<input  style="display:none;border:0px;width:80px;" readonly="readonly" id="uncashTotalMoney"></div>',
+			},
+			{
+	   			id: 'total4',
+	  				text: '<div>违约金额 (元)：<input  style="display:none;border:0px;width:80px;" readonly="readonly" id="liquidatedTotalMoney"></div>',
+			}
+		   ],
+			onLoadSuccess: function(data){
+				if(data.totalMoney!=null){
+				document.getElementById("totalMoney").style.display= "";
+				     $('#totalMoney').val(data.totalMoney);
+				}
+				if(data.totalMoney!=null){
+					document.getElementById("cashTotalMoney").style.display= "";
+					     $('#cashTotalMoney').val(data.cashTotalMoney);
+				}
+				if(data.uncashTotalMoney!=null){
+					document.getElementById("uncashTotalMoney").style.display= "";
+					     $('#uncashTotalMoney').val(data.uncashTotalMoney);
+				}
+				if(data.liquidatedTotalMoney!=null){
+					document.getElementById("liquidatedTotalMoney").style.display= "";
+					     $('#liquidatedTotalMoney').val(data.liquidatedTotalMoney);
+				}
+			}
+    });
+
+});
+
+function check(index){
+	$('#dg').datagrid('resize',{
+        height: hig,
+	});
+	$('#tt').panel('open');
+	$('#tt').tabs({
+        width: "100%",
+		height:hig-10,
+	    border:false,   
+	    onSelect:function(title){     
+	    }   
+	});
+	var toolbar = [];
+	if(verification("accountCustList","custAddBank")){
+		toolbar.push({
+				id: 'btnadd',
+				text: '新增银行卡',
+			    iconCls: 'icon-add',
+			    onClick: function () {
+					var accountId = $('#dg').datagrid("getRows")[index].Id;
+					$('#accountId').val(accountId);
+					var custName = $('#dg').datagrid("getRows")[index].custName;
+					$('#adCustName').textbox('setValue', custName).textbox('readonly');
+			    	$('#addBank').dialog('open');  				    	
+			    
+			    }
+		});
+	}
+$('#bankInfo').datagrid({
+    iconCls: 'icon-save',
+    width: "100%",
+	height: hig*0.9,
+	fitColumns:true,
+    url: 'accountCustList/selectBankInfo?accountId='+$('#dg').datagrid("getRows")[index].Id,
+    nowrap: true,
+    autoRowHeight: false,
+    striped: true,
+    collapsible: true,
+    sortName: 'CREATE_TIME',
+    sortOrder: 'desc',
+    remoteSort: false,
+    rownumbers:true,
+    checkOnSelect: true,
+    idField: "ID",
+    columns: [[
+              {field:'ID',title:'银行卡编号',width:70,align:'center'},
+              {field:'CUST_ID',title:'客户编号',width:50,align:'center',hidden:true},
+              {field:'CUST_NAME',title:'账户姓名',width:120,align:'center'},
+              {field:'IS_FOURIEMCHECKED',title:'是否四要素',width:100,align:'center'},
+              {field:'IS_ONLINE',title:'是否支持线上支付',width:110,align:'center'},
+              {field:'BANK_CARD_NO',title:'账号',width:150,align:'center'},
+              {field:'AT_BANK_PHONE',title:'银行预留手机号',width:150,align:'center'},
+              {field:'BANK_CARD_NAME',title:'户名',width:100,align:'center'},
+              {field:'ID_CARD',title:'身份证编号',width:150,align:'center'},
+              {field:'BANK_NAME',title:'开户行行名',width:100,align:'center'},
+              {field:'IS_DEFAULT',title:'是否默认',width:100,align:'center'},
+              {field:'ACCOUNT_ID',title:'账户ID',hidden:true,width:100,align:'center'},
+              {field:'BANK_CODE',title:'行号',width:100,align:'center'},
+              {field:'BANK_ADDR_NO',title:'开户行地区代码',width:100,align:'center'},
+              {field:'STATE',title:'状态',width:100,align:'center'},
+              {field:'CREATE_TIME',title:'创建时间',width:100,align:'center'},
+    ]],
+    pagination: false,
+    toolbar : toolbar
+});
+
+if(verification("accountCustList","custAddBank")){
+	 $("#submitBank").css("display","");
+}
+
+/* <%-- $('#thirdInfo').datagrid({
+    iconCls: 'icon-save',
+    width: "100%",
+	height: hig*0.9,
+	fitColumns:true,
+    url: 'accountLoginList/selectThirdInfo?accountId='+$('#dg').datagrid("getRows")[index].Id,
+    nowrap: true,
+    autoRowHeight: false,
+    striped: true,
+    collapsible: true,
+    sortName: 'CREATE_TIME',
+    sortOrder: 'desc',
+    remoteSort: false,
+    rownumbers:true,
+    checkOnSelect: true,
+    idField: "ID",
+    columns: [[
+              {field:'ID',title:'渠道编号',width:70,align:'center'},
+              {field:'CUST_ID',title:'客户编号',width:120,hidden:true},
+              {field:'CUST_NAME',title:'账户姓名',width:120},
+              {field:'ACCOUNT_ID',title:'账户ID',hidden:true,width:100},
+              {field:'ACCOUNT',title:'第三方支付账号',width:120},
+              {field:'TYPE',title:'类型',width:100},
+              {field:'PHONE',title:'预留手机号',width:100},
+              {field:'STATE',title:'状态',width:100},
+              {field:'CREATE_TIME',title:'创建时间',width:100},
+              {field:'QR_CODE',title:'2维码',width:100},
+              {field:'ACCOUNT2',title:'第三方支付号2',width:100},
+              
+    ]],
+    pagination: false,    
+    toolbar: [
+	    <%if(((Map<String, List<String>>)session.getAttribute("rolBtn")).get("customer").contains("addThird")){%>		
+			{
+    			id: 'btnadd1',
+    			text: '新增第三方支付',
+			    iconCls: 'icon-add',
+			    onClick: function () {
+			    	var custId = $('#dg').datagrid("getRows")[index].custId;
+					$('#custIdT').val(custId);
+					var accountId = $('#dg').datagrid("getRows")[index].Id;
+					$('#accountIdT').val(accountId);
+					var custName = $('#dg').datagrid("getRows")[index].custName;
+					$('#adCustNameT').textbox('setValue', custName).textbox('readonly');
+			    	$('#addThird').dialog('open');  				    				    
+			    }
+			 } ,
+		<%}%>
+		]	
+	}); --%> */
+}
+	function doSearch() {
+		var province = $('#province').combobox('getValue');
+		var city = $('#city').combobox('getValue');
+		var area = $('#area').combobox('getValue');
+		var start = $('#start').datebox('getValue');
+		var end = $('#end').datebox('getValue');
+		var custName = $('#custName').textbox("getValue");
+		var phoneName=$('#phoneName').textbox('getValue');
+		/* var accountType = $('#accountType1').combobox("getValue");
+		var property = $('#property1').combobox("getValue");
+		var state = $('#state').combobox("getValue"); */
+		var areaId;
+		if (province == "--请选择--" || province == "") {
+			province = "isEmpty";
+		} else {
+			areaId = province;
+		}
+		if (city != "--请选择--" && city != "请先选择省份" && city != "") {
+			areaId = city;
+		}
+		if (area != "--请选择--" && area != "请先选择城市" && area != "") {
+			areaId = area;
+		}
+		
+		/* if (accountType != "--请选择--" &&  accountType != "") {
+			accountType = accountType;
+		}else{
+			accountType ="isEmpty";
+		}
+		if (property != "--请选择--" &&  property != "") {
+			property = property;
+		}else{
+			property ="isEmpty";
+		}
+		if (state != "--请选择--" &&  state != "") {
+			state = state;
+		}else{
+			state ="isEmpty";
+		} */
+		$('#dg').datagrid('load',
+				{
+					areaId : areaId,
+					custName : custName,
+					/* accountType:accountType,
+					property:property,
+					state:state, */
+					start : start,
+					end : end,
+					phoneName : phoneName
+		});
+
+		
+		/* $('#dg').datagrid({
+			url : 'accountCustList/searchOfflineAccount',
+			queryParams : {
+				areaId : areaId,
+				custName : custName, */
+				/* accountType:accountType,
+				property:property,
+				state:state, */
+		/* 		start : start,
+				end : end,
+				phoneName : phoneName
+			}
+		}); */
+	}
+	
+	function submitSave() {
+		/*  var IsFouriemchecked = $('#IsFouriemchecked').textbox("getValue");
+		 var isDefault = $('#isDefault').textbox("getValue");
+		 var bankState = $('#bankState').textbox("getValue");
+		 var isOnline = $('#isOnline').textbox("getValue"); */
+		 var bankCardNo = $('#bankCardNo').textbox("getValue");
+		 var bankCardName = $('#bankCardName').textbox("getValue");
+		 var atBankPhone = $('#atBankPhone').textbox("getValue");
+		 var idCard = $('#idCard').textbox("getValue");
+		 if (bankCardNo == '') {
+			$.messager.alert('提示', '操作失败!账号不能为空', 'error');
+			return false;
+		}
+		if (bankCardName == '') {
+			$.messager.alert('提示', '操作失败!户名不能为空', 'error');
+			return false;
+		}
+		if (atBankPhone != '') {
+			if(!(/^1[3|4|5|8][0-9]\d{4,8}$/.test(atBankPhone))){ 
+		        $.messager.alert('提示', '不是完整的11位手机号或者正确的手机号前七位', 'error');
+		        $("#atBankPhone").focus();
+		        return false; 
+			}	
+		}										
+		if (idCard != '') {
+			if(idCard.length!=15 && idCard.length!=18 ){ 
+		        $.messager.alert('提示', '身份证输入不合法', 'error');
+		        $("#idCard").focus();
+		        return false; 
+			}
+		} 
+		
+		var formData = new FormData(document.getElementById("addBankForm"));
+			$.ajax({
+				url : "accountCustList/addBank",
+				type : "post",
+				data : formData,
+				dataType : "json",
+				success : function(data){
+					if (data.success =='Y'){
+						$('#addBank').dialog('close'); 
+						$.messager.alert('提示', '操作成功!', 'info');
+						$('#addBankForm').form('clear');
+						$('#bankInfo').datagrid('reload');
+					} else {
+						$.messager.alert('提示','操作失败!','info'); 
+					}
+				}
+			});	
+		/*  $('#addBankForm').form('submit', {
+				url : 'accountCustList/addBank',
+				onSubmit : function() {
+					return true;
+				},
+				success : function(result) {
+					//var result = result;
+					var result= eval('(' + result + ')');
+					console.log(result);
+					
+					if (result.success == 'Y') {
+						$('#addBank').dialog('close'); 
+						$.messager.alert('提示', '操作成功!', 'info');
+						$('#addBankForm').form('clear');
+						$('#bankInfo').datagrid('reload');
+					}  else {
+						$.messager.alert('提示','操作失败!','info'); 
+					}
+					
+				);  
+						
+					}
+				}
+			}); */
+	}
+	
+	function submitSaveThird() {	
+	     var accountT = $('#accountT').textbox("getValue");
+		 var phone = $('#phone').textbox("getValue");
+		 var thirdType = $('#thirdType').textbox("getValue");
+		/*  var thirdState = $('#thirdState').textbox("getValue"); */
+		 var accountT2 = $('#accountT2').textbox("getValue");
+		 var qrCode = $('#qrCode').textbox("getValue");
+		 if (accountT == '') {
+				$.messager.alert('提示', '操作失败!账号不能为空', 'error');
+				return false;
+			}
+			if (phone == '') {
+				$.messager.alert('提示', '操作失败!手机号不能为空', 'error');
+				return false;
+			}
+			/* if(!(/^1[3|4|5|8][0-9]\d{4,8}$/.test(phone))){ 
+		        $.messager.alert('提示', '不是完整的11位手机号或者正确的手机号前七位', 'error');
+		        document.addThirdForm.phone.focus(); 
+		        return false; 
+			}  */
+			if (thirdType == '--请选择--') {
+				$.messager.alert('提示', '操作失败!支付类型不能为空', 'error');
+				return false;
+			}
+			/* if (thirdState == '--请选择--') {
+				$.messager.alert('提示', '操作失败!支付状态不能为空', 'error');
+				return false;
+			} */
+		 $('#addThirdForm').form('submit', {
+				url : 'accountCustList/addThird',
+				onSubmit : function() {	
+					return true;
+				},
+				success : function(result) {
+					//var result = eval('(' + result + ')');
+					console.log(result);
+					if (result.success == 'Y') {
+						$('#addThird').dialog('close'); 
+						$.messager.alert('提示', '操作成功!', 'info');
+						$('#addThirdForm').form('clear');
+						$('#thirdInfo').datagrid('reload');
+					} else {
+						$.messager.show({
+							title : 'Error',
+							msg : result.errorMsg
+						});
+					}
+				}
+			});
+	}
+</script>
+<title>客户帐号</title>
+</head>
+<body>
+	<div>
+		<div id="tb" style="margin-bottom:10px;">
+			<form method="post" id="form1">
+				<div class="inputArea1">
+					<label>省份</label>：<input id="province" name="province" >
+					<label>城市</label>：<input id="city" name="city">
+					<label>城区</label>：<input id="area" name="area">
+					<label>账户姓名</label>：<input type="text" class="easyui-textbox" id="custName"  name = "custName">
+				</div>
+				<div style="margin-top:5px" class="inputArea1">
+					<label>电话</label>：<input type="text" class="easyui-textbox" id="phoneName"  name = "phoneName">
+					<!--
+					<span>账户类型:</span>
+					<input type="text" class="easyui-textbox" id="accountType1"  name = "accountType"   style="width: 50px">
+					 &nbsp;&nbsp;
+					<span>客户性质:</span>
+					<input type="text" class="easyui-textbox" id="property1"  name = "property"   style="width: 50px"> 
+					&nbsp;&nbsp;
+					<span>状态:</span>
+					<input type="text" class="easyui-textbox" id="state"  name = "state"   style="width: 50px"> 
+					-->
+					<label>创建时间</label>：<input id="start" type="text"></input><label style="margin-right:13px;text-align:center;text-align-last:center;">至</label> <input id="end" type="text"></input>
+					<a class="easyui-linkbutton" data-options="iconCls:'icon-search'" onclick="doSearch()" >查询</a>
+					<a class="easyui-linkbutton" data-options="iconCls:'icon-reload'" onclick="$('#form1').form('clear');" >清空</a>
+				</div>
+			</form>				
+		</div>
+		<table id="dg" style="align: center">
+		</table>
+		
+		<div id="tt" class="easyui-panel" style="margin-top:5px;margin-left:0px;"closed='true'>  
+		    <div title="银行卡信息">  
+		        <table id=bankInfo ></table> 
+		    </div> 
+		   <!--  <div title="第三方信息">
+		        <table id="thirdInfo" ></table>   
+		    </div>   -->
+ 		</div>
+ 		<div id="addBank" >
+  		<form action="" method="post" id="addBankForm">
+		<input type="hidden" id="accountId" name="accountId" value="">
+		<input type="hidden" id="accountCustList" name="accountCustList" >
+		<div align="center" >
+			<table align="center" width="80%" >
+				<tr>
+					<td align="right" width="100px;">
+							<font color="red">*</font>
+						 <span class="inputAreaNe">账户姓名</span>：
+					</td>
+					<td align="left" width="200px;">
+						<input id="adCustName" type="text" value="" name="custName"  class="easyui-textbox" placeholder="对这个角色的描述"/>
+					</td>
+				</tr>
+				<tr>
+					<td align="right" width="100px;">
+							<font color="red">*</font>
+						 <span class="inputAreaNe">账号</span>：
+					</td>
+					<td align="left" width="200px;">
+						<input id="bankCardNo" type="text" value="" name="bankCardNo"  class="easyui-textbox" placeholder="对这个角色的描述"/>
+					</td>
+				</tr>
+				<tr>
+					<td align="right" width="100px;">
+					<font color="red">*</font>
+						 <span  class="inputAreaNe">户名</span>：
+					</td>
+					<td align="left" width="200px;">
+						<input id="bankCardName" type="text" value="" name="bankCardName"  class="easyui-textbox" placeholder="对这个角色的描述"/>
+					</td>
+				</tr>
+				<tr>
+					<td align="right" width="100px;">
+						 <span  class="inputAreaNew">银行卡预留电话</span>：
+					</td>
+					<td align="left" width="200px;">
+						<input id="atBankPhone" type="text" value="" name="atBankPhone"  class="easyui-textbox" placeholder="对这个角色的描述"/>
+					</td>
+				</tr>
+				
+				<tr>
+					<td align="right" width="100px;">
+						 <span class="inputAreaNew">身份证编号</span>：
+					</td>
+					<td align="left" width="200px;">
+						<input id="idCard" type="text" value="" name="idCard"  class="easyui-textbox" placeholder="对这个角色的描述"/>
+					</td>
+				</tr>
+				<tr> 
+					<td align="right" width="100px;">
+						 <span class="inputAreaNew">行号 </span>：
+					</td>
+					<td align="left" width="200px;">
+						<input id="bankCode" type="text" name="bankCode" value="" class="easyui-textbox" placeholder="角色的名称"/>
+					</td>
+				</tr>
+				<tr>
+					<td align="right" width="100px;">
+						 <span class="inputAreaNew">开户行行名</span>：
+					</td>
+					<td align="left" width="200px;">
+						<input id="bankName" type="text" value="" name="bankName"  class="easyui-numberbox" placeholder="对这个角色的描述"/>
+					</td>
+				</tr>
+				<tr>
+					<td align="right" width="100px;">
+						 <span class="inputAreaNew">开户行地区代码</span>：
+					</td>
+					<td align="left" width="200px;">
+						<input id="bankAddrNo" type="text" value="" name="bankAddrNo"  class="easyui-textbox" placeholder="对这个角色的描述"/>
+					</td>
+				</tr>
+  				<tr>
+					<td align="center" colspan="2">
+						<div align="center" >
+							<!-- <c:if test="${sessionScope.rolBtn.get('accountCustList').containsKey('custAddBank') }"> -->
+								<a class="easyui-linkbutton" data-options="iconCls:'icon-save'" id="submitBank" style="display: none">提交</a>
+							<!-- </c:if> -->
+						</div>
+					</td>
+				</tr>
+				</table>
+				</div>
+				</form>
+				<div id="allmap"></div>
+</body>
+</html>
