@@ -1,0 +1,696 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <title>商品管理</title>
+    <link rel="stylesheet" type="text/css" href="../../themes/default/easyui.css">
+    <link rel="stylesheet" type="text/css" href="../../themes/icon.css">
+    <link rel="stylesheet" type="text/css" href="../../themes/demo.css">
+    <script type="text/javascript" src="../../js/jquery.js"></script>
+    <script type="text/javascript" src="../../js/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="../../js/datagrid-detailview.js"></script>
+    <script type="text/javascript" src="../../js/locale/easyui-lang-zh_CN.js"></script>
+    <script type="text/javascript" src="../../js/customValidator.js"></script>
+    <script type="text/javascript" src="../global.js"></script>
+    <script type="text/javascript">
+  		var url;
+  		function show(index,obj){
+  			var commId = $('#dg').datagrid("getRows")[index].commId;
+  			var checked = obj.checked ? 1:0;
+  			$.ajax({  
+		         type:'post',      
+		         url:'commodity/isShow',  
+		         data:{
+		        		commId : commId,
+		        		checked : checked
+		         },
+		         dataType:'json',
+		         success:function(data){
+		        	 if(data.success == "Y"){
+		        		 
+		        	 }else{
+		        		$.messager.alert('提示','操作失败!','error');
+		        	 }
+		          },
+		       	  error : function() {  
+		    	            // view("异常！");  
+		       		$.messager.alert('提示','操作失败!','error'); 
+		    	  }
+		     });
+  		}
+  		
+  		function brandModel(){
+  			$('#dd').html('<iframe src="./brandModel.html" style="width:100%;height:100%;"frameborder="0"></iframe>');
+  		    $('#dd').window('open');
+  		    
+  		}
+  		function addComm(){
+  			$('#addCatName').combobox({
+		 		url:'commodity/getAllcategory',
+		 		valueField:'catId',
+		 		textField:'catName',
+		 		width:'150',
+		 		editable:false,
+			});
+  			$('#addBrandName').combobox({
+		 		url:'commodity/getAllBarnd',
+		 		valueField:'brandId',
+		 		textField:'brandName',
+		 		width:'90',
+		 		editable:false,
+		 		onSelect:function(){
+		 			var brandId = $(this).combobox('getValue');
+		 			$('#modelName').combobox({
+				 		url:'commodity/getModelByBrandId?brandId='+brandId,
+		 			});
+		 		}
+			});
+  			$('#modelName').combobox({
+		 		valueField:'modelId',
+		 		textField:'modelName',
+		 		width:'90',
+		 		editable:false,
+			});
+  			$('#addComm').dialog('open');
+  		}
+  		
+  		/*修改的初始化*/
+  		function update(commId){
+  			var a = $('#dg').datagrid("getRows")[commId];
+  			$('#commId').val(a.commId);
+  			$('#commUnit').textbox({
+  				value:a.commUnit
+  			});
+  			$('#logisticFee').textbox({
+  				value:a.logisticFee
+  			});
+  			$('#commWeight').textbox({
+  				value:a.commWeight
+  			});
+  			$('#update').dialog('open');
+  		}
+  		/*删除商品的提交*/
+  		function del(commId){
+  			$.messager.confirm('确认','您确认想要删除记录吗？',function(r){    
+  			    if (r){
+				    var a = $('#dg').datagrid("getRows")[commId];
+		  			$.ajax({
+		  				url : "commodity/delCommodity",
+		  				type : "post",
+		  				data : {
+		  					commId : a.commId
+		  				},
+		  				dataType : "json",
+		  				success : function(data){
+		  					if (data.success =='Y'){
+		  						$.messager.alert('提示','操作成功!','info');
+		  						$('#dg').datagrid('reload');	// reload the user data
+		  					} else {
+		  						$.messager.show({
+		  							title: 'Error',
+		  							msg: result.errorMsg
+		  						});
+		  					}
+		  				},
+		  				error : function() {  
+			    	            // view("异常！");  
+			       			$.messager.alert('提示','操作失败!','error'); 
+			    	  	}
+		  			});
+  	  			}
+  			});
+  			
+  		}
+  		
+  		
+  		
+  		/**
+  		修改商品的提交
+  		*/
+  		function submitData(){
+  			var commUnit = $("#commUnit").val();
+  			var commWeight = $("#commWeight").val();
+  			var logisticFee = $("#logisticFee").val();
+  			if(commUnit==""){
+				$.messager.alert('提示','操作失败!请输入单位','error');
+				return ;
+			}
+			if(commWeight==""){
+  				$.messager.alert('提示','操作失败!请输入商品重量','error');
+  				return;
+  			}
+  			if(isNaN(commWeight)){
+  				$.messager.alert('提示','操作失败!商品重量只能是数字','error');
+  				return;
+  			}
+  			if(Number(commWeight) < 0){
+  				$.messager.alert('提示','操作失败!商品重量只能是正数','error');
+  				return;
+  			}
+  			if(logisticFee==""){
+				$.messager.alert('提示','操作失败!请输入物流费','error');
+				return;
+ 			}
+ 			if(isNaN(logisticFee)){
+ 				$.messager.alert('提示','操作失败!物流费只能是数字','error');
+ 				return;
+ 			}
+ 			if(Number(logisticFee) < 0){
+ 				$.messager.alert('提示','操作失败!物流费只能是正数','error');
+ 				return;
+ 			}
+  			$.ajax({
+  				url : "commodity/updateCommodity",
+  				type : "post",
+  				data : new FormData(document.getElementById("form1")),
+  				dataType : "json",
+  				success : function(result){
+  					if (result.success =='Y'){
+  						$.messager.alert('提示','操作成功!','info');
+  						$('#update').dialog('close');		// close the dialog
+  						$('#dg').datagrid('reload');	// reload the user data
+  						$('#form1').form('clear');
+  					} else {
+  						$.messager.alert('提示',result.errorMsg,'error'); 
+  					}
+  				}
+  			});
+  			/* $('#form1').form('submit',{
+  				url: url,
+  				onSubmit: function(){
+  					if(commUnit==""){
+  						$.messager.alert('提示','操作失败!请输入单位','error');
+  						return false;
+  					}
+  					if(commWeight==""){
+  		  				$.messager.alert('提示','操作失败!请输入商品重量','error');
+  		  				return false;
+  		  			}
+  		  			if(isNaN(commWeight)){
+  		  				$.messager.alert('提示','操作失败!商品重量只能是数字','error');
+  		  				return false;
+  		  			}
+  		  			if(Number(commWeight) < 0){
+  		  				$.messager.alert('提示','操作失败!商品重量只能是正数','error');
+  		  				return false;
+  		  			}
+  		  			if(logisticFee==""){
+		  				$.messager.alert('提示','操作失败!请输入物流费','error');
+		  				return false;
+		  			}
+		  			if(isNaN(logisticFee)){
+		  				$.messager.alert('提示','操作失败!物流费只能是数字','error');
+		  				return false;
+		  			}
+		  			if(Number(logisticFee) < 0){
+		  				$.messager.alert('提示','操作失败!物流费只能是正数','error');
+		  				return false;
+		  			}
+  		  			return true;
+  				},
+  				success: function(result){
+  					var result = eval('('+result+')');
+  					if (result.success =='Y'){
+  						$.messager.alert('提示','操作成功!','info');
+  						$('#update').dialog('close');		// close the dialog
+  						$('#dg').datagrid('reload');	// reload the user data
+  						$('#form1').form('clear');
+  					} else {
+  						$.messager.alert('提示',result.errorMsg,'error'); 
+  					}
+  				},
+  				error : function() {  
+	       			$.messager.alert('提示','操作失败!','error'); 
+	    	    }
+  			});  */
+  		}
+  		function validate(){
+  			var catId = $('#addCatName').combobox('getValue');
+  			if(catId==""){
+  				$.messager.alert('提示','操作失败!请选择商品类型','error');
+  				return false;
+  			}
+  			var brandId =  $('#addBrandName').combobox('getValue');
+  			if(brandId==""){
+  				$.messager.alert('提示','操作失败!请选择商品品牌','error');
+  				return false;
+  			}
+  			var modelId = $('#modelName').combobox('getValue');
+  			if(modelId==""){
+  				$.messager.alert('提示','操作失败!请选择商品型号','error');
+  				return false;
+  			}
+  			var weight = $('#weight').val();
+  			if(weight==""){
+  				$.messager.alert('提示','操作失败!请输入商品重量','error');
+  				return false;
+  			}
+  			if(isNaN(weight)){
+  				$.messager.alert('提示','操作失败!商品重量只能是数字','error');
+  				return false;
+  			}
+  			if(Number(weight) < 0){
+  				$.messager.alert('提示','操作失败!商品重量只能是正数','error');
+  				return false;
+  			}
+  			var logisticFee = $('#addLogisticFee').val();
+  			if(logisticFee==""){
+  				$.messager.alert('提示','操作失败!请输入物流费','error');
+  				return false;
+  			}
+  			if(isNaN(logisticFee)){
+  				$.messager.alert('提示','操作失败!物流费只能是数字','error');
+  				return false;
+  			}
+  			if(Number(logisticFee) < 0){
+  				$.messager.alert('提示','操作失败!物流费只能是正数','error');
+  				return false;
+  			}
+  			var unit = $('#unit').val();
+  			if(unit==""){
+  				$.messager.alert('提示','操作失败!请输入单位','error');
+  				return false;
+  			}
+  			return true;
+  		}
+  		
+  		function submitAddComm(){
+  			if(!validate()){
+  				return ;
+  			}
+  			$.ajax({
+  				url : "commodity/addCommodity",
+  				type : "post",
+  				data : new FormData(document.getElementById("sfnFrom")),
+  				dataType : "json",
+  				success : function(data){
+  					if (data.success =='Y'){
+  						$.messager.alert('提示','操作成功!','info');
+  						$('#addComm').dialog('close');		// close the dialog
+  						$('#dg').datagrid('reload');	// reload the user data
+  						$('#form3').form('clear');
+  					} else {
+  						$.messager.alert('提示','操作失败!','info'); 
+  					}
+  				}
+  			});
+  		}
+  		function push(){
+  			var catId = $('#catName').combobox('getValue');
+ 			var brandId =$('#brandName').combobox('getValue');
+ 			$('#dg').datagrid({
+ 				url:'commodity/commodity?catId='+catId+'&brandId='+brandId,
+ 				reload:true,
+ 			});
+  		}
+  		function img1(src) {
+  			$('#img').attr("src",src);
+  			$('#imgWin').dialog('open');
+  			
+  		}
+  		function addSfn(index) {
+  			var a = $('#dg').datagrid("getRows")[index];
+  			$("#sfnnCommId").val(a.commId);
+  			$('#sfn').dialog('open');
+		}
+  		function submitSfn() {
+  			var bool = $('#sfnName').textbox('isValid') && $('#sfnWeight').textbox('isValid') && $('#sfnLong').textbox('isValid') && $('#sfnWide').textbox('isValid') 
+				&& $('#sfnHigh').textbox('isValid') && $('#sfnDate').textbox('isValid') && $('#sfnSrc').textbox('isValid');
+  			if(!bool){
+  				return ;
+  			}
+  			$.ajax({
+  				url : "commodity/addSfn",
+  				type : "post",
+  				data :  new FormData(document.getElementById("sfnFrom")),
+  				dataType : "json",
+  				success : function(data){
+  					if (data.success =='Y'){
+  						$.messager.alert('提示','操作成功!','info');
+  						$('#sfn').dialog('close');		// close the dialog
+  						$('#sfnFrom').form('clear');
+  					} else {
+  						$.messager.alert('提示','操作失败!','info'); 
+  					}
+  				}
+  			});
+  			
+  			/* $('#sfnFrom').form('submit',{
+  				url: 'commodity/addSfn',
+  				onSubmit: function(){
+  					return $('#sfnName').textbox('isValid') && $('#sfnWeight').textbox('isValid') && $('#sfnLong').textbox('isValid') && $('#sfnWide').textbox('isValid') 
+  					&& $('#sfnHigh').textbox('isValid') && $('#sfnDate').textbox('isValid') && $('#sfnSrc').textbox('isValid');
+  				},
+  				success: function(result){
+  					var result = eval('('+result+')');
+  					if (result.success =='Y'){
+  						$.messager.alert('提示','操作成功!','info');
+  						$('#sfn').dialog('close');		// close the dialog
+  						//$('#dg').datagrid('reload');	// reload the user data
+  						$('#sfnFrom').form('clear');
+  					} else {
+  						$.messager.alert('提示','操作失败!','info');
+  					}
+  				},
+  				error : function() {  
+	       			$.messager.alert('提示','操作失败!','error'); 
+	    	    }
+  			}); */
+		}
+  		
+  		
+  		function deleteSfn(dgIndex,rowIndex){
+  			$.messager.confirm('确认','您确认想要删除记录吗？',function(r){    
+	  		    if (r){    
+	  		    	var specificationId = $('#ddv-'+dgIndex).datagrid("getRows")[rowIndex].specificationId;
+	  		    	$.ajax({  
+	  			         type:'post',      
+	  			         url:'commodity/deleteSfn',  
+	  			         data:{
+	  			        	specificationId : specificationId
+	  			         },
+	  			         dataType:'json',  
+	  			         success:function(data){
+	  			        	 if(data.success == "Y"){
+	  			        		$.messager.alert('提示','删除成功!','info');
+	  			        		$('#ddv-'+dgIndex).datagrid("deleteRow",rowIndex);
+	  			        		$('#ddv-'+dgIndex).datagrid("loadData",$('#ddv-'+dgIndex).datagrid("getRows"));
+	  			        	 }else{
+	  			        		$.messager.alert('提示','操作失败!','error');
+	  			        	 }
+	  			          },
+	  			       	  error : function() {  
+	  			    	            // view("异常！");  
+	  			       		$.messager.alert('提示','操作失败!','error'); 
+	  			    	  }
+	  			     });  
+	  		    }    
+  			}); 
+  			
+  		}
+  		
+    	$(function () {
+    		$('#imgWin').dialog({
+            	title: '查看图片',
+            	width:400,
+            	height:300,
+            	resizable:false, 
+            	closed:true,
+                minimizable: false,
+                maximizable: false,
+                collapsible: false
+       		});
+	 		$('#catName').combobox({
+		 		url:'commodity/getAllcategory',
+		 		valueField:'catId',
+		 		textField:'catName',
+		 		width:'150',
+		 		editable:false,
+		 		onSelect:push
+			});
+	 		$('#sfnDate').datebox({    
+			    required:true,
+			    missingMessage :'该选择项为必选项',
+			    editable:false,
+			    onSelect:function(start){
+			    	var now = new Date();
+			    	if(start > now){
+			    		$.messager.alert('提示','操作失败!日期不能超过当前时间','error');
+			    		$('#sfnDate').datebox('setValue','');
+			    	}
+			    	
+		 		}
+			});
+	 		$('#brandName').combobox({
+		 		url:'commodity/getAllBarnd',
+		 		valueField:'brandId',
+		 		textField:'brandName',
+		 		width:'90',
+		 		editable:false,
+		 		onSelect:push,
+			}); 
+			win = $('#update').dialog({
+	        	title: '修改商品信息',
+	        	width:300,
+	        	height:220,
+	        	closed:true
+	    	});
+			sfn = $('#sfn').dialog({
+	        	title: '新增规格',
+	        	width:530,
+	        	height:230,
+	        	closed:true
+	    	});
+			winComm = $('#addComm').dialog({
+	        	title: '添加商品',
+	        	width:500,
+	        	height:230,
+	        	closed:true
+	    	});
+	    	
+			form = win.find('form1');
+			var tableH = Math.max(document.documentElement.scrollHeight,document.body.scrollHeight)-($('#dg').offset().top+30);
+	    	$('#dg').datagrid({
+	        	iconCls: 'icon-save',
+	        	width: "100%",
+	        	height: tableH,
+	        	fitColumns:true,
+	        	nowrap: true,
+	        	autoRowHeight: false,
+	        	striped: true,
+	        	singleSelect: true,
+	        	collapsible: true,
+	        	url: 'commodity/commodity',
+	        	sortName: 'catName',
+	        	sortOrder: 'desc',
+	        	remoteSort: false,
+	        	rownumbers:true,
+	        	checkOnSelect: true,
+	        	idField: "commId",
+	        	columns: [[
+	        		{ field: 'commId',title: '商品Id',hidden:true, width: 60 },
+	        		{ field: 'checked',title: '显示',hidden:true, width: 60 },
+	        		{ field: 'show', title: '是否显示', width: 60,
+	            		formatter: function (value, row, index) {
+	            			if(row.checked == 1){
+	            				return (verification("commodity","updateShow")?"<input name='show' type='checkbox' onclick='show("+index+",this)' checked='checked'>":
+	            					"<input name='show' type='checkbox' onclick='show("+index+",this)' checked='checked' disabled='disabled'>");
+	            			}
+	            			return (verification("commodity","updateShow")?"<input name='show' type='checkbox' onclick='show("+index+",this)'>":
+	                    		"<input name='show' type='checkbox' onclick='show("+index+",this)' disabled='disabled'>");
+	                    }
+	            	},
+	            	{ field: 'catName', title: '类型', width: 140 ,align:'center'},
+	            	{ field: 'brandName', title: '品牌', width: 120 ,align:'center'},
+	            	{ field: 'modelName', title: '型号', width: 120 ,align:'center'},
+	            	{ field: 'commUnit', title: '单位', width: 120 ,align:'center'},
+	            	{ field: 'commWeight', title: '重量（KG）', width: 120 ,align:'center'},
+	            	{ field: 'modelLeadContent', title: '含铅量', width: 138 ,align:'center'},
+	            	{ field: 'logisticFee', title: '物流费（元）', width: 140 ,align:'center'},
+	            	{ field: 'orderQuantity', title: '操作', width: 170,
+	            		formatter: function (value, row, index) {
+	            			return (verification("commodity","addSfn")?"<a href=\"javascript:addSfn('"+index+"');\">新增规格</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;":"")
+	                    	+(verification("commodity","update")?"<a href=\"javascript:update("+index+");\">修改</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;":"")
+	                    	+(verification("commodity","delete")?"<a href=\"javascript:del('"+index+"');\">删除</a>":"");
+	                    }
+	            	}
+	            	  
+	        	]],
+	        	view: detailview,
+            	detailFormatter : function(index,row){//注意2  
+            		return '<div style="padding:2px"><table id="ddv-' + index + '"></table></div>';  
+                },
+                onExpandRow:function(index,row){//注意3 
+                	var i = index;
+                    $('#ddv-'+index).datagrid({  
+                        url:'commodity/getSfn',
+                        queryParams : {
+                        	commId : row.commId
+                        },
+                        fitColumns:true,  
+                        singleSelect:true,
+                        height:'auto',
+        				onLoadSuccess:function(){
+        					$('#dg').datagrid('fixDetailRowHeight',index);
+        				},
+                        columns:[[  
+                            {field:'specificationId',title:'规格ID', hidden:true},  
+                            {field:'brandName',title:'品牌',width:50},  
+                            {field:'specificationName',title:'规格',width:80}, 
+                            {field:'specificationWeight',title:'重量(kg)',width:80}, 
+                            {field:'specificationLong',title:'长(cm)',width:80}, 
+                            {field:'specificationWide',title:'宽(cm)',width:80}, 
+                            {field:'specificationHigh',title:'高(cm)',width:80}, 
+                            {field:'specificationIsVirtual',title:'是否虚标',width:60,
+                            	formatter : function(value, row, index){
+                            		if(value==1){
+                            			return "是";
+                            		}else{
+                            			return "否";
+                            		}
+                            	}},
+                            {field:'specificationDate',title:'生产日期',width:100},
+                            {field:'specificationSrc',title:'图片',width:60,
+            					formatter:function(value, row, index){
+            						if(value==null){
+            							return value;
+            						}
+            						return "<img onclick=\"javascript:img1('"+value+"');\" src=\"../../images/Image_Ok.png\">";
+            					}
+                            },
+                            {field:'contact',title:'创建人',width:100 },
+                            {field:'specificationCreateTime',title:'创建时间',width:100},
+                            {field:'statisticOpera',title:'任务操作',width:100,align:'center',  
+                                formatter:function(value, row, index){  
+                                	return (verification("commodity","deleteSfn")?"<a href=\"javascript:deleteSfn("+i+","+index+");\">删除</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;":"");  
+                                }
+                            }  
+                        ]],
+                        pagination: true,
+        	        	pageSize : 40, 
+        	        	pageList : [ 40, 80, 120 ]
+                    });  
+                },  
+	        	pagination: true,
+	        	pageSize : 40, 
+	        	pageList : [ 40, 80, 120 ]
+	    	});
+	    	if(verification("commodity","add")){
+	    		 $("#addComm2").css("display","");
+	    	}
+	    	if(verification("commodity","addBrandModel")){
+	    		 $("#brandModel123").css("display","");
+	    	}
+	    	if(verification("commodity","clear")){
+	    		 $("#clear213").css("display","");
+	    	}
+	  	});
+  	</script>
+  </head>
+  <body>
+	<div style="margin-left:auto; margin-right:auto;">
+	    <div id="tb" style="padding:3px;margin-left:auto; margin-right:auto; " >
+	    	<form action="delivery.do" method="post" id="form2">
+				<span>商品类型:</span>
+				<input id="catName">
+				<span>商品品牌:</span>
+				<input id="brandName">
+					<a class="easyui-linkbutton" data-options="iconCls:'icon-add'" onclick="addComm()"  style="display:none;" id = "addComm2">添加商品</a>&nbsp;
+					<a class="easyui-linkbutton" data-options="iconCls:'icon-add'" onclick="brandModel()" style="display:none;" id = "brandModel123">品牌—类型</a>
+					<a href="./commodity.html"  class="easyui-linkbutton" data-options="iconCls:'icon-cancel'"  style="display:none; " id = "clear213">清除</a>
+			</form>
+		</div>
+		<table id="dg"></table>
+	</div>
+	<div id="update">
+	<br/>
+		<form action="commodity/updateCommodity" method="post" id="form1">
+			<div style="margin:0 0 10px 17px;"><input type="hidden" name="commId" value="" id="commId">
+				<span>单位 :</span>
+				<input id="commUnit" type="text" name="commUnit" value="" class="easyui-textbox" style="width:100px;"/>
+				<font color="red">*</font>
+			</div>	
+			<div style="margin:0 0 10px 17px;">
+				<span>重量 :</span>
+				<input id="commWeight" type="text" name="commWeight" value="" class="easyui-textbox" style="width:100px;"/>KG
+				<font color="red">*</font><br/>
+			</div>	
+			<div style="margin:0 0 10px 17px;">
+				<span>物流费(元) :</span>
+				<input id="logisticFee" type="text" name="logisticFee" value="" class="easyui-textbox" style="width:100px;"/>元
+				<font color="red">*</font>
+			</div>	
+			<div style="width:100%;text-align:center;">
+				<a id="btn4" class="easyui-linkbutton window-submitBtn" onclick="submitData();" >提交</a>
+			</div>
+		</form>
+	</div>
+	<div id="addComm">
+		<form action="commodity/addCommodity" method="post" id="form3">
+			<table align="center" width="98%" style="margin:5px auto 0;padding-left:8px;" >
+				<tr>
+					<td align="right" width="70px;"><span>商品类型 :</span></td>
+					<td><input id="addCatName" name="catId"></td>
+					<td align="right" width="70px;"><span>品牌 :</span></td>
+					<td><input id="addBrandName" name="brandId">
+					</td>
+				</tr>
+				<tr>
+					<td align="right" width="70px;"><span>重量(KG):</span></td>
+					<td align="right" width="70px;"><input id = "weight" name="weight" class="easyui-textbox" style="width:150px"></td>
+					<td align="right" width="70px;"><span>型号 :</span></td>
+					<td><input id="modelName" name="modelId">
+					</td>
+				</tr>
+				<tr>
+					<td align="right" width="70px;"><span>单位:</span></td>
+					<td align="right" width="70px;"><input id="unit" name="unit" class="easyui-textbox" style="width:150px"></td>
+					<td align="right" width="70px;"><span>物流费(元):</span></td>
+					<td align="right" width="70px;"><input id="addLogisticFee" name="logisticFee" class="easyui-textbox" style="width:100px"></td>
+				</tr>
+				<tr>
+					<td align="center" colspan="4"><br/>
+						<a id="btn3" class="easyui-linkbutton window-submitBtn" onclick="submitAddComm();" >提交</a>
+					</td>
+				</tr>
+			</table>
+		</form>
+	</div>
+	<div id="sfn">
+		<form action="" id="sfnFrom" enctype="multipart/form-data" method="post">
+			<input id="sfnnCommId" hidden="true" name="sfnnCommId">
+			<table style="margin:10px auto;padding-left:5px;">
+				<tr>
+					<td>规格名称    ：</td>
+					<td><input id="sfnName" type="text" name="sfnName" value="" class="easyui-textbox" data-options="
+						required : true
+					"/></td>
+					<td>重量（kg）：</td>
+					<td><input id="sfnWeight" type="text" name="sfnWeight" value="" class="easyui-textbox" data-options="
+						required : true,
+						validType:['positiveNumber[6,2]']
+					"/></td>
+				</tr>
+				<tr>
+					<td>长（cm）：</td>
+					<td><input id="sfnLong" type="text" name="sfnLong" value="" class="easyui-textbox" data-options="
+						required : true,
+						validType:['positiveNumber[6,2]']
+					"/></td>
+					<td>宽（cm）：</td>
+					<td><input id="sfnWide" type="text" name="sfnWide" value="" class="easyui-textbox" data-options="
+						required : true,
+						validType:['positiveNumber[6,2]']
+					"/></td>
+				</tr>
+				<tr>
+					<td>高（cm）：</td>
+					<td><input id="sfnHigh" type="text" name="sfnHigh" value="" class="easyui-textbox" data-options="
+						required : true,
+						validType:['positiveNumber[6,2]']
+					"/></td>
+					<td>生产日期   ：</td>
+					<td><input id="sfnDate" type="text" name="sfnDate" value="" class="easyui-textbox" data-options="
+						required : true
+					"/></td>
+				</tr>
+				<tr>
+					<td>规格图片   ：</td>
+					<td><input id="sfnSrc" type="text" name="sfnSrc" value="" class="easyui-filebox" data-options="
+						required : true,
+						buttonText :'请选择',
+						validType : ['fileFormat[\'jpg\',\'jif\',\'png\']'],
+						missingMessage : '该选择项为必选项'
+					"/></td>
+					<td>是否虚标   ：</td>
+					<td><input name="isVirtual" type="radio" value="1" />虚标&nbsp;&nbsp;<input name="isVirtual" type="radio" value="0" checked="checked"/>没虚标</td>
+				</tr>
+				<tr>
+					<td align="center" colspan="4"><a id="btn1" class="easyui-linkbutton window-submitBtn"  onclick="submitSfn();" >提交</a></td>
+				</tr>
+			</table>
+		</form>
+	</div>
+	<div id="imgWin"> <img id="img" src="" width="100%" height="99%"> </div>
+	<div id="dd" class="easyui-window" title="品牌——型号" closed="true" style="width:350px;height:480px;padding:0 5px 5px 5px;"></div> 
+  </body>
+</html>
