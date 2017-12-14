@@ -1,0 +1,711 @@
+<!DOCTYPE HTML>
+<html ng-app="myPrice" ng-controller="myPrice">
+  <head>
+    <title>价格管理</title>
+    <link rel="stylesheet" type="text/css" href="../../themes/default/easyui.css">
+    <link rel="stylesheet" type="text/css" href="../../themes/icon.css">
+    <link rel="stylesheet" type="text/css" href="../../themes/demo.css">
+    <script type="text/javascript" src="../../js/jquery.min.js"></script>
+    <script type="text/javascript" src="../../js/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="../../js/locale/easyui-lang-zh_CN.js"></script>
+	<script src="../../libs/echarts.js"></script>
+    <script src="../../libs/angular.min.js"></script>
+    <script type="text/javascript" src="../global.js"></script>
+  </head>
+  <body >
+  
+  
+  <!-- 参考价格页面 -->
+
+	 <div class="container">
+	 	<p style="margin:10px;font-size:20px;">最近30天参考价格走势</p>
+        <div class="price_tendency">
+                <div id="price_tendency">
+
+                </div>
+        </div>
+          <div class="recycle_price">
+                <div class="reP_top">
+				
+	                    <div class="Rep_left">
+	                        <ul>
+	                        <li id="styleP"><em id="style" ng-click="style()">废电动自行车电池</em> <span ng-click="style()"><img src="../../images/home/duobianxing.png" alt=""></span>
+	                        	<div class="hidden">
+	                            	<ul id="styleCon">
+		                                
+		                            </ul>
+		                            </div>
+	                        </li>
+	                            <li id="pro"> <em id="selPro" ng-click="selPro()">城市</em>	  <span ng-click="selPro()"><img src="../../images/home/duobianxing.png" alt=""></span>
+	                            	<div class="hidden">
+	                            	<ul id="province2">
+		                                
+		                            </ul>
+		                            <span id="ID"></span>
+		                            </div>
+	                            </li>
+	                            <li id="cityP"><em id="city" ng-click="city()">县/区 </em><span ng-click="city()"><img src="../../images/home/duobianxing.png" alt=""></span>
+	                            	<div class="hidden">
+		                            	<ul id="cityCon">
+			                                
+			                            </ul>
+		                            </div>
+	                            	
+	                            </li>
+	                        </ul>
+	                    </div>
+	                    <div class="Rep_center">
+		                    <div> 参考价格 <span>{{lastPrice}}</span></div>
+				                       
+				            <div> 回收价格[元/吨] <input type="text" id="priceChange"></div>
+	                    </div>
+	                     <div class="Rep_right">
+	                  		<!-- <c:if test="${sessionScope.rolBtn.get('areaParice').containsKey('updatePrice') }"> -->
+	                        	<span id="refreshPri" style="display: none"  ng-click="refreshPri()">更新价格</span>
+	                     <!--  </c:if>  --> 
+	                    </div> 
+                </div>
+					<div class="reP_content">
+                        <p>各区域回收价格</p>
+                        
+                        <div class="area_left" ng-repeat="PriceList in CityAreaPriceList track by $index">
+							<div class="al_top" >
+                                <span>{{PriceList.cityName}}</span>
+                               		 ￥{{PriceList.cityPrice}}
+                            </div>
+                            <div class="con_bottom">
+                                <ul>
+                                    <li ng-repeat="areaPrice in PriceList.areaPriceList track by $index">
+                                        <div class="top_info"><span class="area_data2" areaId="{{areaPrice.areaId}}">{{areaPrice.areaName}}</span>
+                                        	<!-- <c:if test="${sessionScope.rolBtn.get('areaParice').containsKey('delete') }"> -->
+					  							<span class="none" id="hide2" style="display: none" ng-click="delect($parent.$index,$index)">x</span>
+											<!-- </c:if> -->
+                                        </div>
+                                        <div class="price">￥{{areaPrice.areaPrice}}</div>
+                                    </li> 
+                                   
+
+                                </ul>
+                            </div>
+                        </div>
+                       
+                </div>
+               
+                </div>
+                
+        </div> 
+        <!--  删除数据提示框 -->
+        <div class="tips" ng-if="show">
+        	<p style="color:red;">提示信息：您确定要删除此条数据吗？</p>
+        	<p><button ng-click="cancle()">取消</button><button ng-click="affirm()">确定删除</button> </p>
+        </div>
+       <!--  更新数据提示框 是否确认修改-->
+        <div class="tips" ng-if="refresh">
+        	<p style="color:red;">提示信息：您确定要修改此条数据吗？</p>
+        	<p><button ng-click="cancle()">取消</button><button ng-click="affirmRe()">确定修改</button> </p>
+        </div>
+        <!--  更新数据必填选项提示框 -->
+         <div class="tips" id="tips" ng-if="priceInfo">
+        	<p  style="color:white;">更新价格失败：<span  style="color:red;">类型、城市、回收价格</span>，三项为必填项且回收价格必须为大于0小于999999的整数。</p>
+        	<p><button id="priceBtn" ng-click="cancle()">确定</button></p>
+        </div>
+        <!--  选择县区必须选择城市提示框 -->
+         <div class="tips" id="tips" ng-if="cityInfo">
+        	<p style="color:red;">选择县区前，请先选择城市。</p>
+        	<p><button id="priceBtn" ng-click="cancle()">确定</button></p>
+        </div>
+        
+        <!--  操作成功提示框 -->
+         <div class="tips" id="tips" ng-if="success">
+        	<p style="color:red;">操作成功。</p>
+        	<p><button id="priceBtn" ng-click="cancle()">确定</button></p>
+        </div>
+        <!--  操作失败提示框 -->
+        <div class="tips" id="tips" ng-if="error">
+        	<p style="color:red;">操作失败。</p>
+        	<p><button id="priceBtn" ng-click="cancle()">确定</button></p>
+        </div>
+        <!-- 没有操作权限 -->
+        <div class="tips" id="tips" ng-if="quanxian">
+        	<p style="color:red;">{{quanxian2}}。</p>
+        	<p><button id="priceBtn" ng-click="cancle()">确定</button></p>
+        </div>
+        
+  <script type="text/javascript">
+  angular.module("myPrice",[])
+	.controller("myPrice",function($scope,$http) {
+		$scope.success = false;
+		$scope.error = false;
+		$scope.quanxian = false;
+		$scope.show = false;	//删除验证
+		$scope.mtShow = false;	//莫态层控制
+		$scope.priceInfo = false;//更新价格时候的验证提示信息
+		$scope.cityInfo = false;//选择县区时需要先选择城市
+		$scope.refresh = false;	//是否确认修改价格
+		var EchartsData=[];
+		//获取最上面Echarts表格的数据++++++++++++++++++++
+		$scope.data=_data;
+		$scope.dataApplay = _dataApplay;//echarts数据重绘
+	    option = {
+	            title: {
+	                // text: '折线图堆叠',
+	                subtext:"单位：元",
+	                subtextStyle:{
+	                    color:"white"
+	                }
+	            },
+	            tooltip: {
+	                trigger: 'axis',
+	                //formatter: "{a}"
+	            },
+	            legend: {
+	                // data:['邮件营销','联盟广告','视频广告','直接访问','搜索引擎']
+	            },
+	            grid: {
+	                left: '3%',
+	                right: '4%',
+	                bottom: '3%',
+	                containLabel: true,
+	            },
+	            toolbox: {
+	               /*  feature: {
+	                    saveAsImage: {}
+	                } */
+	            },
+	            xAxis: {
+	                type: 'category',
+	                boundaryGap: false,
+	                data: [],
+	                
+	                axisLine:{              //这个属性是改变坐标轴X轴颜色，和字体颜色
+	                         lineStyle:{
+	                             color:'white',
+	                             width:1,//这里是为了突出显示加上的,这里是X轴宽度
+	                         }
+	                     },
+	                splitLine: {        //这里设置的是分割线条的颜色
+	                    lineStyle: {
+	                        color: "red"
+	                    }
+	                },
+	            },
+	            yAxis: {
+	                type: 'value',
+	                min: 8500,
+	                max: 9800,
+	                splitNumber:5,			//200
+	                axisLine:{              //这个属性是改变坐标轴X轴颜色，和字体颜色
+	                    lineStyle:{
+	                        color:'white',
+	                        width:1,//这里是为了突出显示加上的,这里是X轴宽度
+	                    }
+	                },
+	                splitLine: {        //这里设置的是分割线条的颜色
+	                    lineStyle: {
+	                        color: "white"
+	                    }
+	                },
+	            },
+	            series: [
+	                {
+	                	name:'平均价格',
+	                    type:'line',
+	                    // stack: '总量',
+	                    data:[],			//接受数据++++++++++++++++++++++++
+	                    itemStyle : {
+
+	                        normal : {
+	                            color:"white",
+	                            lineStyle:{
+	                                color:'white'
+	                            }
+	                        }
+	                    }
+	                },
+
+	            ]
+	        };
+		function _data(){
+			//console.log(cartID,"huoquEcharts数据的ID")
+			if(cartID==undefined){
+				params={"catId": "2"};
+				$.ajax({
+			        type: "POST",
+			        url: "basePrice/getNewCollectPrice",
+			        dataType : "json",
+			        data:params,
+			        success: function(data){
+			        	if(data==""){
+							option.series[0].data = [];
+							option.xAxis.data = [];
+							
+							option.yAxis.min = 0;
+							option.yAxis.max = 0;
+							console.log(data.maxPrice%200,"取余数+++")
+							option.yAxis.splitNumber = 0
+							myChart.setOption(option);
+							console.log("欣欣是个")
+						}else{
+							option.series[0].data = [];
+							option.xAxis.data = [];
+							/* option.yAxis.min = data.minPrice;
+							option.yAxis.max = data.maxPrice+200; */
+							//option.yAxis.min = data.minPrice-((data.minPrice%200));
+							option.yAxis.min = data.minPrice-(data.minPrice%200);
+							option.yAxis.max = data.maxPrice+(200-(data.maxPrice%200));
+							console.log(data.maxPrice%200,"取余数+++")
+							option.yAxis.splitNumber = Math.ceil((data.maxPrice-data.minPrice)/200)
+							//console.log(data,data.collectPrice[2].collectPrice,"echarts中的数据+++");
+							for(var i=0;i<data.collectPrice.length;i++){
+								//console.log(data[i].collectPrice)
+								option.series[0].data.push(data.collectPrice[i].collectPrice)
+								option.xAxis.data.push(data.collectPrice[i].date+"号")
+								$scope.lastPrice = data.collectPrice[(data.collectPrice.length)-1].collectPrice								
+							}							
+				        	myChart.setOption(option);
+						}
+			        }
+			    });
+				
+				
+			}else{
+				params={"catId":cartID};
+				$.ajax({
+			        type: "POST",
+			        url: "basePrice/getNewCollectPrice",
+			        dataType : "json",
+			        data:params,
+			        success: function(data){
+			        	if(data==""){
+							option.series[0].data = [];
+							option.xAxis.data = [];
+							option.yAxis.min = 0;
+							option.yAxis.max = 0;
+							option.yAxis.splitNumber = 0
+							myChart.setOption(option);
+						}else{
+							option.series[0].data = [];
+							option.xAxis.data = [];
+							option.yAxis.min = data.minPrice-(data.minPrice%200);
+							option.yAxis.max = data.maxPrice+(200-(data.maxPrice%200));
+							option.yAxis.splitNumber = Math.ceil((data.maxPrice-data.minPrice)/200)
+							for(var i=0;i<data.collectPrice.length;i++){
+								option.series[0].data.push(data.collectPrice[i].collectPrice)
+								option.xAxis.data.push(data.collectPrice[i].date+"号")
+								$scope.lastPrice = data.collectPrice[(data.collectPrice.length)-1].collectPrice	
+								
+							}
+							myChart.setOption(option);
+						}
+			        }
+			    });							
+			}
+		}
+		_data();
+		function _dataApplay(){
+			
+		}
+    var myChart = echarts.init(document.getElementById('price_tendency'));   
+    var provinceId,cityId,areaId,cartID;    
+    //省份城市相关信息+++++++++
+    $scope.selPro=function () {
+       var proDis = $("#province2").css("display"); 
+       if(proDis == "block"){
+    	   $("#province2").css({"display":"none"});  
+       }else{
+    	   $("#province2").css({"display":"block"});
+           $.ajax({
+               type: "get",
+               url: "areaController/getCityByProvinceId",
+               dataType : "json",
+               data:{},
+               async:false,
+               success: function(data){
+               	$("#province2").empty();
+                   for(var i=0;i<data.length;i++){                   	   
+                   	var province2 = "<li pid="+data[i].cityId+">"+data[i].cityName+"</li>";
+                        $("#province2").append(province2);  
+                        //var cID=data[i].cityId
+                   }
+               	$("#province2 li").click(function () {
+               		 	 $("#city").text("县/区");
+               		 	 provinceId = undefined;
+                  	     $("#province2").css({"display":"none"});                  	                     	     
+                  	     cityId = $(this).attr("pid");		//城市ID                 
+                      $("#selPro").text($(this).text()); 
+                      $("#province2").css({"display":"none"});
+                  })
+               },
+               error:function(XMLHttpRequest, textStatus, errorThrown){
+            	   $scope.error=true;
+               }
+           });
+       }	//else的小括号
+    }    
+    //类型的相关事件
+   $scope.style = function () {
+    	
+	  var dis = $("#styleCon").css("display");
+    	if(dis=="block"){
+    		 $("#styleCon").css({"display":"none"});
+    	}else{
+       	   $("#styleCon").empty();
+           $("#styleCon").css({"display":"block"});
+           $.ajax({
+               type: "get",
+               url: "commodity/getAllcategory",
+               dataType : "json",
+               data:{},
+               success: function(data){
+                   for(var i=0;i<data.length;i++){                  	
+                   	 	var style = "<li styleId="+data[i].catId+" class='smallSty'>"+data[i].catName+"</li>";
+                           $("#styleCon").append(style);                         
+                   }
+               	 $("#styleCon li").click(function () {
+               		
+               		 $("#styleCon").css({"display":"none"});
+   	                	$("#styleCon").empty();
+   	                    $("#style").text($(this).text()); 
+   	                    $("#styleCon").css({"display":"none"});
+   	                     cartID = $(this).attr("styleId");		//类型ID
+   	                  	_data();		//重新渲染Echarts数据
+               		   $.ajax({
+               	            type: "POST",
+               	            url: "areaParice/getCityAreaPriceList",
+               	            dataType : "json",
+               	            data:{"catId":cartID},
+               	            success: function(data){
+               	                $scope.CityAreaPriceList = data;
+               	               /*  $scope.areaPriceList = $scope.CityAreaPriceList.allAreaPriceListByCity; */
+               	                $scope.$apply()
+               	               //console.log($scope.CityAreaPriceList,$scope.areaPriceList,"$scope/getCityAreaPriceList++++++++++++++++++++");               	            	
+               	            },
+               	            error:function(XMLHttpRequest, textStatus, errorThrown){
+               	            	$scope.error=true;
+               	            }
+               	        });     
+                  }) 
+               },
+               error:function(data){
+            	   $scope.error=true;
+               }
+           });
+    	}		//else的小括号
+    }
+    //县区接口+++++
+   
+    $scope.city=function () {
+    	 var cDis = $("#cityCon").css("display");
+    	 if(cDis == "block"){
+    		 $("#cityCon").css({"display":"none"});
+    	 }else{
+	    		 if(cityId==undefined){
+	    			 $scope.mtShow = true;
+	    			 $scope.cityInfo = true;
+	        	 }else{
+			        $("#cityCon").css({"display":"block"}); 
+		            $.ajax({
+		                type: "POST",
+		                url: "areaController/getAreaByCityId",
+		                dataType : "json",
+		                data:{"cityId":cityId},
+		                success: function(data){
+		                	$("#cityCon").empty();
+		                    for(var i=0;i<data.length;i++){
+		                    	 var city = "<li pId="+data[i].areaId+">"+data[i].areaName+"</li>";
+		                         $("#cityCon").append(city); 	                         
+		                    }
+		                	$("#cityCon li").click(function () {
+		                   	 $("#cityCon").css({"display":"none"});
+		                       //console.log($(this).text(),"this.text++++");
+		                       //console.log($("#selPro").text(),"#selPro.text++++")
+		                       $("#city").text($(this).text()); 
+		                       $("#cityCon").css({"display":"none"});
+		                       provinceId = $(this).attr("pId")		//县区ID
+		                   })
+		                },
+		                error:function(XMLHttpRequest, textStatus, errorThrown){
+		                	$scope.error=true;
+		                }
+		            });
+	         }   		 
+    	 }	//else  	
+    }
+    
+    $.ajax({
+        type: "POST",
+        url: "areaParice/getCityAreaPriceList",
+        dataType : "json",
+        data:{"catId":"2"},
+        success: function(data){
+        	$scope.CityAreaPriceList = data;
+           /*  for(var i=0; i<data.length;i++){
+        	   $scope.areaPriceList = data[i].areaPriceList
+           } */
+        }
+    });
+    
+    
+    //上面是区域价格JS部分
+    
+    //更新区域回收价格
+          $scope.upDate=_upDate;
+			$scope.affirmRe =function(){
+				var params ={
+						"province":"",		//省ID
+						"city":cityId,		//城市ID
+						"area":provinceId,			//区域ID
+						
+					}
+				console.log(params,"+++++++++++")
+				$.ajax({
+			        type: "POST",
+			        url: "areaParice/verifyOrgArea",
+			        dataType : "json",
+			        data: params,
+			        success: function(data){
+			        	if(data.msgCode=="Y"){
+							_upDate()
+						}else{
+							console.log(data.msg,"quanxian")
+							$scope.quanxian2 = data.msg;
+							$scope.quanxian=true;
+							//console.log(data.msgCode,"+++++++")
+						}
+			        }
+			    });
+			}
+ 
+ 	  function _upDate(){
+					var  priceChange=$("#priceChange").val();
+					if(cartID==undefined){
+						console.log(1)
+						cartID=2;
+						var params ={
+								"areaId":provinceId,		//区域ID
+								"cityId":cityId,		//城市ID
+								"catId":cartID,			//类型ID
+								"areaPrice":priceChange	//修改的价格
+							}
+						console.log(params,"更新需要的参数++++++")
+						$.ajax({
+				        type: "POST",
+				        url: "areaParice/updateAreaBasePrice",
+				        dataType : "json",
+				        data: params,
+				        success: function(data){
+				        	if(data.msgCode == "Y"){
+								 console.log(data);
+								 console.log(params,"修改参数");
+								 $.ajax({
+								        type: "POST",
+								        url: "areaParice/getCityAreaPriceList",
+								        dataType : "json",
+								        data:{"catId":"2"},
+								        success: function(data){
+								        	$("#priceChange").val("")
+											 $scope.mtShow = true;
+											 $scope.success = true;
+											//console.log(data,"data++++++++++",data[0].areaPriceList)
+											$scope.CityAreaPriceList = data;
+								
+								            for(var i=0; i<data.length;i++){
+								        	   $scope.areaPriceList = data[i].areaPriceList
+								        	  
+								           }
+								        }
+								    });
+							}else{
+								console.log(data.msg,"quanxian")
+								$scope.quanxian = data.msg;
+								$scope.quanxian=true;
+							}
+				        }
+				    });
+				}else if(cartID!=undefined){
+					var  priceChange=$("#priceChange").val();
+					console.log(2,cartID);
+					var params ={
+							"areaId":provinceId,		//区域ID
+							"cityId":cityId,		//城市ID
+							"catId":cartID,			//类型ID
+							"areaPrice":priceChange	//修改的价格
+						}
+					$.ajax({
+				        type: "POST",
+				        url: "areaParice/updateAreaBasePrice",
+				        dataType : "json",
+				        data: params,
+				        success: function(data){
+				        	if(data.msgCode == "Y"){
+								//console.log(data,params,"修改价格返回的数据")
+								$.ajax({
+								        type: "POST",
+								        url: "areaParice/getCityAreaPriceList",
+								        dataType : "json",
+								        data:{"catId":cartID},
+								        success: function(data){
+								        	$("#priceChange").val("")
+											$scope.mtShow = true;
+											$scope.success = true;
+											console.log(data,"data++++++++++",data[0].areaPriceList)
+											$scope.CityAreaPriceList = data;
+								
+								            for(var i=0; i<data.length;i++){
+								        	   $scope.areaPriceList = data[i].areaPriceList
+								        	  
+								           }
+								        }
+								    });
+							}else{
+								$scope.quanxian = data.msg;
+								$scope.quanxian=true;
+							}
+				        }
+				    });
+				}
+			} 
+    $scope.refreshPri = function(){
+    			//$scope.refresh = true;
+    			//$scope.refresh = false; 	
+				var  priceChange=$("#priceChange").val();
+				var regex = /^([1-9]\d{1,5}|1)$/;
+				var RE = (regex).test(priceChange);
+				
+				console.log(cartID,cityId,priceChange,"更新价格需要的参数");
+				
+				if(cityId==undefined||priceChange==""||RE==false){
+					console.log("不能更新价格")
+					$scope.mtShow = true;
+					$scope.priceInfo = true;
+					}else{
+						$scope.mtShow = true;
+						$scope.refresh = true;
+			    			
+			    		
+					}	//else的+++	 
+		}
+	//删除区域价格的某一项	 
+	 var  dealA;
+	 var  dealB;
+	 $scope.delect=function(a,b){
+		 $scope.show = true;
+		 $scope.mtShow = true;
+		 dealA = a; 
+		 dealB = b;		
+		}	//最外面的那个大函数
+		$scope.affirm=function(){
+			console.log(dealA,dealB)
+			areaId=$scope.CityAreaPriceList[dealA].areaPriceList[dealB].areaId;			
+			//console.log($scope.CityAreaPriceList[dealA].allAreaPriceListByCity[dealB]);		
+			if(cartID==undefined){
+				cartID = 2;
+				params={
+						"catId":cartID,		//类型ID
+						"areaId":areaId,	//传递县区ID			
+					}
+				$.ajax({
+			        type: "POST",
+			        url: "areaParice/deleteAreaBasePrice",
+			        dataType : "json",
+			        data: params,
+			        success: function(data){
+			        	console.log(data.msgCode)
+						 if(data.msgCode=="Y"){
+							 $scope.mtShow = true;
+							 $scope.success = true;
+							 $scope.show = false;
+							 $scope.mtShow = false;//模态框
+							 ($scope.CityAreaPriceList[dealA].areaPriceList).splice(dealB,1);
+							 $.ajax({
+							        type: "POST",
+							        url: "areaParice/getCityAreaPriceList",
+							        dataType : "json",
+							        data:{"catId":"2"},
+							        success: function(data){
+							        	console.log(data,"data++++++++++",data[0].areaPriceList)
+										$scope.CityAreaPriceList = data;
+							
+							            for(var i=0; i<data.length;i++){
+							        	   $scope.areaPriceList = data[i].areaPriceList
+							        	  
+							           }
+							        }
+							    });
+						}else{
+							//$.messager.alert('提示',data.msg,'error');
+							$scope.mtShow = true;
+							console.log(data.msg,"quanxian")
+							$scope.quanxian = data.msg;
+							$scope.quanxian=true;
+						} 
+			        }
+			    });
+			}else{
+				
+				params={
+						"catId":cartID,		//类型ID
+						"areaId":areaId,	//传递县区ID			
+					}
+				 $.ajax({
+				        type: "POST",
+				        url: "areaParice/deleteAreaBasePrice",
+				        dataType : "json",
+				        data:params,
+				        success: function(data){
+				        	if(data.msgCode=="Y"){
+								$scope.mtShow = true;
+								$scope.success = true;
+								 $scope.show = false;
+								 $scope.mtShow = false;//模态框
+								$scope.CityAreaPriceList[dealA].areaPriceList.splice(dealB,1);
+								 $.ajax({
+								        type: "POST",
+								        url: "areaParice/getCityAreaPriceList",
+								        dataType : "json",
+								        data:{"catId":cartID},
+								        success: function(data){
+								        	console.log(data,"data++++++++++",data[0].areaPriceList)
+											$scope.CityAreaPriceList = data;
+								
+								            for(var i=0; i<data.length;i++){
+								        	   $scope.areaPriceList = data[i].areaPriceList
+								        	  
+								           }
+								        }
+								    });
+								
+							}else{ 
+								//$.messager.alert('提示',data.msg,'error');
+								$scope.mtShow = true;
+								console.log(data.msg,"quanxian")
+								$scope.quanxian = data.msg;
+								$scope.quanxian=true;
+							}
+				        }
+				    });
+			}		
+		}		
+		$scope.cancle=function(){
+			 $scope.show = false;	//tips提示信息
+			 $scope.mtShow = false;//模态框
+			 $scope.priceInfo = false;//验证价格提示信息
+			 $scope.cityInfo = false;
+			 $scope.refresh = false;//确认更新价格提示框	
+			 $scope.success = false;
+			 $scope.error = false;
+			 $scope.quanxian = false;
+			 
+		}
+
+	});		//angularjs的括号
+	if(verification("areaParice","delete")){
+		$("#hide2").css("display","");
+	}
+	 if(verification("areaParice","updatePrice")){
+		 $("#refreshPri").css("display","");
+	}
+    </script>
+  </body>
+  <div id="mtc" ng-if="mtShow"></div>
+</html>

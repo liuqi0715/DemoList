@@ -1,0 +1,465 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <title>区域、商品价格</title>
+    <link rel="stylesheet" type="text/css" href="../../themes/default/easyui.css">
+    <link rel="stylesheet" type="text/css" href="../../themes/icon.css">
+    <link rel="stylesheet" type="text/css" href="../../themes/demo.css">
+    <script type="text/javascript" src="../../js/jquery.min.js"></script>
+    <script type="text/javascript" src="../../js/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="../../js/locale/easyui-lang-zh_CN.js"></script>
+    <script type="text/javascript" src="../global.js"></script>
+<style type="text/css">
+	#cat .textbox{
+		width:155px !important;
+	}
+</style>
+    <script type="text/javascript">
+var url;
+var hig = 0;
+$(function(){
+	$('#coefficient').keyup(function(){
+		var coefficient = parseFloat($('#coefficient').val());
+		var refPrice1=parseFloat($('#refPrice1').val());
+		var priceCoefficient=(coefficient/refPrice1).toFixed(4);
+		$('#priceCoefficient').textbox('setValue',priceCoefficient);	
+	}) 
+	$('#province').combobox({
+	 	valueField:'provinceId', //值字段
+        textField:'provinceName', //显示的字段
+        url:'areaController/getAllProvince',
+        editable:false,//不可编辑，只能选择
+        width:'100',
+        value:'--请选择--',
+        onSelect:function(){
+        	var province = $(this).combobox('getValue');
+            $('#city').combobox({
+            	 valueField:'cityId', 
+                 textField:'cityName',
+                 url:'areaController/getCityByProvinceId?provinceId='+province,
+	             required:true,
+	             editable:false,//不可编辑，只能选择
+	             value:'--请选择--' 
+          	}); 
+            push();
+        },
+	});
+	$('#city').combobox({
+        editable:false,
+        width:'100',
+        value:'请先选择省份',
+       	onSelect:function(){
+        	var city = $(this).combobox('getValue');
+            $('#area').combobox({
+            	valueField:'areaId', 
+                textField:'areaName',
+                url:'areaController/getAreaByCityId?cityId='+city,
+	            required:true,
+	            editable:false,//不可编辑，只能选择
+	            value:'--请选择--'
+            });
+            push();
+       	},
+     	onLoadSuccess:function(){
+       		$('#area').combobox({
+		 		width:'100',
+		 		editable:false,
+       			value:'请先选择城市',
+       			onSelect:function(){
+       	 			push();
+       	 		}
+			});
+    	}
+    });
+	$('#area').combobox({
+ 		width:'100',
+ 		editable:false,
+ 		value:'请先选择城市'
+	});
+	$('#configName').combobox({
+ 		url:'commodity/getAllcategory',
+ 		valueField:'catId',
+ 		textField:'catName',
+ 		width:'150',
+ 		editable:false,
+ 		value:'请选择类型',
+ 		onSelect:function(){
+ 			push();
+ 		}
+	});
+	$('#end').datebox({    
+	    width:'100px',
+	    editable:false,
+	    onSelect:function(date){
+	    	var now = new Date();
+	    	if(date > now){
+	    		$.messager.alert('提示','操作失败!日期不能超过当前时间','error');
+	    		$('#end').datebox('setValue','');
+	    	}
+	    	push();
+ 		}
+	});
+	$('#updateArea').dialog({
+       	title: '修改价格',
+       	width:400,
+       	height:250,
+       	closed:true
+   	});
+	var tableH = Math.max(document.documentElement.scrollHeight,document.body.scrollHeight)-($('#dg').offset().top+30);
+   	$('#dg').datagrid({
+       	iconCls: 'icon-save',
+       	width: '100%',
+       	height: tableH ,
+       	fitColumns:true,//自动使列适应表格宽度以防止出现水平滚动。
+       	nowrap: true,
+       	autoRowHeight: true,
+       	singleSelect: true,
+       	striped: true,
+       	collapsible: true,
+       	remoteSort: false,
+       	rownumbers:true,
+       	checkOnSelect: true,
+       	url: 'areaParice/getAreaBasePrice',
+       	queryParams: {
+       		configId : "",
+       		areaId : "",
+       		cityId : "",
+       		provinceId : "",
+       		//start : "",
+       		end : "",
+      		},
+       	idField: "areaPriceId",
+       	columns: [[
+               { field: 'areaPriceId', title: '区域价格ID', width: 100, hidden:true},
+               { field: 'areaId', title: '区域编号', width: 100,hidden:true},
+               { field: 'catId', title: '分类ID', width: 100, hidden:true, align:'left'  },
+               { field: 'catName', title: '类型', width: 150, align:'left'},
+               { field: 'areaName', title: '区域', width: 150, align:'left'},
+               { field: 'areaBasePrice', title: '本地价格', width: 100, align:'right'},
+               { field: 'beginDate', title:'开始日', width: 180, align:'center'},
+               { field: 'endDate', title: '结束日', width: 100, align:'center'},
+               { field: 'refPrice', title: '参考价格', width: 100, align:'right'  },
+               { field: 'slidingScalePrice', title: '浮动价格', width: 100, align:'right'},
+               { field: 'createTime', title: '创建时间', width: 180, align:'center'},
+               { field: 'createUser', title: '创建人ID', width: 100, hidden:true},
+               { field: 'createUserName', title:'创建人', width: 100,hidden:true , align:'center'  },
+               { field: 'updateTime', title: '修改时间', width: 180, align:'center'},
+               { field: 'updateUser', title: '修改人ID', width: 100,hidden:true },
+               { field: 'updateUserName', title: '修改人', width: 80}
+           ]],
+       	pagination: true,
+       	pageSize : 40, 
+       	pageList : [ 40, 80, 120],
+       	onDblClickRow:function(index, row){
+     			if(row.endDate==null){
+     				$('#show').show();
+     				if(hig==0){
+	        		hig = document.body.scrollHeight*0.9/2
+	        	}
+	        	$('#dg').datagrid('resize',{
+	    	        height: hig,
+	        	});
+     				getProductByAearId(index);
+     			}else{
+     				$('#dg').datagrid('resize',{
+	    	        height: document.body.scrollHeight*0.9,
+	        	});
+     				$('#show').hide();
+     				$('#dg1').datagrid('loadData', { total: 0, rows: [] });  
+     			}
+     		}
+   	});
+});	
+function verifyUserArea(province,city,area){
+	var a;
+	$.ajax({
+		async: false,
+		url : "areaParice/verifyOrgArea",
+		type : "post",
+		data : {
+			province : province,
+			city : city,
+			area : area
+		},
+		dataType : "json",
+		success : function(data) {
+			if(data.msgCode == "Y") {
+				a = 1;
+			}else {
+				a = 2;
+			}
+		},
+		error : a = 2
+	});
+	if(a != 1){
+		$.messager.alert('提示','操作失败!你没有该区域的权限','error');
+		return false;
+	}
+	return true;
+}
+
+function deleteArea(index,areaId){
+	$.messager.confirm('确认','您确认想要删除记录吗？',function(r){    
+	    if (r){    
+	    	var a = $('#dg1').datagrid("getRows")[index];
+  			var province = 0;
+  			var city = 0;
+  			var area = 0;
+  			if(areaId.length == 6){
+  				province = areaId.substr(0, 2);
+  				city = areaId.substr(0, 4);
+  				area = areaId;
+  			}
+  			if(areaId.length == 4){
+  				province = areaId.substr(0, 2);
+  				city = areaId;
+  			}
+  			if(areaId.length == 2){
+  				province = areaId;
+  			}
+  			if(verifyUserArea(province,city,area)){
+  				$.ajax({
+  	  				url : "areaParice/delCoefficient",
+  	  				type : "post",
+  	  				data : {
+  	  					areaId : areaId,
+  	  					commId : a.COMM_ID
+  	  				},
+  	  				dataType : "json",
+  	  				success : function(data){
+  	  					if (data.success =='Y'){
+  	  						$.messager.alert('提示','操作成功!','info');
+  	  						$('#dg1').datagrid('reload');	// reload the user data
+  	  					} else {
+  	  						$.messager.alert('提示','操作失败!','info');
+  	  					}
+  	  				}
+  	  			});
+  			}
+	    }    
+	});
+}
+		
+function updateArea(index,areaId,catId) {
+	$('#areaPrice').textbox('setValue',$('#dg1').datagrid("getRows")[index].areaPrice);
+	$('#refPrice1').textbox('setValue',$('#dg1').datagrid("getRows")[index].refPrice);
+	$('#priceCoefficient').textbox('setValue',$('#dg1').datagrid("getRows")[index].slidingScalePrice);//价格系数，赋值
+	$('#coefficient').val($('#dg1').datagrid("getRows")[index].areaPrice);//修改价格，赋值
+	$('#updateAreaCommId').val($('#dg1').datagrid("getRows")[index].commId);
+	$('#updateAreaId').val(areaId);
+	$('#catId22').val(catId);
+	$('#areaId').val(areaId);
+	$('#priceCoefficient').textbox('textbox').css('background','#ccc');
+	$('#updateArea').dialog('open');
+}
+
+function showPriceCoefficient(){
+	var coefficient = parseFloat($('#coefficient').val());
+	var areaPrice=parseFloat($('#areaPrice').val());
+	var priceCoefficient=(coefficient/areaPrice).toFixed(4);
+	$('#priceCoefficient').textbox('setValue',priceCoefficient);
+}	
+function updateAreaCoefficient(){
+	var province = 0;
+	var city = 0;
+	var area = 0;
+	var coefficient = $('#coefficient').val();
+	var areaId =  $('#updateAreaId').val();
+	if(areaId.length == 6){
+		province = areaId.substr(0, 2);
+		city = areaId.substr(0, 4);
+		area = areaId;
+	}
+	if(areaId.length == 4){
+		province = areaId.substr(0, 2);
+		city = areaId;
+	}
+	if(areaId.length == 2){
+		province = areaId;
+	}
+	var formData = new FormData(document.getElementById("form3"));
+	$('#btn32').linkbutton('disable');
+	
+	if(coefficient==""){
+		$.messager.alert('提示','操作失败!修改价格不能为空','error');
+		$('#btn32').linkbutton('enable');
+		return;
+	}
+		if(isNaN(coefficient)||parseFloat(coefficient)<=0){
+			$.messager.alert('提示','操作失败!价格只能是正数','error');
+			$('#btn32').linkbutton('enable');
+			return;
+		}
+		if(!verifyUserArea(province,city,area)){
+			return;
+		}
+	$.ajax({
+			url : "areaParice/updateAreaProductPrice",
+			type : "post",
+			data : formData,
+			dataType : "json",
+			success : function(result){
+				$('#btn32').linkbutton('enable');
+				if (result.msgCode =='Y'){
+					$.messager.alert('提示','操作成功!','info');
+					$('#updateArea').dialog('close');		// close the dialog
+					$('#dg1').datagrid('reload');	// reload the user data
+					$('#form3').form('clear');
+				} else {
+					$.messager.alert('提示','操作失败','error');
+				}
+			}
+		});
+/* 	$('#form3').form('submit',{
+		url: url,
+		onSubmit: function(){
+			if(coefficient==""){
+				$.messager.alert('提示','操作失败!修改价格不能为空','error');
+				$('#btn32').linkbutton('enable');
+				return false;
+			}
+  			if(isNaN(coefficient)||parseFloat(coefficient)<=0){
+  				$.messager.alert('提示','操作失败!价格只能是正数','error');
+  				$('#btn32').linkbutton('enable');
+  				return false;
+  			}
+  			if(verifyUserArea(province,city,area)){
+  				return true;
+  			}else{
+  				$('#btn32').linkbutton('enable');
+  				return false;
+  			}
+		},
+		success: function(result){
+			$('#btn32').linkbutton('enable');
+			var result = eval('('+result+')');
+			if (result.msgCode =='Y'){
+				$.messager.alert('提示','操作成功!','info');
+				$('#updateArea').dialog('close');		// close the dialog
+				$('#dg1').datagrid('reload');	// reload the user data
+				$('#form3').form('clear');
+			} else {
+				$.messager.alert('提示','操作失败','error');
+			}
+		}
+	});  */
+}
+		
+function push(){
+	var provinceId = $('#province').combobox('getValue');
+	var cityId = $('#city').combobox('getValue');
+	var areaId = $('#area').combobox('getValue');
+	var configId = $('#configName').combobox('getValue');
+	//var start = $('#start').datebox('getValue');
+   	var end = $('#end').datebox('getValue');
+	var page=1;
+	var rows=40;
+	if(isNaN(configId)){
+		configId='';
+	}
+	$('#dg').datagrid('loadData', { total: 0, rows: [] }); 
+	$('#dg').datagrid('load',{provinceId:provinceId,cityId:cityId,areaId:areaId,configId:configId,end:end});
+}
+  	
+function getProductByAearId(index){
+	var catId = $('#dg').datagrid("getRows")[index].catId;
+	var areaId = $('#dg').datagrid("getRows")[index].areaId;
+	var beginDate = $('#dg').datagrid("getRows")[index].beginDate;
+	var areaBasePrice = $('#dg').datagrid("getRows")[index].areaBasePrice;
+	$('#dg1').datagrid({
+     	iconCls: 'icon-save',
+     	width: '100%',
+     	height:hig,
+     	fitColumns:true,//自动使列适应表格宽度以防止出现水平滚动。
+     	nowrap: true,
+     	autoRowHeight: false,
+     	singleSelect: true,
+     	striped: true,
+     	url:'commodity/commodityByArea',
+     	queryParams: {
+    		catId : catId,
+    		areaId : areaId,
+    		beginDate:beginDate
+   		},
+     	collapsible: true,
+     	remoteSort: false,
+     	rownumbers:true,
+     	checkOnSelect: true,
+     	columns: [[
+			{ field: 'commId', title: '商品ID',hidden:true},
+			{ field: 'catName', title: '类型', width: 120, align:'left'},
+	   		{ field: 'brandName', title: '品牌', width: 80, align:'left'},
+	       	{ field: 'modelName', title: '型号', width: 80, align:'left' },
+	       	{ field: 'commWeight', title: '重量（KG）', width: 80, align:'right'},
+	       	{ field: 'commUnit', title: '单位', width: 50, align:'left'  },
+	       	{ field: 'modelLeadContent', title: '含铅量', width: 50, align:'right'},
+	       	{ field: 'updateTime', title: '价格修改时间', width: 180, align:'center' },
+	       	{ field: 'logisticFee', title: '物流费',hidden:true, width: 100, align:'right'},
+	       	{ field: 'updateUserName', title: '修改人', width: 100,hidden:true},
+	       	{ field: 'tonAreaPrice', title: '区域价格(吨)', align:'right', width: 100,
+	       		formatter:function(value,row,index){
+	       			return value==0? areaBasePrice:value;
+	       		}
+	       	},
+	       	{ field: 'areaPrice', title: '区域价格(只/组)', width: 80, align:'right'},
+	       	{ field: 'refPrice', title: '原价格', width: 80, align:'right'},    
+	       	{ field: 'slidingScalePrice', title: '价格系数', width: 50, align:'right',
+	       		formatter:function (value,row,index){
+	       			return value==1 ? value : "<font color='red'>"+value+"</font>" 
+	       		}
+	       	},
+	        { field: 'operational', title: '操作', width: 150,
+	           	formatter: function (value, row, index) {
+	       			return (verification("areaProductPrice","updateCoefficient")?"<a href=\"javascript:updateArea("+index+","+areaId+","+catId+");\">修改价格</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;":"");
+	             }
+	       	}
+	   	]],
+	   	pagination: true,
+	   	pageSize : 120, 
+	   	pageList : [ 40, 80, 120 ]
+	});
+	 if(verification("areaProductPrice","updateCoefficient")){
+		 $("#btn32").css("display","");
+	}
+}
+    </script>
+  </head>
+  <body>
+    <div class="inputArea">
+	  	<span id="cat"><label>类型</label>：<input  id="configName"></span>
+	  	<label>省份</label>：<input id="province" />
+	  	<label>城市</label>：<input id="city" />
+	  	<label>区域 </label>：<input id="area" />
+	  	<label>时间</label>：<input id="end" type="text"></input>
+	</div>
+	<table id="dg" ></table>
+	<div id="show"><table id="dg1" ></table></div>
+	<div id="updateArea">
+		<form action="areaParice/updateAreaProductPrice" method="post" id="form3">
+			<input type="hidden" name="updateAreaCommId" value="" id="updateAreaCommId">
+			<input type="hidden" name="catId22" value="" id="catId22" >
+			<input type="hidden" name="updateAreaId" value="" id="updateAreaId">
+			<div align="center"><br/>
+			    <div class="inputArea1">
+				  	<label>原价格</label>：<input id="refPrice1"  type="text" value=""  class="easyui-textbox" readonly="readonly" />
+				</div>
+				<div class="inputArea1">
+				  	<label>区域价格</label>：<input id="areaPrice"  type="text" value=""  class="easyui-textbox" readonly="readonly" />
+				</div>
+				<div class="inputArea1">
+				  	<label>修改价格</label>：<input id="coefficient" name="coefficient" type="text" style="position:relative;top:3px;padding: 3px 0 0 5px;width: 115px;height: 23px;border:1px solid #B3DFDA;border-radius: 5px;" />
+				</div>
+				<div class="inputArea1">
+				  	<label>价格系数</label>：<input id="priceCoefficient"  type="text" value=""  class="easyui-textbox" readonly="readonly"/>
+				</div>
+			
+			</div>
+			<div align="center"><br/>
+				<!-- <c:if test="${sessionScope.rolBtn.get('areaProductPrice').containsKey('updateCoefficient') }"> -->
+					<a id="btn32" class="easyui-linkbutton" style="display: none" data-options="iconCls:'icon-save'" onclick="updateAreaCoefficient();" >提交</a>
+				<!-- </c:if> -->
+			</div>
+		</form>
+	</div>
+  </body>
+</html>

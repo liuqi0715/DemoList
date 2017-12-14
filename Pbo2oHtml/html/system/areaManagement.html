@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>区域管理</title>
+<link rel="stylesheet" type="text/css" href="../../themes/default/easyui.css">
+<link rel="stylesheet" type="text/css" href="../../themes/icon.css">
+<link rel="stylesheet" type="text/css" href="../../themes/demo.css">
+<script type="text/javascript" src="../../js/jquery.min.js"></script>
+<script type="text/javascript" src="../../js/jquery.easyui.min.js"></script>
+<script type="text/javascript" src="../../js/locale/easyui-lang-zh_CN.js"></script>
+<script type="text/javascript" src="../global.js"></script>
+</head>
+<body>
+	<div class="inputArea1" id="inputArea1" style="display:none;">
+		<form action="delivery.do" method="post" id="form1">
+				<label>省市区</label>：<input id="province" class="easyui-combobox" >
+				<input id="city" class="easyui-combobox" >
+				<input id="area" class="easyui-combobox" >
+				<label >类型</label>：<input id="type" class="easyui-combobox" >
+				<a style="margin-left:10px;" class="easyui-linkbutton" onclick="submit()" >保存</a>
+				<a style="margin-right:10px;" class="easyui-linkbutton"onclick="$('#form1').form('clear');" >清空</a>
+		</form>
+	</div>
+	<div class="custAddr">
+		<label class="custAddr_label" >下单区域</label>
+			<table id="dg"></table>
+	</div>
+	<div class="custAddr">
+		<label class="custAddr_label">收单区域</label>
+			<table id="dg1"></table>
+	</div>
+	<div class="custAddr">
+		<label class="custAddr_label">支付区域</label>
+			<table id="dg2"></table>
+	</div>
+</body>
+</html>
+<script type="text/javascript">
+	$(function() {
+		var saCustId;
+		var tableH0 = $(window).height()-($('.custAddr').offset().top+60);
+		var tableH = $(window).width()<1755?tableH0/2-30:tableH0;
+		
+		if($(window).width()<1755){
+			$(".custAddr").css({"padding":10,"width":($(window).width()-150)/2,"margin-left":30});
+			$(".inputArea1").css({"padding-left":30});
+		}
+		$('#dg').datagrid(
+			{
+				iconCls : 'icon-save',
+				width : "100%",
+				height : tableH,
+				 fitColumns : true,
+				nowrap : true,
+				autoRowHeight : false,
+				striped : true,
+				singleSelect : true,
+				collapsible : true, 
+				url : 'areaManagement/getPlaceArea',
+				 remoteSort : false,
+				//rownumbers : true,
+				checkOnSelect : true, 
+				idField : "placeId",
+				columns : [ [ 
+					{ field : 'placeId',title : '下单区域Id',hidden : true }, 
+					{ field : 'areaName',title : '区域',width : 120,height:100,align:'center' }, 
+					{ field : 'createTime',title : '开通时间',width : 120,align:'center' }, 
+					{ field : 'op',title : '操作',width : 100,
+	            		formatter: function (value, row, index) {
+	                    	return (verification("areaManagement","delete")?"<a href=\"javascript:del1('"+index+"');\">删除</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;":"");
+	                    }
+					}
+				] ] 
+			});
+		$('#dg1').datagrid(
+			{	
+				iconCls : 'icon-save',
+				width : "100%",
+				height : tableH,
+				 fitColumns : true,
+				nowrap : true,
+				autoRowHeight : false,
+				striped : true,
+				singleSelect : true,
+				collapsible : true, 
+				url : 'areaManagement/getTpadArea',
+				 remoteSort : false,
+				//rownumbers : true,
+				checkOnSelect : true, 
+				idField : "tpadId",
+				columns : [ [ 
+					{ field : 'tpadId',title : '收单区域Id',hidden : true }, 
+					{ field : 'areaName',title : '区域',width : 110,align:'center' }, 
+					{ field : 'createTime',title : '开通时间',width : 110,align:'center' }, 
+					{ field : 'op',title : '操作',width : 100,
+	            		formatter: function (value, row, index) {
+	                    	return (verification("areaManagement","delete")?"<a href=\"javascript:del2('"+index+"');\">删除</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;":"");
+                    }
+				}
+				] ] 
+			});
+		
+		$('#dg2').datagrid(
+				{
+					iconCls : 'icon-save',
+					width : "100%",
+					height : tableH,
+					fitColumns : true,
+					nowrap : true,
+					autoRowHeight : false,
+					striped : true,
+					singleSelect : true,
+					collapsible : true, 
+					url : 'areaManagement/getPayArea',
+					 remoteSort : false,
+					//rownumbers : true,
+					checkOnSelect : true, 
+					idField : "payId",
+					columns : [ [ 
+						{ field : 'payId',title : '支付区域Id',hidden : true }, 
+						{ field : 'areaName', title : '区域',width : 110,align:'center' }, 
+						{ field : 'openDate',title : '开通时间',width : 110,align:'center' }, 
+						{ field : 'op',title : '操作',width : 100,
+		            		formatter: function (value, row, index) {
+		                    	return (verification("areaManagement","delete")?"<a href=\"javascript:del3('"+index+"');\">删除</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;":"");
+		                    }
+						}
+					] ]
+				});
+		$('#province').combobox({
+            valueField:'provinceId', //值字段
+            textField:'provinceName', //显示的字段
+            url:'areaController/getAllProvince',
+            editable:false,//不可编辑，只能选择
+            width:'120',
+            value:'--请选择--',
+            onSelect:function(){
+            	var province = $(this).combobox('getValue');
+                $('#city').combobox({
+                valueField:'cityId', 
+                textField:'cityName',
+                url:'areaController/getCityByProvinceId?provinceId='+province,
+                required:true,
+                editable:false,//不可编辑，只能选择
+                value:'--请选择--' 
+              }); 
+            },
+         });
+		
+		$('#city').combobox({
+            editable:false,
+            width:'120',
+            value:'请先选择省份',
+           	onSelect:function(){
+            	var city = $(this).combobox('getValue');
+                $('#area').combobox({
+                valueField:'areaId', 
+                textField:'areaName',
+                url:'areaController/getAreaByCityId?cityId='+city,
+                required:true,
+                editable:false,//不可编辑，只能选择
+                value:'--请选择--'
+               });
+           	},
+         	onLoadSuccess:function(){
+           		$('#area').combobox({
+    		 		width:'100',
+    		 		editable:false,
+           			value:'请先选择城市',
+           			
+    			});
+        	}
+         });
+		
+		$('#area').combobox({
+		 		width:'120',
+		 		editable:false,
+		 		value:'请先选择城市',
+            onSelect:function(){
+            	var areaId = $(this).combobox('getValue');
+                $('#street').combobox({
+                    valueField:'stId', 
+                    textField:'stName',
+                    url:'areaController/getStreetByArea?areaId='+areaId,
+                    required:true,
+                    editable:false,//不可编辑，只能选择
+                    value:'--请选择--' 
+              }); 
+            },
+         	onLoadSuccess:function(){
+           		$('#street').combobox({
+    		 		width:'100',
+    		 		editable:false,
+           			value:'请先选择区/县',
+           			
+    			});
+        	}
+			});	
+		setTimeout(function(){
+			$('#type').combobox({
+				valueField: 'id',
+				textField: 'text',
+				data: [
+					{ "id":1, "text":"--请选择--", "selected":true },
+					{ "id":2, "text":"下单区域" },
+				    { "id":3, "text":"收单区域" },
+				    { "id":4, "text":"支付区域" }],
+				onSelect:function(obj){
+				    console.log(obj);
+				    $('#type').combobox('setValue', obj.id);
+				}
+				
+			});
+			$('#type').combobox('setValue', 1);
+		},100);
+		
+		if(verification("areaManagement","add")){
+   		 	$("#inputArea1").css("display","");
+   		}	
+	});
+	
+	function submit() {
+		var areaId = "isEmpty";
+		var province = $('#province').combobox('getValue');
+		var city = $('#city').combobox('getValue');
+		var area = $('#area').combobox('getValue');
+		var type = $("#type").combobox('getValue');
+		
+		if (province == "--请选择--" || province == "") {
+			$.messager.alert('提示', "省份不可为空", 'info');
+			return;
+		}else if (type == 1 || type == "") {
+			$.messager.alert('提示', "类型不可为空", 'info');
+			return;
+		}else{
+			areaId = province;
+		} 
+		if (city == "--请选择--" || city == "请先选择省份"|| city == "") {
+			city = "isEmpty";
+		}else{
+			areaId = city;
+		}
+		if (area == "--请选择--" || area == "请先选择城市" || area == "") {
+			area = "isEmpty";
+		}else{
+			areaId = area;
+		}
+		$.ajax({
+			url : "areaManagement/add",
+			data : {
+				areaId : areaId,
+				type : type
+			},
+			type : "post",
+			success : function(text) {
+				if (text.success == "1") {
+					$.messager.alert('提示', text.msg, 'info'), $(".address")
+							.textbox("setValue", "");
+					$("#dg").datagrid('reload');
+					$("#dg1").datagrid('reload');
+					$("#dg2").datagrid('reload');
+				} else if (text.success == "0") {
+					$.messager.alert('提示', text.msg, 'info');
+				}
+			},
+			error : function(jqXHR, textStatus, errorThrown) {
+				$.messager.show({
+					title : 'Error',
+					msg : jqXHR.responseText
+				});
+			}
+		});
+
+	}
+
+	function del1(index) {
+		var placeId = $('#dg').datagrid("getRows")[index].placeId;
+		$.messager.confirm('提示', '是否删除？', function(r) {
+			if (r) {
+				$.ajax({
+					url : "areaManagement/delPlaceArea",
+					data : {
+						placeId : placeId
+					},
+					type : "post",
+					success : function(text) {
+						if (text.success == "1") {
+							$.messager.alert('提示', text.msg, 'info',
+									function() {
+										location.reload();
+									});
+							$('#dg').datagrid('reload');	// reload the user data
+							
+						} else {
+							$.messager.alert('提示', text.msg, 'info');
+						}
+					},
+					error : function(jqXHR, textStatus, errorThrown) {
+						$.messager.show({
+							title : 'Error',
+							msg : jqXHR.responseText
+						});
+					}
+				});
+			} else {
+				return;
+			}
+		});
+	}
+	
+	function del2(index) {
+		var tpadId = $('#dg1').datagrid("getRows")[index].tpadId;
+		
+		$.messager.confirm('提示', '是否删除？', function(r) {
+			if (r) {
+				$.ajax({
+					url : "areaManagement/delTpadArea",
+					data : {
+						tpadId : tpadId
+					},
+					type : "post",
+					success : function(text) {
+						if (text.success == "1") {
+							$.messager.alert('提示', text.msg, 'info',
+									function() {
+										location.reload();
+									});
+							$('#dg1').datagrid('reload');	// reload the user data
+							
+						} else if (text.success == "2") {
+							$.messager.alert('提示', text.msg, 'info');
+						}
+					},
+					error : function(jqXHR, textStatus, errorThrown) {
+						$.messager.show({
+							title : 'Error',
+							msg : jqXHR.responseText
+						});
+					}
+				});
+			} else {
+				return;
+			}
+		});
+	}
+	
+	function del3(index) {
+		var payId = $('#dg2').datagrid("getRows")[index].payId;
+		
+		$.messager.confirm('提示', '是否删除？', function(r) {
+			if (r) {
+				$.ajax({
+					url : "areaManagement/delPayArea",
+					data : {
+						payId : payId
+					},
+					type : "post",
+					success : function(text) {
+						if (text.success == "1") {
+							$.messager.alert('提示', text.msg, 'info',
+									function() {
+										location.reload();
+									});
+							$('#dg2').datagrid('reload');	// reload the user data
+							
+						} else if (text.success == "2") {
+							$.messager.alert('提示', text.msg, 'info');
+						}
+					},
+					error : function(jqXHR, textStatus, errorThrown) {
+						$.messager.show({
+							title : 'Error',
+							msg : jqXHR.responseText
+						});
+					}
+				});
+			} else {
+				return;
+			}
+		});
+	}
+</script>
+<style type="text/css">
+.coverPane {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	width: 100%;
+	height: 100%;
+	bottom: 0;
+	background: #FFF;
+}
+.custList{
+	width:52%;
+	float:left;
+	clear:both;
+}
+.custList .panel {
+	margin: 30px 0 0 30px;
+}
+.custList .datagrid-header-row, .datagrid-row{
+	height:50px !important;
+}
+.custAddr {
+	position:relative;
+	float:left;
+	width: 470px;
+	padding: 20px;
+	margin: 30px 0 0 50px;
+	border: 1px solid #B3DFDA;
+	border-radius:10px;
+}
+.custAddr_label {
+	position: absolute;
+	display: block;
+	width: 70px;
+	line-height: 30px;
+	background: #FFF;
+	text-align: center;
+	left: 30px;
+	top: -15px;
+}
+.custAddr_exp {
+	width: 80px;
+	height: 80px;
+	float: left;
+	margin: 30px;
+	border: 1px solid #B3DFDA;
+}
+.custAddr_input {
+	width: 70%;
+	float: left;
+	padding: 30px 0 0 30px;
+}
+.custAddr ul {
+	width: 100%;
+	margin: 0 0 50px 0;
+	padding: 0;
+}
+.custAddr li {
+	float: left;
+	width: 150px;
+	height: 30px;
+	line-height: 30px;
+	list-style: none;
+}
+.custAddr_label {
+	width: 100px !important;
+	text-align: center;
+}
+.custAddr .textbox {
+	width: 240px !important;
+}
+.cm_Btn{
+	display:inline-block;
+	width:50px;
+	height:50px;
+	border-radius:50%;
+	text-align:center;
+	line-height:50px;
+	color:#FFF !important;
+	background:#6FB3E0;
+}
+</style>
