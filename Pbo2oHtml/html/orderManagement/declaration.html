@@ -1,0 +1,2605 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="../../themes/default/easyui.css">
+<link rel="stylesheet" type="text/css" href="../../themes/icon.css">
+<link rel="stylesheet" type="text/css" href="../../themes/demo.css">
+<link rel="stylesheet" type="text/css" href="../../css/timeline.css">
+<script type="text/javascript" src="../../js/jquery.min.js"></script>
+<script type="text/javascript" src="../../js/jquery.easyui.min.js"></script>
+<script type="text/javascript" src="../../js/locale/easyui-lang-zh_CN.js"></script>
+<script type="text/javascript" src="../../js/datagrid-detailview.js"></script>
+<script type="text/javascript" src="../../js/jquery.json-2.3.js"></script>
+<script type="text/javascript" src="../../js/jquery.edatagrid.js"></script>
+<script type="text/javascript" src="../../js/timeline.js"></script>
+<script type="text/javascript" src="../global.js"></script>
+		<script src="https://cdn.bootcss.com/sockjs-client/1.1.4/sockjs.min.js"></script>
+		<script src="https://cdn.bootcss.com/stomp.js/2.3.3/stomp.min.js"></script>
+<script type="text/javascript">
+var url;
+var num = 0;
+var hig = 0;
+var comboboxWidth=0;
+var tableH = 0;
+$(function () {
+	$("#tt").hide();
+	$("#custOperationWin").hide();
+	//$("#dec_number").textbox('textbox').bind('keyup', function(e){
+    //    $("#dec_number").textbox('setValue', $(this).val().replace(/[^\-?\d.]/g,''));
+	//});
+	//$("#decNumber").textbox('textbox').bind('keyup', function(e){
+	 //   $("#decNumber").textbox('setValue', $(this).val().replace(/[^\-?\d.]/g,''));
+	//});
+	tableH = $(window).height()-($('#dg').offset().top+20);	
+	$('.sendOrders').css('display','none');
+	if(comboboxWidth==0){
+		comboboxWidth = document.body.scrollWidth*0.08;
+	}
+
+	 $('#operationReason').combobox({
+        valueField:'config_id',
+        textField:'config_name',
+        url:'declaration/getOperationReason',
+        required:true,
+        width:'100',
+        editable:false,//不可编辑，只能选择    
+  }); 
+	
+	$('#manner').combobox({
+		valueField:'value', //值字段
+        textField:'label', //显示的字段
+        editable:false,//不可编辑，只能选择
+        value:'1',
+        data: [{
+			label: '按销售单',
+			value: '1'
+		},{
+			label: '按客户',
+			value: '2'
+		}],
+		onChange : function(newValue, oldValue){
+			if(newValue==1){
+				$('.time').css('display','inline-block');
+				$('.sendOrders').css('display','none');
+				 $("#custLevel + .combo").hide();
+				
+			}else{
+				$("#custLevel + .combo").show();//显示
+			    $('.sendOrders').css('display','inline-block');
+				$('.time').css('display','none');
+/* 				$('.inputArea_btn').css('float','left'); */
+			}
+		}
+     });
+	
+	$('#province').combobox({
+		        valueField:'provinceId', //值字段
+		        textField:'provinceName', //显示的字段
+		        url:'areaController/getAllProvince',
+		        width:'100',
+                required:true,
+                editable:false,//不可编辑，只能选择
+                value:'--请选择--',
+                onSelect:function(){
+                	/* push(); */
+                	var province = $(this).combobox('getValue');
+                    $('#city').combobox({
+        	            valueField:'cityId', 
+        	            textField:'cityName',
+        	            url:'areaController/getCityByProvinceId?provinceId='+province,
+	                    required:true,
+	                    editable:false,//不可编辑，只能选择
+	                    value:'--请选择--' 
+                  }); 
+                },
+             });
+    		$('#city').combobox({
+                editable:false,
+                value:'请先选择省份',
+               	onSelect:function(){
+                	var city = $(this).combobox('getValue');
+                    $('#area').combobox({
+        	            valueField:'areaId', 
+        	            textField:'areaName',
+        	            url:'areaController/getAreaByCityId?cityId='+city,
+	                    required:true,
+	                    editable:false,//不可编辑，只能选择
+	                    value:'--请选择--'
+                   });
+               	},
+             	onLoadSuccess:function(){
+               		$('#area').combobox({
+        		 		editable:false,
+               			value:'请先选择城市',
+               			
+        			});
+            	}
+             });
+    		$('#area').combobox({
+ 		 		editable:false,
+ 		 		value:'请先选择城市',
+                onSelect:function(){
+                	/* push(); */
+                	var areaId = $(this).combobox('getValue');
+                    $('#street').combobox({
+	                    valueField:'stId', 
+	                    textField:'stName',
+	                    url:'areaController/getStreetByArea?areaId='+areaId,
+	                    required:true,
+	                    editable:false,//不可编辑，只能选择
+	                    value:'--请选择--' 
+                  }); 
+                },
+             	onLoadSuccess:function(){
+               		$('#street').combobox({
+        		 		editable:false,
+               			value:'请先选择区/县',
+               			
+        			});
+            	}
+ 			});
+
+       		$('#street').combobox({
+		 		editable:false,
+       			value:'请先选择区/县',
+                onSelect:function(){
+                	/* push(); */
+                	var streetId = $(this).combobox('getValue');
+                    $('#country').combobox({
+	                    valueField:'countryId', 
+	                    textField:'countryName',
+	                    url:'areaController/getCountryByStreet?streetId='+streetId,
+	                    required:true,
+	                    editable:false,//不可编辑，只能选择
+	                    value:'--请选择--' 
+                  }); 
+                },
+             	onLoadSuccess:function(){
+               		$('#country').combobox({
+        		 		editable:false,
+               			value:'请先选择街道/镇',
+               			
+        			});
+            	}
+			});
+
+       		$('#country').combobox({
+		 		editable:false,
+       			value:'请先选择街道/镇',
+       			
+			});
+	
+	//$('#customerId_cond').combobox({
+		// url:'alreadyApproved.do?actionCode=findCustomerList',
+	//	 valueField:'customerId',
+	//	 textField:'customerShortName',
+	//	 editable:true
+	//});  
+
+	
+	
+    $('#sendOrderTime').datebox({    
+	    onSelect:function(start){
+	    	var now = new Date();
+	    	if(start < now){
+	    		$.messager.alert('提示','操作失败!日期不能小于当前时间','error');
+	    		$('#sendOrderTime').datebox('setValue','');
+	    	}
+	    	
+ 		}
+	});
+		
+	$('#start').datebox({    
+	    onSelect:function(start){
+	    	var now = new Date();
+	    	if(start > now){
+	    		$.messager.alert('提示','操作失败!日期不能超过当前时间','error');
+	    		$('#start').datebox('setValue','');
+	    	}
+	    	
+ 		}
+	});
+	
+	
+	$('#end').datebox({    
+	    onSelect:function(date){
+	    	var now = new Date();
+	    	if(date > now){
+	    		$.messager.alert('提示','操作失败!日期不能超过当前时间','error');
+	    		$('#end').datebox('setValue','');
+	    	}
+	    	var start = $('#start').datebox('getValue');
+	    	var end = $('#end').datebox('getValue');
+	    	if(start>end){
+	    		$.messager.alert('提示','操作失败!起始时间不能晚于结束时间','error');
+	    		$('#end').datebox('setValue','');
+	    	}
+ 		}
+	});
+	
+	$('#orderState').combobox({
+        valueField:'configId', //值字段
+        textField:'configName', //显示的字段
+        url:'declaration/searchAllOrderState',
+        editable:false,//不可编辑，只能选择
+        value:'--请选择--'
+     });
+	
+	$('#custLevel').combobox({
+        valueField:'configId', //值字段
+        textField:'configName', //显示的字段
+        url:'declaration/searchCustLevel',
+        editable:false,//不可编辑，只能选择
+        value:'--请选择--'
+     });
+	$("#custLevel + .combo").hide();//隐藏
+	
+	$('#custType').combobox({
+        valueField:'custLabelId', //值字段
+        textField:'custLabelName', //显示的字段
+        url:'declaration/searchCustType',
+        editable:false,//不可编辑，只能选择
+        value:'--请选择--'
+     });
+	
+	win = $('#w').window({
+        title: '新增报单',
+        width:500,
+        height:300,
+        closed:true
+    });
+	win2 = $('#w2').window({
+        title: '修改报单',
+        width:500,
+        height:300,
+        closed:true
+    });
+
+	
+	$('#imgWin').dialog({
+    	title: '查看图片',
+    	width:700,
+    	height:600,
+    	resizable:false, 
+    	closed:true,
+        minimizable: false,
+        maximizable: false,
+        collapsible: false
+		});
+    $('#custOperationWin').dialog({
+    	title: '取消订单',
+    	width:300,
+    	height:280,
+    	resizable:false, 
+    	closed:true,
+        minimizable: false,
+        maximizable: false,
+        collapsible: false
+		});
+    $('#detialLog').dialog({
+    	title: '门店报单信息',
+    	width:'1150',
+    	height:'692',
+    	resizable:true, 
+    	closed:true,
+        minimizable: false,
+        maximizable: false,
+        collapsible: true,
+        maximized:false
+	});
+	win = $('#mark2').window({
+    	title: '修改标识',
+    	width:600,
+    	height:400,
+    	resizable:false, 
+    	closed:true,
+        minimizable: false,
+        maximizable: false,
+        collapsible: false
+		});
+	$('#print').window({
+    	title: '打印订单',
+    	resizable:false, 
+    	closed:true,
+        minimizable: false,
+        maximizable: false,
+        collapsible: false,
+        maximized : true
+        
+		});
+	win = $('#opCustOrder').window({
+	    	title: '新增订单',
+	    	width:'1030',
+	    	height:'400',
+	    	resizable:true, 
+	    	top:0,
+	    	left:0,
+	    	closed:true,
+	        minimizable: false,
+	        maximizable: false,
+	        collapsible: false,
+	        fit:true,
+	        onBeforeClose: function () { //当面板关闭之前触发的事件
+				location.reload();
+	        }
+		});
+
+	/* 预付窗口 */
+	win = $('#offline').dialog({
+		title: '预付信息',
+		width:600,
+		height:300,
+		closed:true
+	});
+	
+	
+	win1 = $('#confirmWin').dialog({
+		title: '预付信息确认页面',
+		width:400,
+		height:300,
+		closed:true,
+		closable:true
+	});
+	
+	form = win.find('form2');
+    $('#dg').datagrid({
+        iconCls: 'icon-save',
+        width: "100%",
+        fitColumns:true,
+        multiSort : true,
+    	height: tableH,
+        nowrap: true,        
+        onDblClickRow :  function(index, row){
+        	$("#tt").show();        	
+        	$('#detialLog').dialog('open');
+        	$('#tt').panel('open');
+        	 $('#tt').tabs({
+                width: "100%",
+        		height:590,
+        	    border:false,   
+        	    onSelect:function(title,index){ 
+        	    	/* img1(row.orderImage); */
+        	    }   
+        	}); 
+        	 $.ajax({
+        		url:'declaration/custGetAllStatus?orderNo='+row.custOrderNo,
+        		type:'GET',
+        		success:function(stateTimes){
+        			console.log(stateTimes);
+        			var conf={
+  	            	      textAlign:'left',//设置文字位置,left在点上方,center在线上方
+  	            	      lineWidth:160//设置线条长度
+  	            	};
+        			$(".pro").empty().timeLines(stateTimes,conf);
+        		},
+        		error: function (jqXHR, textStatus, errorThrown) {
+    	        	$.messager.show({
+    					title: 'Error',
+    					msg: jqXHR.responseText
+    				});
+    	        }
+        	});
+        	$('#orderNo').textbox('setValue',row.custOrderNo);
+        	$('#shopName').textbox('setValue',row.shopName);
+        	$('#buyMoblie').textbox('setValue',row.custPhone);
+        	$('#custperson').textbox('setValue',row.custName);
+        	$('#createTime').textbox('setValue',row.createTime);
+        	$('#totalQuantity').textbox('setValue',row.totalQuantity);
+        	$('#tradeTotalWeight').textbox('setValue',row.totalWeight);
+        	$('#tradeTotalPrice').textbox('setValue',row.predictTotalPrice);
+        	$('#prepaidAccounts').numberbox('setValue',row.prepaidAccounts);
+        	$('#accountsPayable').textbox('setValue',row.accountsPayable); 
+        	$('#toOrderNo').textbox('setValue',row.toOrderNo);
+        	 $('#dg1').datagrid({
+    	        width: "100%",
+        		title:'商品信息',
+				height: 300, 
+				fitColumns:true,//自动使列适应表格宽度以防止出现水平滚动。
+			    nowrap: true,
+			    autoRowHeight: true,
+			    singleSelect: true,
+			    striped: true,
+			    resizable : true, 
+			    collapsible: true,
+			    rownumbers:true,
+			    checkOnSelect: true,
+        	        url: 'declaration/getCustOrderList?CustOrderNo='+row.custOrderNo,
+        	        //idField: 'orderHeadId',
+        	        columns: [[
+        		              {field:'custOrderListId',title:'子订单Id',hidden:true,width:150},
+        		              {field:'orderNo',title:'订单编号',hidden:true,width:190,align:'center'},
+        		              {field:'configName',title:'商品类型',width:160,align:'center'},
+        		              {field:'commId',title:'商品编号',hidden:true,width:100},
+        		              {field:'brandName',title:'品牌',width:100,align:'center'},
+        		              {field:'modelName',title:'型号',width:100,align:'center'},
+        		              {field:'unit',title:'单位',width:100,align:'center'},
+        		              {field:'predictUnitPrice',title:'单价',width:100,align:'center',formatter: function (value, row, index) {
+        	                      if (row != null) {
+        	                          return (parseFloat(value).toFixed(2) + '').replace(/\d{1,3}(?=(\d{3})+(\.\d*)?$)/g, '$&,');
+        	                    }
+        	                    }},
+        		              {field:'unitWeight',title:'单位重量',hidden:true,width:100,align:'center'},
+        		              {field:'number',title:'数量',width:100,align:'center'},
+        		              {field:'predictSubtotal',title:'小计',width:100,align:'center',formatter: function (value, row, index) {
+        	                      if (row != null) {
+        	                          return (parseFloat(value).toFixed(2) + '').replace(/\d{1,3}(?=(\d{3})+(\.\d*)?$)/g, '$&,');
+        	                    }
+        	                    }},
+        	        ]],
+        	        pagination: true,
+        	});        	 
+        	 $('#advancePayBill').datagrid({
+        	        width: "100%",
+	        		title:'预付记录',
+					height: 500, 
+					fitColumns:true,//自动使列适应表格宽度以防止出现水平滚动。
+				    nowrap: true,
+				    autoRowHeight: true,
+				    singleSelect: true,
+				    striped: true,
+				    resizable : true, 
+				    collapsible: true,
+				    rownumbers:true,
+				    checkOnSelect: true,
+	    	        url: 'declaration/getAdvancePayBill?CustOrderNo='+row.custOrderNo+'&custId='+row.custId,
+        	        columns: [[
+        		              {field:'sn',title:'交易流水',width:210,align:'center'},
+        		              {field:'CUST_ID',title:'客户id',hidden:true,width:100},
+        		              {field:'cust_name',title:'客户姓名',width:100,align:'center'},
+        		              {field:'advance_amount',title:'预付金额',width:100,align:'center',formatter: function (value, row, index) {
+        	                      if (row != null) {
+        	                          return (parseFloat(value).toFixed(2) + '').replace(/\d{1,3}(?=(\d{3})+(\.\d*)?$)/g, '$&,');
+        	                    }
+        	                    }},
+        		              {field:'amount',title:'实际支付金额',width:100,align:'center',formatter: function (value, row, index) {
+        	                      if (row != null) {
+        	                          return (parseFloat(value).toFixed(2) + '').replace(/\d{1,3}(?=(\d{3})+(\.\d*)?$)/g, '$&,');
+        	                    }
+        	                    }},
+        		              {field:'pay_sn_no',title:'支付流水号',width:210,align:'center'},
+        		              {field:'PAY_TYPE',title:'支付类型id',hidden:true,width:100,align:'center'},
+        		              {field:'pay_type_name',title:'支付类型',width:100,align:'center'},
+        		              {field:'STATE',title:'状态id',hidden:true,width:100},
+        		              {field:'state_name',title:'状态',width:100,align:'center'},
+        		              {field:'CREDIT_POINT',title:'授信分值',width:100,hidden:true},
+        		              {field:'create_time',title:'创建时间',width:100},
+        		              {field:'last_update_time',title:'最新修改时间',width:100}
+        	        ]],
+        	        pagination: false
+        	    });
+        },
+//结束
+        autoRowHeight: false,
+        striped: true,
+        collapsible: true,
+        url: 'declaration/searchDec?manner=1',
+        remoteSort: true,
+    	singleSelect:true,
+        rownumbers:true,
+        checkOnSelect: true,
+       /*  rowStyler:function(index,row){
+			if (row.isReminder==1&&$('#orderState').datebox('getValue')=='--请选择--'){
+				return 'background-color:pink;color:blue;font-weight:bold;';
+			}
+		}, */ 
+        idField: "custOrderHeadId",
+        columns: [[
+					{field:'markId',title:'标识',width:30,align:'center',
+						formatter:function(value, row, index){//使用formatter格式化刷子
+						return '<img onclick="javascript:domark('+value+',\''+row.custOrderNo+'\',\''+row.memo+'\');" src="../../images/'+value+'.png">';
+					
+						}},
+        	{ field: 'custOrderHeadId',title: '订单Id',hidden:true, width: 40 }, 
+            { field: 'custOrderNo', title: '单号', width: 110,sortable:true ,align:'center'},
+            { field: 'shopName', title: '店名', width: 110 ,sortable:true,align:'center'},
+            { field: 'custPhone', title: '手机', width: 80 ,align:'center'},
+            { field: 'custId', title: '联系人ID',hidden:true, width: 90 },
+            { field: 'custName', title: '联系人', width: 80 ,align:'center'},
+            { field: 'custAddress', title: '地址', width: 160 ,align:'center'},
+            { field: 'areaId', title: '地区Id',hidden:true, width: 110 },
+            { field: 'custAreaId', title: '地区Id',hidden:true, width: 110 },
+            { field: 'areaName', title: '区域', width: 180 ,align:'center'},
+            { field: 'custOrderHeadType', title: '订单类型',hidden:true,width: 110 },
+            { field: 'orderImage', title: '图片',hidden:true, width: 110,
+				formatter:function(value, row, index){
+					if(value==""||value==undefined){
+						return value;
+					}
+					return "<img onclick=\"javascript:img1('"+value+"');\" src=\"../../images/Image_Ok.png\">";
+				} },
+            { field: 'totalQuantity', title: '总数', width: 70 ,align:'center'},
+            { field: 'predictTotalPrice', title: '总金额', width: 70 ,align:'center',formatter: function (value, row, index) {
+                if (row != null) {
+                    return (parseFloat(value).toFixed(2) + '').replace(/\d{1,3}(?=(\d{3})+(\.\d*)?$)/g, '$&,');
+              }
+              }},
+            { field: 'totalWeight', title: '总重量', width: 70 ,sortable:true ,align:'center'},
+            { field: 'custOrderState', title: '订单状态Id', hidden:true,width: 60 },
+            { field: 'stateName', title: '订单状态',hidden:true,width: 60 ,sortable:true ,align:'center'},
+            { field: 'channelId', title: '渠道Id', hidden:true,width: 90 },
+            { field: 'channelName', title: '渠道',hidden:true, width: 90  ,sortable:true ,align:'center'},
+            { field: 'sendOrders', title: '调度单号', hidden:true,width: 90  ,align:'center'},
+            { field: 'createTime', title: '订单生成时间',hidden:true, width: 90,sortable:true },
+            { field: 'custCreatTime', title: '客户创建时间',hidden:true, width: 90,sortable:true },
+            { field: 'memo', title: '标识备注', hidden:true,width: 60 },
+            { field: 'toOrderNo', title: '对应回收单单号',hidden:true, width: 120 ,align:'center'},
+            { field: 'remark', title: '备注',hidden:true, width: 90  ,align:'center'},
+            { field: 'op', title: '操作', width: 90 ,
+                formatter: function (value, row, index) {
+                	  /* var Operaten = row.operateN;
+                	var Operatey = row.Operatey;
+                	//var predictTotalPrice = row.predictTotalPrice
+                	if(Operatey == null){
+                		Operatey = "";
+					}   
+                	if(Operaten == null){
+                		Operaten = "";
+					} 
+                	if(Operatey != "" || Operaten != ""){
+                		if(Operatey != "" && Operaten != ""){
+                			return '<a href="javascript:prepay(\''+index+'\');">'+Operatey+'</a>&nbsp;&nbsp;&nbsp;<a href="javascript:cancelOrder(\''+row.custOrderNo+'\','+row.OperateNState+','+row.custOrderState+');">'+Operaten+'</a>';
+                        }else if(Operatey != "" && Operaten == ""){
+                			return '<a href="javascript:prepay(\''+index+'\');">'+Operatey+'</a>';
+                        }else{
+                			return '<a href="javascript:cancelOrder(\''+row.custOrderNo+'\','+row.OperateNState+','+row.custOrderState+');">'+Operaten+'</a>';
+                        }
+                	} */  
+                	return (verification("custOrder","cancel")?'<a href="javascript:cancelOrder(\''+row.custOrderNo+'\','+row.OperateNState+','+row.custOrderState+');">取消</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;':'');
+                }														
+            },
+        ]],
+        pagination: true,
+        pageSize : 40, 
+        pageList : [ 40, 80, 120 ], 
+        toolbar: [
+			/* {
+    			id: 'btnadd',
+   				text: '新增',
+			    iconCls: 'icon-add',
+			    handler: function () {
+		        	$('#opCustOrder').html('<iframe src="declaration/CustOrderManagement" style="width:100%;height:97%;" frameborder="0"></iframe>');
+		            $('#opCustOrder').window('open');
+			    }
+			}, */
+			{
+    			id: 'btnadd',
+   				text: '导出为Excel',
+			    handler: function () {
+			    	var areaId = "isEmpty";
+			    	var province = $('#province').combobox('getValue');
+			    	var city = $('#city').combobox('getValue');
+			    	var area = $('#area').combobox('getValue');
+			    	var stId = $('#street').combobox('getValue');
+			    	var countryId = $('#country').combobox('getValue');
+			    	var orderState = $('#orderState').combobox('getValue');
+			    	var custPhone = $('#custPhone').textbox('getValue');
+			    	var start = $('#start').datebox('getValue');
+			    	var end = $('#end').datebox('getValue');		    	
+			    	var custType = $('#custType').combobox('getValue');  
+			    	if (custType== "" || custType == "--请选择--") {
+			    		custType = "isEmpty";
+			    	}	
+
+			    	if (province == "--请选择--" || province == "") {
+			    		areaId = "isEmpty";
+			    	}else{
+			    		areaId = province;
+			    	}
+			    	if (city != "--请选择--" && city != "请先选择省份" && city != "") {
+			    		areaId = city;
+			    	}
+			    	if (area != "--请选择--" && area != "请先选择城市" && area != "") {
+			    		areaId = area;
+			    	}
+			    	if (stId != "--请选择--" && stId != "请先选择区/县" && stId != "") {
+			    		areaId = stId;
+			    	}
+			    	if (countryId != "--请选择--" && countryId != "请先选择街道/镇" && countryId != "") {
+			    		areaId = countryId;
+			    	}
+			    	if (orderState== "" || orderState == "--请选择--") {
+			    		orderState = "isEmpty";
+			    	}
+			    	if (custPhone == "") {
+			    		custPhone = "isEmpty";
+			    	}
+			    	
+			    	if(start == "") {
+			    		start = "isEmpty";
+			    	}
+			    	if(end == "") {
+			    		end = "isEmpty";
+			    	}
+			    	if (areaId == "isEmpty") {
+			    		$.messager.alert('提示','请选择区域！','info');
+			    		return;
+					}else{						
+			    		window.location.href=getUrl("declaration/exportExcle")+"?areaId="+areaId+"&orderState="+orderState+"&custPhone="+custPhone+"&start="+start+"&end="+end+"&custType="+custType +"&loginToken="+getLoginToken();
+					}
+			    }
+			}  
+        ]
+    });
+    
+
+});
+
+function img1(src) {
+	$('#img').attr("src",src);
+	$('#imgWin').dialog('open');
+	
+}
+function check(index){
+	if(hig==0){
+		hig=document.body.scrollHeight*0.8/2;
+	}
+	$('#dg').datagrid('resize',{
+        height: hig,
+	});
+	$('#tt').panel('open');
+	$('#tt').tabs({
+        width: "100%",
+		height:hig,
+	    border:false,   
+	    onSelect:function(title){     
+	    }   
+	});
+
+	
+	$('#dge').datagrid({
+        iconCls: 'icon-save',
+        width: "100%",
+		height:hig*0.88,
+		fitColumns:true,
+        url: 'declaration/getCustOrderList?CustOrderNo='+index.custOrderNo,
+        nowrap: true,
+        autoRowHeight: false,
+        striped: true,
+        collapsible: true,
+        sortName: 'custOrderListId',
+        sortOrder: 'desc',
+        remoteSort: false,
+        rownumbers:true,
+        checkOnSelect: true,
+        idField: "custOrderListId",
+        frozenColumns: [[
+            { field: 'ck', checkbox: true },
+        ]],
+        columns: [[
+	              {field:'custOrderListId',title:'子订单Id',hidden:true,width:150},
+	              {field:'orderNo',title:'订单编号',width:120,align:'center'},
+	              {field:'configName',title:'商品类型',width:100,align:'center'},
+	              {field:'commId',title:'商品编号',hidden:true,width:100},
+	              {field:'brandName',title:'品牌',width:100,align:'center'},
+	              {field:'modelName',title:'型号',width:100,align:'center'},
+	              {field:'unit',title:'单位',width:100,align:'center'},
+	              {field:'predictUnitPrice',title:'单价',width:100,align:'center',formatter: function (value, row, index) {
+                      if (row != null) {
+                          return (parseFloat(value).toFixed(2) + '').replace(/\d{1,3}(?=(\d{3})+(\.\d*)?$)/g, '$&,');
+                    }
+                    }},
+	              {field:'unitWeight',title:'单位重量',hidden:true,width:100,align:'center'},
+	              {field:'number',title:'数量',width:100,align:'center'},
+	              {field:'predictSubtotal',title:'小计',width:100,align:'center',formatter: function (value, row, index) {
+                      if (row != null) {
+                          return (parseFloat(value).toFixed(2) + '').replace(/\d{1,3}(?=(\d{3})+(\.\d*)?$)/g, '$&,');
+                    }
+                    }},
+        ]],
+        pagination: true,
+        pageSize : 40, 
+        pageList : [ 40, 80, 120 ]
+    });
+	
+	
+	
+	
+	
+	
+}
+
+
+function advanceCheck(index){
+	$('#advancePayBill').datagrid('resize',{
+	    height: 120,
+	});
+	$('#payBill').datagrid({
+		url:'declaration/getPayBill?paySnNo='+$('#advancePayBill').datagrid("getRows")[index].PAY_SN_NO,
+        iconCls: 'icon-save',
+        width: "100%",
+		height:hig*0.90,
+		fitColumns:true,
+        nowrap: true,
+        autoRowHeight: false,
+        striped: true,
+        collapsible: true,
+        sortOrder: 'desc',
+        remoteSort: false,
+        rownumbers:true,
+        checkOnSelect: true,
+        columns: [[
+	              {field:'SN',title:'交易流水',width:210},
+	              {field:'CHANNEL_TYPE',title:'支付渠道类型id',hidden:true,width:100},
+	              {field:'CHANNEL_NAME',title:'支付渠道',width:100,align:'center'},
+	              {field:'PAYER_ACCOUNT_ID',title:'付款方账号ID',hidden:true,width:100},
+	              {field:'PAYER_CUST_NAME',title:'付款方',width:100,align:'center'},
+	              {field:'PAYER_TYPE_NAME',title:'付款方开户行/第三方类型',width:210},
+	              {field:'PAYER_ACCOUNT',title:'付款方帐号',width:210,align:'center'},
+	              {field:'PAYEE_ACCOUNT_ID',title:'收款方账号ID',hidden:true,width:100},
+	              {field:'PAYEE_CUST_NAME',title:'收款方',width:100,align:'center'},
+	              {field:'PAYEE_TYPE_NAME',title:'收款方开户行/第三方类型',width:210},
+	              {field:'PAYEE_ACCOUNT',title:'收款方帐号',width:210,align:'center'},
+	              {field:'AMOUNT',title:'支付金额',width:100,align:'center',formatter: function (value, row, index) {
+                      if (row != null) {
+                          return (parseFloat(value).toFixed(2) + '').replace(/\d{1,3}(?=(\d{3})+(\.\d*)?$)/g, '$&,');
+                    }
+                    }}
+        ]],
+        pagination: false
+    });
+
+}
+
+
+function advanceCheck(index){
+	$('#payBill').datagrid({
+		url:'declaration/getPayBill?paySnNo='+$('#advancePayBill').datagrid("getRows")[index].PAY_SN_NO,
+    });
+}
+
+//取消客户销售单
+var sw,toState,onState;
+function cancelOrder(sw,toState,onState){
+	this.sw = sw;
+	this.toState = toState;
+	this.onState = onState;
+	$("#custOperationWin").show();
+	$('#custOperationWin').dialog('open');
+	
+}
+
+function submitCancelOrder() {
+	var operationReasonId = $('#operationReason').combo('getValue');
+	if(operationReasonId==''){
+		$.messager.alert('提示','请选择原因','info');
+		return;
+	}
+	var operationRemark = $('#operationRemark').val();
+	if($.trim(operationRemark)==''){
+		$.messager.alert('提示','请输入备注','info');
+		return;
+	}
+	$.ajax({
+        url: "declaration/cancelOrder",
+        data: { 
+        		custOrderNo:this.sw,
+        		toState:this.toState,
+        		operationReasonId : operationReasonId,
+        		operationRemark : operationRemark,
+        		onState:this.onState
+        },
+        type: "post",
+        success: function (text) {
+        	if (text.msgCode == "Y") {
+				$.messager.alert('提示',text.msg,'info',function () {
+					$("#operationRemark").val('');
+					$('#custOperationWin').dialog('close');
+        			$('#dg').datagrid('reload');
+		        });
+			}else if (text.code == "N") {
+				$.messager.alert('提示',text.msg,'info');
+			}
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+        	$.messager.show({
+				title: 'Error',
+				msg: jqXHR.responseText
+			});
+        }
+    });
+}
+//获取选中行
+function getSelected() {
+    var selected = $('#user').datagrid('getSelected');
+    if (selected) {
+        alert(selected.code + ":" + selected.name + ":" + selected.addr + ":" + selected.col4);
+        return selected.id;
+    }
+}
+
+
+//获取多个选中行
+function getSelections() {
+    var ids = [];
+    var rows = $('#dg').datagrid('getSelections');
+    for (var i = 0; i < rows.length; i++) {
+        ids.push(rows[i].custOrderNo);
+        
+    }
+    return ids.join(',');
+}
+
+
+//获取多个选中行:派单
+function getSendSelections() {
+    var ids = [];
+    var rows = $('#dg').datagrid('getSelections');
+    for (var i = 0; i < rows.length; i++) {
+        ids.push(rows[i].custId);
+    }
+    return ids.join(',');
+}
+
+//获取多个选中行:派单
+function getIsSend() {
+    var ids = [];
+    var rows = $('#dg').datagrid('getSelections');
+    for (var i = 0; i < rows.length; i++) {
+    	if(rows[i].isSend==1){
+    		return false;
+    	}
+    }
+    return true;
+}
+
+
+function getPayment() {
+    var ids = [];
+    var rows = $('#dg').datagrid('getSelections');
+    for (var i = 0; i < rows.length; i++) {
+        ids.push(rows[i].paymentCode);
+    }
+    var boolear;
+    for (var w = 0; w < ids.length; w++) {
+    	var tem=ids[w];
+    	if(tem==1003){
+    		boolear=true;
+    	}else{
+    		boolear=false;
+    	}
+    }
+    return boolear;
+}
+
+
+function getShortName(){
+	var ids = [];
+    var rows = $('#dg').datagrid('getSelections');
+    for (var i = 0; i < rows.length; i++) {
+        ids.push(rows[i].customerShortName);
+    }
+
+	for (var w = 0; w < ids.length-1; w++) {
+		var tem=ids[w];
+		for (var j = 1; j < ids.length; w++) {
+			var tem2=ids[j];
+			if(tem==tem2){
+				return true;
+			}else{
+				return false;
+			}
+		}
+	}
+	
+}
+function domark(er,custOrderNo,memo){
+	$('#mark2').dialog('open');
+	var markId = $("input[type=radio][name=markId]");
+	for (var i = 0; i < markId.length; i++) {
+		if (markId[i].value == er) {
+			markId[i].checked = true;
+		}else {
+			markId[i].checked = false;
+		}
+	}
+	var custOrderNo = custOrderNo;
+	var Memo = memo;
+	$("input[name='OrderNo']").val(custOrderNo);
+	$("textarea[name='memo']").val(Memo);
+}
+
+function saveMark(){
+	
+	$('#markfrom').form('submit',{
+		url: "declaration/saveMark",
+		onSubmit: function(){
+			return $(this).form('validate');
+		},
+		success: function(result){
+			var result = eval('('+result+')');
+			if (result.code == 1){
+				$('#mark2').dialog('close');		// close the dialog
+				/* $('#dg').datagrid('reload'); */	// reload the user data
+				$('#markfrom').form('clear');
+				$.messager.alert('提示',result.msg,'info',function () {
+        			$('#dg').datagrid('reload');
+		        });
+				
+			} else {
+				$.messager.alert('提示',result.msg,'info');
+			}
+		}
+	});
+}
+
+
+
+function d_close(){
+	$('#mark').window('close');
+	$('#receive').window('close');
+	doSearch();
+}
+function o_close(){
+	$('#opCustOrder').window('close');
+	location.reload();
+}
+
+function prepay(index) {
+	var predictTotalPrice = $('#dg').datagrid("getRows")[index].predictTotalPrice;
+	var orderNo = $('#dg').datagrid("getRows")[index].custOrderNo;
+	$('#orderNo').textbox('setValue', orderNo);
+	var custId = $('#dg').datagrid("getRows")[index].custId;
+	
+	
+	var custOrderNo = $('#dg').datagrid("getRows")[index].custOrderNo;
+		$.ajax({
+			url : "accountLoginList/selectAccount",
+			data : {
+				custId : custId,
+				orderNo : orderNo,
+			},
+			type : "post",
+			success : function(result) {
+				if (result.success == 'Y' ) {
+					$('#orderAmount').textbox('setValue', predictTotalPrice);
+					$('#advanceAmount').numberbox('setValue', predictTotalPrice);
+					$('#customerName').textbox('setValue',result.customerName);
+					if(result.creditAmount!='0'){
+					$('#creditAmount').textbox('setValue',result.creditAmount);
+					}
+					$('#fromName').textbox('setValue',result.fromName);
+					$('#payerbankName').textbox('setValue',result.fromBankCardName);
+					$('#payerbankCardNo').textbox('setValue',result.fromBankCardNo);
+					
+					$('#toCustId').val(custId);
+					$('#payeebankCardNo').textbox('setValue',result.bankCardNo);
+					$('#payeebankName').textbox('setValue',result.bankCardName);
+					
+				} else if (result.success == 'N') {
+					$.messager.alert('提示', result.errorMsg, 'error');
+				} else {
+					$.messager.show({
+						title : 'Error',
+						msg : result.errorMsg
+					});
+				}
+			},
+			error : function(jqXHR, textStatus, errorThrown) {
+				$.messager.show({
+					title : 'Error',
+					msg : jqXHR.responseText
+				});
+			}
+		});	
+		$('#offline').dialog('open');
+		$("#channelId").css('display','block');
+		$("#cardId").css('display','block'); 
+		
+		$('#payType').combobox({
+	 		width:'180',
+	        valueField:'value', //值字段
+	        textField:'label', //显示的字段
+	        editable:false,//不可编辑，只能选择
+	        value:'2',
+	        data: [ /* {
+				label: '现金支付',
+				value: '1'
+			},  */{
+				label: '电子支付',
+				value: '2'
+			} /* ,{
+				label: '汇款支付',
+				value: '3'
+			} */ ],
+			onSelect:function(rec){
+				var slcId=rec.value;
+				if(slcId==1){
+					$("#rechargeId").css('display','none');
+					$("#channelId").css('display','none');
+				}else if(slcId==2){
+					$("#channelId").css('display','block');
+					$("#rechargeId").css('display','none');
+				}else if(slcId==3){
+					$("#rechargeId").css('display','block'); 
+					$("#channelId").css('display','none');
+					$('#payerCardNo').combobox({
+						url : "accountLoginList/selectBankInfoByLoginId?isOnline=2&accountType=2&role=2",
+						valueField : 'ID', //值字段
+						textField : 'BANK_CARD_NO', //显示的字段
+						editable : true,//不可编辑，只能选择
+						width : '160',
+						value : '--请选择--'
+					});
+					
+					$('#payeeCardNo').combobox({
+						url : 'accountLoginList/selectBankInfoByLoginId?&isOnline=2&accountType=1&role=1&custId='+$('#dg').datagrid("getRows")[index].custId,
+						valueField : 'ID', //值字段
+						textField : 'BANK_CARD_NO', //显示的字段
+						editable : true,//不可编辑，只能选择
+						width : '160',
+						value : '--请选择--'
+					});					
+					
+				}
+			}
+	     });
+		
+		
+		$('#channelType').combobox({
+	 		width:'160',
+	        valueField:'value', //值字段
+	        textField:'label', //显示的字段
+	        editable:false,//不可编辑，只能选择
+	        value:'0',
+	        data: [{
+				label: '线上银行卡支付',
+				value: '0'
+			}/* ,{
+				label: '第三方支付',
+				value: '1'
+			} */],
+			onSelect:function(rec){
+				var slcId=rec.value;
+				if(slcId==0){
+					$("#cardId").css('display','block'); 
+					$("#thirdId").css('display','none');
+					$("#thirdId1").css('display','none');
+									
+					$('#payerbankCardNo').combobox({
+						url : "accountLoginList/selectBankInfoByLoginId?isOnline=1&accountType=2&role=2",
+						valueField : 'ID', //值字段
+						textField : 'BANK_CARD_NO', //显示的字段
+						editable : true,//不可编辑，只能选择
+						width : '160',
+						value : '--请选择--'
+					});
+					
+					$('#payeebankCardNo').combobox({
+						url : 'accountLoginList/selectBankInfoByLoginId?&isOnline=1&accountType=1&&role=1&custId='+$('#dg').datagrid("getRows")[index].custId,
+						valueField : 'ID', //值字段
+						textField : 'BANK_CARD_NO', //显示的字段
+						editable : true,//不可编辑，只能选择
+						width : '160',
+						value : '--请选择--'
+					});					
+				}else if(slcId==1){  //第三方支付
+					$("#thirdId").css('display','block'); 
+					$("#thirdId1").css('display','block');
+					$("#cardId").css('display','none');
+				
+					$('#thirdType').combobox({
+				 		width:'150',
+				        valueField:'value', //值字段
+				        textField:'label', //显示的字段
+				        editable : true,//不可编辑，只能选择
+				        value:'--请选择--',
+				        data: [{
+							label: '微信支付',
+							value: '1'
+						},{
+							label: '支付宝支付',
+							value: '2'
+						},{
+							label: 'QQ支付',
+							value: '3'
+						}],
+						onSelect:function(rec){
+							var slcId=rec.value;
+							if(slcId==1){
+								$("#Wei").css('display','block'); 
+								$("#Bao").css('display','none');
+								$("#QQ").css('display','none');
+								
+								$('#payerWeiNo').combobox({
+									url : 'accountLoginList/selectWeiInfoByLoginId?accountType=2&thirdType=1',
+									valueField : 'ID', //值字段
+									textField : 'ACCOUNT', //显示的字段
+									editable : true,//不可编辑，只能选择
+									width : '160',
+									value : '--请选择--'
+								});
+								
+								$('#payeeWeiNo').combobox({
+									url : 'accountLoginList/selectWeiInfoByLoginId?accountType=1&thirdType=1&custId='+$('#dg').datagrid("getRows")[index].custId,
+									valueField : 'ID', //值字段
+									textField : 'ACCOUNT', //显示的字段
+									editable : true,//不可编辑，只能选择
+									width : '160',
+									value : '--请选择--'
+								});
+								
+							}else if(slcId==2){
+								$("#Bao").css('display','block'); 
+								$("#Wei").css('display','none');
+								$("#QQ").css('display','none');
+								
+								$('#payerBaoNo').combobox({
+									url : 'accountLoginList/selectWeiInfoByLoginId?accountType=2&thirdType=2',
+									valueField : 'ID', //值字段
+									textField : 'ACCOUNT', //显示的字段
+									editable : true,//不可编辑，只能选择
+									width : '160',
+									value : '--请选择--'
+								});
+								
+								$('#payeeBaoNo').combobox({
+									url : 'accountLoginList/selectWeiInfoByLoginId?accountType=1&thirdType=2&custId='+$('#dg').datagrid("getRows")[index].custId,
+									valueField : 'ID', //值字段
+									textField : 'ACCOUNT', //显示的字段
+									editable : true,//不可编辑，只能选择
+									width : '160',
+									value : '--请选择--'
+								});
+
+							}else if(slcId==3){
+								$("#Bao").css('display','none'); 
+								$("#Wei").css('display','none');
+								$("#QQ").css('display','block');
+								$('#payerQQNo').combobox({
+									url : 'accountLoginList/selectWeiInfoByLoginId?accountType=2&thirdType=3',
+									valueField : 'ID', //值字段
+									textField : 'ACCOUNT', //显示的字段
+									editable : true,//不可编辑，只能选择
+									width : '160',
+									value : '--请选择--'
+								});
+								
+								$('#payeeQQNo').combobox({
+									url : 'accountLoginList/selectWeiInfoByLoginId?accountType=1&thirdType=3&custId='+$('#dg').datagrid("getRows")[index].custId,
+									valueField : 'ID', //值字段
+									textField : 'ACCOUNT', //显示的字段
+									editable : true,//不可编辑，只能选择
+									width : '160',
+									value : '--请选择--'
+								});
+							}
+						}
+				     });
+					
+					
+					$('#thirdType1').combobox({
+				 		width:'150',
+				        valueField:'value', //值字段
+				        textField:'label', //显示的字段
+				        editable:false,//不可编辑，只能选择
+				        value:'--请选择--',
+				        data: [{
+							label: '微信支付',
+							value: '1'
+						},{
+							label: '支付宝支付',
+							value: '2'
+						},{
+							label: 'QQ支付',
+							value: '3'
+						}],
+						onSelect:function(rec){
+							var slcId=rec.value;
+							if(slcId==1){
+								$("#Wei1").css('display','block'); 
+								$("#Bao1").css('display','none');
+								$("#QQ1").css('display','none');
+	
+								$('#payeeWeiNo').combobox({
+									url : 'accountLoginList/selectWeiInfoByLoginId?accountType=1&thirdType=1&custId='+$('#dg').datagrid("getRows")[index].custId,
+									valueField : 'ID', //值字段
+									textField : 'ACCOUNT', //显示的字段
+									editable : false,//不可编辑，只能选择
+									width : '160',
+									value : '--请选择--'
+								});
+							}else if(slcId==2){
+								$("#Bao1").css('display','block'); 
+								$("#Wei1").css('display','none');
+								$("#QQ1").css('display','none');
+		
+								$('#payeeBaoNo').combobox({
+									url : 'accountLoginList/selectWeiInfoByLoginId?accountType =1&thirdType=2&custId='+$('#dg').datagrid("getRows")[index].custId,
+									valueField : 'ID', //值字段
+									textField : 'ACCOUNT', //显示的字段
+									editable : true,//不可编辑，只能选择
+									width : '160',
+									value : '--请选择--'
+								});
+								
+							}else if(slcId==3){
+								$("#Bao1").css('display','none'); 
+								$("#Wei1").css('display','none');
+								$("#QQ1").css('display','block');
+								
+								$('#payeeQQNo').combobox({
+									url : 'accountLoginList/selectWeiInfoByLoginId?accountType=1&thirdType=3&custId='+$('#dg').datagrid("getRows")[index].custId,
+									valueField : 'ID', //值字段
+									textField : 'ACCOUNT', //显示的字段
+									editable : true,//不可编辑，只能选择
+									width : '160',
+									value : '--请选择--'
+								});
+								
+							}
+						}
+				     });
+					} 
+			}
+	     });
+		$('#orderNo').textbox('readonly');
+		$('#custName').textbox('readonly');
+		$('#fromName').textbox('readonly'); 
+		$('#orderAmount').textbox('readonly'); 
+		$('#customerName').textbox('readonly'); 
+		$('#creditAmount').textbox('readonly'); 
+		$('#payeebankCardNo').textbox('readonly'); 
+		$('#payeebankName').textbox('readonly'); 
+		$('#payerbankCardNo').textbox('readonly'); 
+		$('#payerbankName').textbox('readonly'); 
+}
+
+
+
+	function submitSendOrderForm() {
+
+		var sendOrderType = $('#sendOrderType').combobox('getValue');//派单类型
+		var sendOrderTime = $('#sendOrderTime').datebox('getValue');//指定回收时间
+		var sendAreaId = $('#sendAreaId').val();
+		var sendCustId = $('#sendCustId').val();
+		
+		if (sendAreaId == "isEmpty") {
+			$.messager.alert('提示','只能按区级派单！','info');
+			return;
+		}
+		
+		if (sendOrderType == "" || sendOrderType == "--请选择--") {
+			$.messager.alert('提示','请选择派单类型','info');
+			return;
+		}
+		if (sendOrderTime == "") {
+			$.messager.alert('提示','请指定派出单的回收时间','info');
+			return;
+		}
+
+		$.ajax({
+			url : "sendOrderList/submitSendOrder",
+			data : {
+				sendOrderType : sendOrderType,
+				sendOrderTime : sendOrderTime,
+				sendAreaId:sendAreaId,
+				sendCustId:sendCustId
+			},
+			type : "post",
+			success : function(result) {
+				if (result.success == 'Y') {
+					$.messager.alert('提示','派单成功!','info');
+					$('#sendOrderForm').form('clear');
+					$('#dg').datagrid('reload');
+					return 
+				} else if (result.success == 'N') {
+					$.messager.alert('提示', result.errorMsg,function () {
+        				$('#dg').datagrid('reload');
+    		        });
+				} else {
+					$.messager.show({
+						title : 'Error',
+						msg : result.errorMsg
+					});
+				}
+			},
+			error : function(jqXHR, textStatus, errorThrown) {
+				$.messager.show({
+					title : 'Error',
+					msg : jqXHR.responseText
+				});
+			}
+		});
+	}
+
+	function submitOfflineModel() {
+		var orderAmount = $('#orderAmount').textbox("getText");//订单金额
+		var advanceAmount = $('#advanceAmount').textbox("getText");//预付金额
+		var orderNo = $('#orderNo').val();//订单编号
+		var custId = $('#toCustId').val();//客户ID
+	
+				$.ajax({
+					url : "accountLoginList/selectActualAmount",
+					data : {
+						custId : custId,
+						orderNo : orderNo,
+						advanceAmount : advanceAmount,
+					},
+					type : "post",
+					success : function(result) {
+						if (result.success == 'Y') {
+							$('#actualAmount').val(result.actualAmount);
+							$('#liquidatedDamage').val(result.liquidatedDamage);
+							var payTypeText = $('#payType').textbox("getText");
+							var payTypeValue = $('#payType')
+									.textbox("getValue");
+							var actualAmount = $('#actualAmount').val();//实付金额
+							var liquidatedDamage = $('#liquidatedDamage').val();//违约金额
+
+							$.messager
+									.confirm(
+											'确认',
+											'此客户账户违约金额为:' + liquidatedDamage
+													+ '元,预付此订单实付金额为：'
+													+ actualAmount
+													+ '元,您确认预付此订单吗？',
+											function(r) {
+												if (r) {
+													$('#offlineForm')
+															.form(
+																	'submit',
+																	{
+																		url : 'accountLoginList/advancePayBill',
+																		onSubmit : function() {
+																			if (parseFloat(advanceAmount) > parseFloat(orderAmount)) {
+																				$.messager
+																						.alert(
+																								'提示',
+																								'预付金额不能大于订单金额!',
+																								'error');
+																				return false;
+																			}
+
+																			if (payTypeText == '--请选择--') {
+																				$.messager
+																						.alert(
+																								'提示',
+																								'操作失败!支付类型不能为空',
+																								'error');
+																				return false;
+																			}
+																			if (payTypeValue == '2') {//电子支付
+																				var channelTypeText = $(
+																						'#channelType')
+																						.textbox(
+																								"getText");
+																				if (channelTypeText == '--请选择--') {
+																					$.messager
+																							.alert(
+																									'提示',
+																									'操作失败!支付渠道类型不能为空',
+																									'error');
+																					return false;
+																				}
+																				var channelTypeValue = $(
+																						'#channelType')
+																						.textbox(
+																								"getValue");
+																				if (channelTypeValue == '0') {
+																					var payerbankCardNoText = $(
+																							'#payerbankCardNo')
+																							.textbox(
+																									"getText");
+																					var payerbankCardNoValue = $(
+																							'#payerbankCardNo')
+																							.textbox(
+																									"getValue");
+																					if (payerbankCardNoText == payerbankCardNoValue) {
+																						$(
+																								'#payerbankCardNoState')
+																								.val(
+																										'Y');
+																					} else {
+																						$(
+																								'#payerbankCardNoState')
+																								.val(
+																										'N');
+																					}
+																					var payeebankCardNoText = $(
+																							'#payeebankCardNo')
+																							.textbox(
+																									"getText");
+																					var payeebankCardNoValue = $(
+																							'#payeebankCardNo')
+																							.textbox(
+																									"getValue");
+																					if (payeebankCardNoText == payeebankCardNoValue) {
+																						$(
+																								'#payeebankCardNoState')
+																								.val(
+																										'Y');
+																					} else {
+																						$(
+																								'#payeebankCardNoState')
+																								.val(
+																										'N');
+																					}
+
+																					if (payerbankCardNoText == '--请选择--') {
+																						$.messager
+																								.alert(
+																										'提示',
+																										'操作失败!支付方卡号不能为空',
+																										'error');
+																						return false;
+																					}
+																					if (payeebankCardNoText == '--请选择--') {
+																						$.messager
+																								.alert(
+																										'提示',
+																										'操作失败!接收方卡号不能为空',
+																										'error');
+																						return false;
+																					}
+																				} else if (channelTypeValue == '1') {
+																					var thirdTypeText = $(
+																							'#thirdType')
+																							.textbox(
+																									"getText");
+																					if (thirdTypeText == '--请选择--') {
+																						$.messager
+																								.alert(
+																										'提示',
+																										'操作失败!第三方支付类型不能为空',
+																										'error');
+																						return false;
+																					}
+
+																					var thirdTypeValue = $(
+																							'#thirdType')
+																							.textbox(
+																									"getValue");
+																					if (thirdTypeValue == '1') {
+																						var payerWeiNoText = $(
+																								'#payerWeiNo')
+																								.textbox(
+																										"getText");
+																						var payerWeiNoValue = $(
+																								'#payerWeiNo')
+																								.textbox(
+																										"getValue");
+
+																						if (payerWeiNoText == payerWeiNoValue) {
+																							$(
+																									'#payerWeiNoState')
+																									.val(
+																											'Y');
+																						} else {
+																							$(
+																									'#payerWeiNoState')
+																									.val(
+																											'N');
+																						}
+
+																						var payeeWeiNoText = $(
+																								'#payeeWeiNo')
+																								.textbox(
+																										"getText");
+																						var payeeWeiNoValue = $(
+																								'#payeeWeiNo')
+																								.textbox(
+																										"getValue");
+
+																						if (payeeWeiNoText == payeeWeiNoValue) {
+																							$(
+																									'#payeeWeiNoState')
+																									.val(
+																											'Y');
+																						} else {
+																							$(
+																									'#payeeWeiNoState')
+																									.val(
+																											'N');
+																						}
+																						if (payerWeiNoText == '--请选择--') {
+																							$.messager
+																									.alert(
+																											'提示',
+																											'操作失败!支付微信号不能为空',
+																											'error');
+																							return false;
+																						}
+																						if (payeeWeiNoText == '--请选择--') {
+																							$.messager
+																									.alert(
+																											'提示',
+																											'操作失败!接收微信号不能为空',
+																											'error');
+																							return false;
+																						}
+
+																					} else if (thirdTypeValue == '2') {
+																						var payerBaoNoText = $(
+																								'#payerBaoNo')
+																								.textbox(
+																										"getText");
+																						var payerBaoNoValue = $(
+																								'#payerBaoNo')
+																								.textbox(
+																										"getValue");
+																						if (payerBaoNoText == payerBaoNoValue) {
+																							$(
+																									'#payerBaoNoState')
+																									.val(
+																											'Y');
+																						} else {
+																							$(
+																									'#payerBaoNoState')
+																									.val(
+																											'N');
+																						}
+
+																						var payeeBaoNoText = $(
+																								'#payeeBaoNo')
+																								.textbox(
+																										"getText");
+																						var payeeBaoNoValue = $(
+																								'#payeeBaoNo')
+																								.textbox(
+																										"getValue");
+																						if (payeeBaoNoText == payeeBaoNoValue) {
+																							$(
+																									'#payeeBaoNoState')
+																									.val(
+																											'Y');
+																						} else {
+																							$(
+																									'#payeeBaoNoState')
+																									.val(
+																											'N');
+																						}
+																						if (payerBaoNoText == '--请选择--') {
+																							$.messager
+																									.alert(
+																											'提示',
+																											'操作失败!支付支付宝号不能为空',
+																											'error');
+																							return false;
+																						}
+																						if (payeeBaoNoText == '--请选择--') {
+																							$.messager
+																									.alert(
+																											'提示',
+																											'操作失败!接收支付宝号不能为空',
+																											'error');
+																							return false;
+																						}
+
+																					} else if (thirdTypeValue == '3') {
+																						var payerQQNoText = $(
+																								'#payerQQNo')
+																								.textbox(
+																										"getText");
+																						var payerQQNoValue = $(
+																								'#payerQQNo')
+																								.textbox(
+																										"getValue");
+																						if (payerQQNoText == payerQQNoValue) {
+																							$(
+																									'#payerQQNoState')
+																									.val(
+																											'Y');
+																						} else {
+																							$(
+																									'#payerQQNoState')
+																									.val(
+																											'N');
+																						}
+																						var payeeQQNoText = $(
+																								'#payeeQQNo')
+																								.textbox(
+																										"getText");
+																						var payeeQQNoValue = $(
+																								'#payeeQQNo')
+																								.textbox(
+																										"getValue");
+																						if (payeeQQNoText == payeeQQNoValue) {
+																							$(
+																									'#payeeQQNoState')
+																									.val(
+																											'Y');
+																						} else {
+																							$(
+																									'#payeeQQNoState')
+																									.val(
+																											'N');
+																						}
+																						if (payerQQNoText == '--请选择--') {
+																							$.messager
+																									.alert(
+																											'提示',
+																											'操作失败!支付QQ号不能为空',
+																											'error');
+																							return false;
+																						}
+																						if (payeeQQNoText == '--请选择--') {
+																							$.messager
+																									.alert(
+																											'提示',
+																											'操作失败!接收QQ号不能为空',
+																											'error');
+																							return false;
+																						}
+
+																					}
+																				}
+
+																			} else if (payTypeValue == '3') {//汇款支付
+																				var payerCardNoText = $(
+																						'#payerCardNo')
+																						.textbox(
+																								"getText");
+																				var payerCardNoValue = $(
+																						'#payerCardNo')
+																						.textbox(
+																								"getValue");
+																				if (payerCardNoText == payerCardNoValue) {
+																					$(
+																							'#payerCardNoState')
+																							.val(
+																									'Y');
+																				} else {
+																					$(
+																							'#payerCardNoState')
+																							.val(
+																									'N');
+																				}
+																				var payeeCardNoText = $(
+																						'#payeeCardNo')
+																						.textbox(
+																								"getText");
+																				var payeeCardNoValue = $(
+																						'#payeeCardNo')
+																						.textbox(
+																								"getValue");
+																				if (payeeCardNoText == payeeCardNoValue) {
+																					$(
+																							'#payeeCardNoState')
+																							.val(
+																									'Y');
+																				} else {
+																					$(
+																							'#payeeCardNoState')
+																							.val(
+																									'N');
+																				}
+
+																				if (payerCardNoText == '--请选择--') {
+																					$.messager
+																							.alert(
+																									'提示',
+																									'操作失败!支付方卡号不能为空',
+																									'error');
+																					return false;
+																				}
+																				if (payeeCardNoText == '--请选择--') {
+																					$.messager
+																							.alert(
+																									'提示',
+																									'操作失败!接收方卡号不能为空',
+																									'error');
+																					return false;
+																				}
+																			}
+																			return true;
+																		},
+																		success : function(result) {
+																				
+																			console.log(result)
+																					
+																			if (result == '正在处理中，请不要重复提交') {
+																				$.messager
+																						.alert(
+																								'提示',
+																								'正在处理中，请不要重复提交',
+																								'error');
+																			} else {
+																				var result = eval('('
+																						+ result
+																						+ ')');
+																				if (result.success == 'Y') {
+																					$('#offline').dialog('close'); // close the dialog
+																					$.messager.alert('提示','操作成功!','info');
+																					$('#offlineForm').form('clear');
+																					$('#dg').datagrid('reload');
+																				} else if (result.success == 'N') {
+																					$.messager
+																							.alert(
+																									'提示',
+																									result.errorMsg,
+																									'error');
+																				} else {
+																					$.messager
+																							.show({
+																								title : 'Error',
+																								msg : result.errorMsg
+																							});
+																				}
+																			}
+																		}
+																	});
+
+												}
+											});
+
+						} else if (result.success == 'N') {
+							$.messager.alert('提示', result.errorMsg, 'error');
+						} else {
+							$.messager.show({
+								title : 'Error',
+								msg : result.errorMsg
+							});
+						}
+					},
+					error : function(jqXHR, textStatus, errorThrown) {
+						$.messager.show({
+							title : 'Error',
+							msg : jqXHR.responseText
+						});
+					}
+				});
+	}
+
+	var url;
+	function searchCust() {
+		var cust_phone = $("input", $("#cust_phone").next("span")).val();
+		$("#custID").val("");
+		$("#cust_name").html("");
+		$("#area1").html("");
+		$("#cust_address").html("");
+		$("#commodity").html("");
+		$("#local_price").html("");
+		$("#pecPrice").val("");
+		$.ajax({
+			url : "declaration/addDec?op=searchCust",
+			data : {
+				cust_phone : cust_phone
+			},
+			type : "post",
+			success : function(text) {
+				if (text.code == "1") {
+					var json = text.customer;
+					var cust = eval('(' + json + ')');
+					$("#custID").val(cust.ID);
+					$("#cust_name").html(cust.CUST_NAME);
+					$("#area1").html(text.areaname);
+					$("#cust_address").html(cust.CUST_ADDRESS);
+				} else if (text.code == "2") {
+					$.messager.alert('提示', text.msg, 'info');
+				}
+			},
+			error : function(jqXHR, textStatus, errorThrown) {
+				$.messager.show({
+					title : 'Error',
+					msg : jqXHR.responseText
+				});
+			}
+		});
+		$('#commodity').combobox(
+				{
+					url : 'config/getAllcommType',
+					valueField : 'CONFIG_ID',
+					textField : 'CONFIG_NAME',
+					width : '150',
+					editable : false,
+					value : '--请选择--',
+					onSelect : function() {
+						var commodity_id = $(this).combobox('getValue');
+						var cust_phone = $("input",
+								$("#cust_phone").next("span")).val();
+						$
+								.ajax({
+									url : "declaration/addDec?op=searchPrice",
+									data : {
+										commodity_id : commodity_id,
+										cust_phone : cust_phone
+									},
+									type : "post",
+									success : function(text) {
+										if (text.code == "1") {
+											//$("#commodity").html(cust.CUSTOMER_TYPE_NAME);
+											$("#local_price").html(
+													text.price + "元/kg");
+											$("#pecPrice").val(text.price);
+										} else if (text.code == "2") {
+											$.messager.alert('提示', text.msg,
+													'info');
+										}
+									},
+									error : function(jqXHR, textStatus,
+											errorThrown) {
+										$.messager.show({
+											title : 'Error',
+											msg : jqXHR.responseText
+										});
+									}
+								});
+					},
+				});
+	}
+	function modifyMark(lineId) {
+		$('#mark')
+				.html(
+						"<iframe src='alreadyApprovedOrderForm.do?actionCode=viewMark&lineId="
+								+ lineId
+								+ "'style='width:100%;height:100%;'frameborder='0'></iframe>");
+		$('#mark').window('open');
+	}
+
+	function doSearch() {
+		$('#tt').panel('close');
+		var areaId = "";
+		var province = $('#province').combobox('getValue');
+		var manner = $('#manner').combobox('getValue');
+		var city = $('#city').combobox('getValue');
+		var area = $('#area').combobox('getValue');
+		var stId = $('#street').combobox('getValue');
+		var countryId = $('#country').combobox('getValue');
+		var orderState = $('#orderState').combobox('getValue');
+		var custPhone = $('#custPhone').textbox('getValue');
+		var custType = $('#custType').combobox('getValue');
+		if (custType == "" || custType == "--请选择--") {
+			custType = "";
+		}
+		var custLevel = $('#custLevel').combobox('getValue');
+		if (custLevel == "" || custLevel == "--请选择--") {
+			custLevel = "";
+		}
+		var start = $('#start').datebox('getValue');
+		var end = $('#end').datebox('getValue');
+		if (province == "--请选择--" || province == "") {
+			province = "isEmpty";
+		} else {
+			areaId = province;
+		}
+		if (city != "--请选择--" && city != "请先选择省份" && city != "") {
+			areaId = city;
+		}
+		if (area != "--请选择--" && area != "请先选择城市" && area != "") {
+			areaId = area;
+		}
+		if (stId != "--请选择--" && stId != "请先选择区/县" && stId != "") {
+			areaId = stId;
+		}
+		if (countryId != "--请选择--" && countryId != "请先选择街道/镇"
+				&& countryId != "") {
+			areaId = countryId;
+		}
+		if (orderState == "" || orderState == "--请选择--") {
+			orderState = "";
+		}
+
+		if (custPhone == "") {
+			custPhone = "";
+		}
+
+		if (start == "") {
+			start = "";
+		}
+		if (end == "") {
+			end = "";
+		}
+		if (manner == "") {
+			manner = 1;
+		}
+		if (manner == 1) {
+			try {
+				$('#dg').datagrid('hideColumn', '_expander');
+			} catch (e) {
+			}
+		    $('#dg').datagrid({
+		        iconCls: 'icon-save',
+		        width: "100%",
+		    	height: tableH,
+		    	fitColumns:true,
+		        nowrap: true,
+		        onDblClickRow :  function(index, row){
+		        	$("#tt").show();        	
+		        	$('#detialLog').dialog('open');
+		        	$('#tt').panel('open');
+		        	 $('#tt').tabs({
+		                width: "100%",
+		        		height:650,
+		        	    border:false,   
+		        	    onSelect:function(title,index){ 
+		        	    	/* img1(row.orderImage); */
+		        	    }   
+		        	}); 
+		        	 $.ajax({
+		        		url:'declaration/custGetAllStatus?orderNo='+row.custOrderNo,
+		        		type:'GET',
+		        		success:function(stateTimes){
+		        			console.log(stateTimes);
+		        			var conf={
+		  	            	      textAlign:'left',//设置文字位置,left在点上方,center在线上方
+		  	            	      lineWidth:160//设置线条长度
+		  	            	};
+		        			$(".pro").empty().timeLines(stateTimes,conf);
+		        		},
+		        		error: function (jqXHR, textStatus, errorThrown) {
+		    	        	$.messager.show({
+		    					title: 'Error',
+		    					msg: jqXHR.responseText
+		    				});
+		    	        }
+		        	});
+		        	$('#orderNo').textbox('setValue',row.custOrderNo);
+		        	$('#shopName').textbox('setValue',row.shopName);
+		        	$('#buyMoblie').textbox('setValue',row.custPhone);
+		        	$('#custperson').textbox('setValue',row.custName);
+		        	$('#createTime').textbox('setValue',row.createTime);
+		        	$('#totalQuantity').textbox('setValue',row.totalQuantity);
+		        	$('#tradeTotalWeight').textbox('setValue',row.totalWeight);
+		        	$('#tradeTotalPrice').textbox('setValue',row.predictTotalPrice);
+		        	$('#prepaidAccounts').numberbox('setValue',row.prepaidAccounts);
+		        	$('#accountsPayable').textbox('setValue',row.accountsPayable); 
+		        	$('#toOrderNo').textbox('setValue',row.toOrderNo);
+		        	 $('#dg1').datagrid({
+		    	        width: "100%",
+		        		title:'商品信息',
+						height: 300, 
+						fitColumns:true,//自动使列适应表格宽度以防止出现水平滚动。
+					    nowrap: true,
+					    autoRowHeight: true,
+					    singleSelect: true,
+					    striped: true,
+					    resizable : true, 
+					    collapsible: true,
+					    rownumbers:true,
+					    checkOnSelect: true,
+		        	        url: 'declaration/getCustOrderList?CustOrderNo='+row.custOrderNo,
+		        	        //idField: 'orderHeadId',
+		        	        columns: [[
+		        		              {field:'custOrderListId',title:'子订单Id',hidden:true,width:150},
+		        		              {field:'orderNo',title:'订单编号',hidden:true,width:190,align:'center'},
+		        		              {field:'configName',title:'商品类型',width:160,align:'center'},
+		        		              {field:'commId',title:'商品编号',hidden:true,width:100},
+		        		              {field:'brandName',title:'品牌',width:100,align:'center'},
+		        		              {field:'modelName',title:'型号',width:100,align:'center'},
+		        		              {field:'unit',title:'单位',width:100,align:'center'},
+		        		              {field:'predictUnitPrice',title:'单价',width:100,align:'center',formatter: function (value, row, index) {
+		        	                      if (row != null) {
+		        	                          return (parseFloat(value).toFixed(2) + '').replace(/\d{1,3}(?=(\d{3})+(\.\d*)?$)/g, '$&,');
+		        	                    }
+		        	                    }},
+		        		              {field:'unitWeight',title:'单位重量',hidden:true,width:100,align:'center'},
+		        		              {field:'number',title:'数量',width:100,align:'center'},
+		        		              {field:'predictSubtotal',title:'小计',width:100,align:'center',formatter: function (value, row, index) {
+		        	                      if (row != null) {
+		        	                          return (parseFloat(value).toFixed(2) + '').replace(/\d{1,3}(?=(\d{3})+(\.\d*)?$)/g, '$&,');
+		        	                    }
+		        	                    }},
+		        	        ]],
+		        	        pagination: true,
+		        	});        	 
+		        	 $('#advancePayBill').datagrid({
+		        	        width: "98%",
+			        		title:'预付记录',
+							height: 300, 
+							fitColumns:true,//自动使列适应表格宽度以防止出现水平滚动。
+						    nowrap: true,
+						    autoRowHeight: true,
+						    singleSelect: true,
+						    striped: true,
+						    resizable : true, 
+						    collapsible: true,
+						    rownumbers:true,
+						    checkOnSelect: true,
+			    	        url: 'declaration/getAdvancePayBill?CustOrderNo='+row.custOrderNo+'&custId='+row.custId,
+		        	        columns: [[
+		        		              {field:'sn',title:'交易流水',width:210,align:'center'},
+		        		              {field:'CUST_ID',title:'客户id',hidden:true,width:100},
+		        		              {field:'cust_name',title:'客户姓名',width:100,align:'center'},
+		        		              {field:'advance_amount',title:'预付金额',width:100,align:'center',formatter: function (value, row, index) {
+		        	                      if (row != null) {
+		        	                          return (parseFloat(value).toFixed(2) + '').replace(/\d{1,3}(?=(\d{3})+(\.\d*)?$)/g, '$&,');
+		        	                    }
+		        	                    }},
+		        		              {field:'amount',title:'实际支付金额',width:100,align:'center',formatter: function (value, row, index) {
+		        	                      if (row != null) {
+		        	                          return (parseFloat(value).toFixed(2) + '').replace(/\d{1,3}(?=(\d{3})+(\.\d*)?$)/g, '$&,');
+		        	                    }
+		        	                    }},
+		        		              {field:'pay_sn_no',title:'支付流水号',width:210,align:'center'},
+		        		              {field:'PAY_TYPE',title:'支付类型id',hidden:true,width:100,align:'center'},
+		        		              {field:'pay_type_name',title:'支付类型',width:100,align:'center'},
+		        		              {field:'STATE',title:'状态id',hidden:true,width:100},
+		        		              {field:'state_name',title:'状态',width:100,align:'center'},
+		        		              {field:'CREDIT_POINT',title:'授信分值',width:100,hidden:true},
+		        		              {field:'create_time',title:'创建时间',width:100},
+		        		              {field:'last_update_time',title:'最新修改时间',width:100}
+		        	        ]],
+		        	        pagination: false
+		        	    });
+		        },
+//结束
+				queryParams : {
+					op : "searchDec",
+					areaId : areaId,
+					manner : manner,
+					custOrderState : orderState,
+					custType : custType,
+					custPhone : custPhone,
+					start : start,
+					end : end,
+				},
+		        autoRowHeight: false,
+		        striped: true,
+		        collapsible: true,
+		        url: 'declaration/searchDec?manner=1',
+		        remoteSort: true,
+		    	singleSelect:true,
+		        rownumbers:true,
+		        checkOnSelect: true,
+		       /*  rowStyler:function(index,row){
+					if (row.isReminder==1&&$('#orderState').datebox('getValue')=='--请选择--'){
+						return 'background-color:pink;color:blue;font-weight:bold;';
+					}
+				}, */ 
+		        idField: "custOrderHeadId",
+		        columns: [[
+					{field:'markId',title:'标识',width:30,align:'center',
+						formatter:function(value, row, index){//使用formatter格式化刷子
+							return '<img onclick="javascript:domark('+value+',\''+row.custOrderNo+'\',\''+row.memo+'\');" src="../../images/'+value+'.png">';
+					
+						}},
+        	{ field: 'custOrderHeadId',title: '订单Id',hidden:true, width: 40 }, 
+            { field: 'custOrderNo', title: '单号', width: 110,sortable:true ,align:'center'},
+            { field: 'shopName', title: '店名', width: 110 ,sortable:true,align:'center'},
+            { field: 'custPhone', title: '手机', width: 80 ,align:'center'},
+            { field: 'custId', title: '联系人ID',hidden:true, width: 90 },
+            { field: 'custName', title: '联系人', width: 80 ,align:'center'},
+            { field: 'custAddress', title: '地址', width: 160 ,align:'center'},
+            { field: 'areaId', title: '地区Id',hidden:true, width: 110 },
+            { field: 'custAreaId', title: '地区Id',hidden:true, width: 110 },
+            { field: 'areaName', title: '区域', width: 180 ,align:'center'},
+            { field: 'custOrderHeadType', title: '订单类型',hidden:true,width: 110 },
+            { field: 'orderImage', title: '图片',hidden:true, width: 110,
+				formatter:function(value, row, index){
+					if(value==""||value==undefined){
+						return value;
+					}
+					return "<img onclick=\"javascript:img1('"+value+"');\" src=\"../../images/Image_Ok.png\">";
+				} },
+            { field: 'totalQuantity', title: '总数', width: 70 ,align:'center'},
+            { field: 'predictTotalPrice', title: '总金额', width: 70 ,align:'center',formatter: function (value, row, index) {
+                if (row != null) {
+                    return (parseFloat(value).toFixed(2) + '').replace(/\d{1,3}(?=(\d{3})+(\.\d*)?$)/g, '$&,');
+              }
+              }},
+            { field: 'totalWeight', title: '总重量', width: 70 ,sortable:true ,align:'center'},
+            { field: 'custOrderState', title: '订单状态Id', hidden:true,width: 60 },
+            { field: 'stateName', title: '订单状态',hidden:true,width: 60 ,sortable:true ,align:'center'},
+            { field: 'channelId', title: '渠道Id', hidden:true,width: 90 },
+            { field: 'channelName', title: '渠道',hidden:true, width: 90  ,sortable:true ,align:'center'},
+            { field: 'sendOrders', title: '调度单号', hidden:true,width: 90  ,align:'center'},
+            { field: 'createTime', title: '订单生成时间',hidden:true, width: 90,sortable:true },
+            { field: 'custCreatTime', title: '客户创建时间',hidden:true, width: 90,sortable:true },
+            { field: 'memo', title: '标识备注', hidden:true,width: 60 },
+            { field: 'toOrderNo', title: '对应回收单单号',hidden:true, width: 120 ,align:'center'},
+            { field: 'remark', title: '备注',hidden:true, width: 90  ,align:'center'},
+            { field: 'Operatey', title: '确认', hidden:true,width: 100 },
+            { field: 'Operateystate', title: '确认状态', hidden:true,width: 100 },
+            { field: 'operateN', title: '取消', hidden:true,width: 100 },
+            { field: 'OperateNState', title: '取消状态', hidden:true,width: 100 },
+            { field: 'op', title: '操作', width: 90 ,
+                formatter: function (value, row, index) {
+                	/* var Operaten = row.operateN;
+                	var Operatey = row.Operatey;
+                	//var predictTotalPrice = row.predictTotalPrice
+                	if(Operatey == null){
+                		Operatey = "";
+					}   
+                	if(Operaten == null){
+                		Operaten = "";
+					} 
+                	if(Operatey != "" || Operaten != ""){
+                		if(Operatey != "" && Operaten != ""){
+                			return '<a href="javascript:prepay(\''+index+'\');">'+Operatey+'</a>&nbsp;&nbsp;&nbsp;<a href="javascript:cancelOrder(\''+row.custOrderNo+'\','+row.OperateNState+','+row.custOrderState+');">'+Operaten+'</a>';
+                        }else if(Operatey != "" && Operaten == ""){
+                			return '<a href="javascript:prepay(\''+index+'\');">'+Operatey+'</a>';
+                        }else{
+                			return '<a href="javascript:cancelOrder(\''+row.custOrderNo+'\','+row.OperateNState+','+row.custOrderState+');">'+Operaten+'</a>';
+                        }
+                	} */
+                	return (verification("custOrder","cancel")?'<a href="javascript:cancelOrder(\''+row.custOrderNo+'\','+row.OperateNState+','+row.custOrderState+');">取消</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;':'');
+                }
+            },
+        ]],
+		        pagination: true,
+		        pageSize : 40, 
+		        pageList : [ 40, 80, 120 ], 
+		        toolbar: [
+					/* {
+		    			id: 'btnadd',
+		   				text: '新增',
+					    iconCls: 'icon-add',
+					    handler: function () {
+				        	$('#opCustOrder').html('<iframe src="declaration/CustOrderManagement" style="width:100%;height:97%;" frameborder="0"></iframe>');
+				            $('#opCustOrder').window('open');
+					    }
+					}, */
+					{
+		    			id: 'btnadd',
+		   				text: '导出为Excel',
+					    handler: function () {
+					    	var areaId = "isEmpty";
+					    	var province = $('#province').combobox('getValue');
+					    	var city = $('#city').combobox('getValue');
+					    	var area = $('#area').combobox('getValue');
+					    	var stId = $('#street').combobox('getValue');
+					    	var countryId = $('#country').combobox('getValue');
+					    	var orderState = $('#orderState').combobox('getValue');
+					    	var custPhone = $('#custPhone').textbox('getValue');
+					    	var start = $('#start').datebox('getValue');
+					    	var end = $('#end').datebox('getValue');		    	
+					    	var custType = $('#custType').combobox('getValue');  
+					    	if (custType== "" || custType == "--请选择--") {
+					    		custType = "isEmpty";
+					    	}	
+
+					    	if (province == "--请选择--" || province == "") {
+					    		areaId = "isEmpty";
+					    	}else{
+					    		areaId = province;
+					    	}
+					    	if (city != "--请选择--" && city != "请先选择省份" && city != "") {
+					    		areaId = city;
+					    	}
+					    	if (area != "--请选择--" && area != "请先选择城市" && area != "") {
+					    		areaId = area;
+					    	}
+					    	if (stId != "--请选择--" && stId != "请先选择区/县" && stId != "") {
+					    		areaId = stId;
+					    	}
+					    	if (countryId != "--请选择--" && countryId != "请先选择街道/镇" && countryId != "") {
+					    		areaId = countryId;
+					    	}
+					    	if (orderState== "" || orderState == "--请选择--") {
+					    		orderState = "isEmpty";
+					    	}
+					    	if (custPhone == "") {
+					    		custPhone = "isEmpty";
+					    	}
+					    	
+					    	if(start == "") {
+					    		start = "isEmpty";
+					    	}
+					    	if(end == "") {
+					    		end = "isEmpty";
+					    	}
+					    	if (areaId == "isEmpty") {
+					    		$.messager.alert('提示','请选择区域！','info');
+					    		return;
+							}else{						
+					    		window.location.href="declaration/exportExcle?areaId="+areaId+"&orderState="+orderState+"&custPhone="+custPhone+"&start="+start+"&end="+end+"&custType="+custType;
+							}
+					    }
+					}  
+		        ]
+		    });
+		} else {
+			try {
+				$('#dg').datagrid('showColumn', '_expander');
+			} catch (e) {
+			}
+			$('#dg').datagrid(
+				{
+					iconCls : 'icon-save',
+					width : "100%",
+					height : tableH,
+					nowrap : true,
+					fitColumns : true,
+					autoRowHeight : false,
+					striped : true,
+					collapsible : true,
+					url : 'declaration/searchDec?manner=2',
+					queryParams : {
+						op : "searchDec",
+						areaId : areaId,
+						manner : manner,
+						custOrderState : orderState,
+						custPhone : custPhone,
+						start : start,
+						end : end,	
+						custType : custType,
+						custLevel:custLevel
+					},
+					onDblClickRow : function(index, field, value) {
+
+					},
+					remoteSort : true,
+					singleSelect : false, 
+					rownumbers : true,
+					checkOnSelect : false,
+					idField : "custId",
+					columns : [ [
+							{field : 'custId',title : '客户id',hidden : true,width : 100},
+							{field : 'custName',title : '联系人',width : 90,align:'center'},
+							{field : 'custPhone',title : '联系方式',width : 90,align:'center'},
+							{field : 'configName',title : '会员等级',width : 70,align:'center'},
+							{field : 'shopName',title : '店名',width : 60,align:'center'},
+							{field : 'custAddress',title : '地址',width : 160,align:'center'},
+							{field : 'areaName',title : '区域',width : 130,align:'center'},
+							{field : 'loginNum',title : '登陆次数',width : 90,align:'center'},
+							{field : 'totalWeight',title : '待回收重量',width : 90,align:'center'},
+	        ]],
+	        toolbar: [
+			  {
+	   			text: '按客户查询'
+			  }
+			],      
+	        view: detailview,
+        	detailFormatter : function(index,row){//注意2  
+        		return '<div style="padding:2px"><table id="ddv-' + index + '"></table></div>';  
+            },
+            onExpandRow:function(index,row){//注意3 
+            	var i = index;
+                $('#ddv-'+index).datagrid({  
+                    url:'declaration/getCustOrderByCust',
+                    queryParams : {
+                    	custId : row.custId,
+                    	orderState : orderState
+                    },
+                    fitColumns:false,  
+                    singleSelect:true,
+                    height:'auto',  
+                    nowrap: true,
+                	/* onDblClickRow:function(index, field, value){
+              			check(field);
+              		}, */
+                    striped: true,
+                    collapsible: true,
+                    remoteSort: false,
+                	singleSelect:true,
+                    rownumbers:true,
+                    idField: "custOrderHeadId",
+					onLoadSuccess:function(){
+						$('#dg').datagrid('fixDetailRowHeight',index);
+					},
+                    columns: [[
+            			{field:'markId',title:'标识',width:30,align:'center',
+            						formatter:function(value, row, index){//使用formatter格式化刷子
+            							return '<img onclick="javascript:domark('+value+',\''+row.custOrderNo+'\',\''+row.memo+'\');" src="../../images/'+value+'.png">';
+            						}},
+                    	{ field: 'custOrderHeadId',title: '订单Id',hidden:true, width: 40 }, 
+                        { field: 'custOrderNo', title: '单号', width: 110,sortable:true,align:'center'},
+                        { field: 'shopName', title: '店名', width: 110 ,sortable:true,align:'center'},
+                        { field: 'custPhone', title: '手机', width: 100 ,align:'center'},
+                        { field: 'custId', title: '联系人ID',hidden:true, width: 80 },
+                        { field: 'custName', title: '联系人', width: 90 ,align:'center'},
+                        { field: 'custAddress', title: '地址', width: 160 ,align:'center'},
+                        { field: 'areaId', title: '地区Id',hidden:true, width: 110 },
+                        { field: 'custAreaId', title: '地区Id',hidden:true, width: 110 },
+                        { field: 'areaName', title: '区域', width: 180 ,align:'center'},
+                        { field: 'orderImage', title: '图片', width: 110,
+            				formatter:function(value, row, index){
+            					if(value=="" || value==undefined){
+            						return value;
+            					}
+            					return "<img onclick=\"javascript:img1('"+value+"');\" src=\"../../images/Image_Ok.png\">";
+            				} },
+                        { field: 'custOrderHeadType', title: '订单类型',hidden:true,width: 110 },
+                        { field: 'totalQuantity', title: '总数', width: 110 ,align:'center'},
+                        { field: 'predictTotalPrice', title: '总金额', width: 70 ,align:'center',formatter: function (value, row, index) {
+                            if (row != null) {
+                                return (parseFloat(value).toFixed(2) + '').replace(/\d{1,3}(?=(\d{3})+(\.\d*)?$)/g, '$&,');
+                          }
+                          }},
+                        { field: 'custOrderState', title: '订单状态Id', hidden:true,width: 60 },
+                        { field: 'stateName', title: '订单状态',width: 60 ,sortable:true ,align:'center'},
+                        { field: 'channelId', title: '渠道Id', hidden:true,width: 90 },
+                        { field: 'channelName', title: '渠道', width: 90 ,sortable:true ,align:'center'},
+                        { field: 'sendOrders', title: '调度单号', hidden:true,width: 90 },
+                        { field: 'createTime', title: '订单生成时间', width: 90,sortable:true },
+                        { field: 'custCreatTime', title: '客户创建时间', width: 90,sortable:true },
+                        { field: 'Memo', title: '标识备注', hidden:true,width: 60 },
+                        { field: 'toOrderNo', title: '对应回收单单号', width: 120,align:'center'},
+                        { field: 'Remark', title: '备注', width: 90 ,align:'center'},
+                        { field: 'OperateY', title: '确认', hidden:true,width: 100 },
+                        { field: 'OperateYstate', title: '确认状态', hidden:true,width: 100 },
+                        { field: 'operateN', title: '取消', hidden:true,width: 100 },
+                        { field: 'OperateNState', title: '取消状态', hidden:true,width: 100 },
+                        { field: 'op', title: '操作', width: 90 ,
+                            formatter: function (value, row, index) {
+                            	/* var Operaten = row.operateN;
+                            	var Operatey = row.OperateY;
+                            	if(Operatey == null){
+                            		Operatey = "";
+            					}   
+                            	if(Operaten == null){
+                            		Operaten = "";
+            					} 
+                            	if(Operatey != "" || Operaten != ""){
+                            		if(Operatey != "" && Operaten != ""){
+                            			return '<a href="javascript:prepay(\''+index+'\');">'+Operatey+'</a>&nbsp;&nbsp;&nbsp;<a href="javascript:cancelOrder(\''+row.custOrderNo+'\','+row.OperateNState+','+row.custOrderState+');">'+Operaten+'</a>';
+                                    }else if(Operatey != "" && Operaten == ""){
+                            			return '<a href="javascript:prepay(\''+index+'\');">'+Operatey+'</a>';
+                                    }else{
+                            			return '<a href="javascript:cancelOrder(\''+row.custOrderNo+'\','+row.OperateNState+','+row.custOrderState+');">'+Operaten+'</a>';
+                                    }
+                            	} */
+                            	return (verification("custOrder","cancel")?'<a href="javascript:cancelOrder(\''+row.custOrderNo+'\','+row.OperateNState+','+row.custOrderState+');">取消</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;':'');
+                            }
+                        },
+                    ]],
+                    pagination: true,
+                    pageSize : 40, 
+                    pageList : [ 40, 80, 120 ]
+                });  
+            }
+	    });
+		$(".datagrid-toolbar .l-btn").css({"background":"none","border":"none"});
+		$(".datagrid-toolbar .l-btn span").css({"color":"#959595"});
+	}
+    
+}
+function detialLogClose(){
+		$('#detialLog').dialog('close');  
+}
+function onKeyEnter(e) {
+    doSearch();
+}
+   
+</script>
+
+<title>订单管理</title>
+</head>
+<body>
+<form action="delivery.do" method="post" id="form1" class="shopOrder">
+  <div class="inputArea1">
+  	<label>省份</label>：<input id="province" name="province" />
+  	<label>城市</label>：<input id="city" name="city" />
+  	<label>区域</label>：<input id="area" name="area" />
+  	<label>镇名</label>：<input id="street" name="street" />
+  </div>
+  <div class="inputArea1">
+  	<label>村名</label>：<input id="country" name="country" />
+	<label>订单状态</label>：<input id="orderState" name="orderState" class="easyui-combobox" />
+	<label>用户类型</label>：<input id="custType" name="custType" class="easyui-combobox">
+  	<label>查询方式</label>：<input id="manner"  class="easyui-combobox"/>
+  </div>
+  <div class="inputArea1" style="min-height:30px;margin-bottom:10px;">
+    <span class="sendOrders"><label>会员等级</label>：</span><input id="custLevel" name="custLevel" />
+  	<label>客户号码</label>：<input type="text" class="easyui-textbox" id="custPhone" />
+  	<span class="time"><label>报单时间</label>：<input id="start" type="text"></input> 
+	<label style="margin-right:14px;text-align:center;text-align-last:center;">至 </label><input id="end" type="text"></input></span>
+  	<span class="inputArea_btn">
+  	  	<a class="easyui-linkbutton" iconCls="icon-search" onclick="doSearch()">查询</a> 
+    	<a class="easyui-linkbutton" iconCls="icon-cancel" onclick="$('#form1').form('clear');">清空</a>
+  	</span>
+  </div>
+</form>
+<table id="dg" ></table>
+ <div id="mark2">
+  		<form id = "markfrom" action="" method="post" style="padding: 50px"> 
+  			<input type="hidden" name="OrderNo">
+  			
+  			<table>
+  				<tr>
+					<td align="right" width="100px;">
+						<font color="red">*</font>
+						 <span style="font-weight: 600;">标记:</span>
+					</td>
+					<td align="left" width="300px;">
+						<label><input name="markId" type="radio" value="1" /><img src="../../images/1.png"> </label> 
+						<label><input name="markId" type="radio" value="2" /><img src="../../images/2.png"> </label> 
+						<label><input name="markId" type="radio" value="3" /><img src="../../images/3.png"> </label> 
+						<label><input name="markId" type="radio" value="4" /><img src="../../images/4.png"> </label> 
+						<label><input name="markId" type="radio" value="5" /><img src="../../images/5.png"> </label> 
+						<label><input name="markId" type="radio" value="6" /><img src="../../images/6.png"> </label> 
+					</td>
+				</tr>
+				<tr>
+					<td align="right" width="100px;">
+						<font color="red">*</font>
+						 <span style="font-weight: 600;">标记信息:</span>
+					</td>
+					<td align="left" width="300px;">
+						<textarea name="memo" style="width: 300px;height: 200px;max-width: 300px;max-height: 200px;"></textarea>
+					</td>
+				</tr>
+  				<tr>
+					<td align="center" colspan="2">
+						<div align="center">
+							<a class="easyui-linkbutton" data-options="iconCls:'icon-save'" onclick="saveMark()">提交</a>
+						</div>
+					</td>
+				</tr>
+  			</table>
+		</form> 
+  	</div>
+
+	<div id="offline">
+		<form action="" method="post" id="offlineForm">
+		<div id = "left"  style="float: left;width: 50%;height: 100%">
+			<br /> 
+			&nbsp;&nbsp;&nbsp;&nbsp;<span>订单编号：</span> <input
+				id="orderNo" name="orderNo" style="width: 160px;"
+				class="easyui-textbox" />
+			<p>
+			&nbsp;&nbsp;&nbsp;&nbsp;<span>支付方姓名：</span> <input
+				id="fromName" name="fromName" style="width: 160px;"
+				class="easyui-textbox" />
+			<p>
+				&nbsp;&nbsp;&nbsp;&nbsp;<span>接收方姓名：</span> <input id="customerName"
+					name="customerName" style="width: 160px;" class="easyui-textbox" />
+					<input  id ="custId" name = "custId"  type = "hidden">
+			<p>
+				&nbsp;&nbsp;&nbsp;&nbsp;<span>剩余信用额：</span> <input id="creditAmount"
+					name="creditAmount"   value = "0.00" style="width: 180px;" class="easyui-textbox"/>
+			<p>
+				&nbsp;&nbsp;&nbsp;&nbsp;<span>订单金额：</span> <input id="orderAmount"
+					name="orderAmount" style="width: 180px;readonly：true;" class="easyui-textbox"/>
+            <p>
+            	
+            &nbsp;&nbsp;&nbsp;&nbsp;<span>预付金额：</span> <input id="advanceAmount"
+					name="advanceAmount" style="width: 180px;" class="easyui-numberbox" data-options="min:0,precision:2"/>
+			 <p>		
+				<input id="actualAmount" name="actualAmount"  type="hidden" />
+				<input id="liquidatedDamage" name="liquidatedDamage" type="hidden" />
+				<input id="toCustId" name="toCustId" type="hidden" /> 
+				<input  id="jockillerToken" name="jockillerToken" value="${jockillerToken}" type="hidden" />
+			<p>
+		</div>
+
+
+			<div id="right" style="float: right; width: 50%; height: 100%">
+				<p>
+					 &nbsp;&nbsp;&nbsp;&nbsp;<span> 支付类型：</span><input id="payType"
+						name="payType" class="easyui-combobox" style="width: 180px;">
+					
+				<p>
+				<div style="display: none;" id="rechargeId">
+					&nbsp;&nbsp;&nbsp;&nbsp;<span>汇款流水号：</span> <input id="bankSn"
+						name="bankSn" style="width: 170px;" class="easyui-textbox" /></input>
+					<p>
+						&nbsp;&nbsp;&nbsp;&nbsp;<span>支付方卡号：</span> <input
+							id="payerCardNo" name="payerCardNo" style="width: 170px;"
+							class="easyui-textbox" /> <input id="payerCardNoState"
+							name="payerCardNoState" type="hidden" />
+					<p>
+						&nbsp;&nbsp;&nbsp;&nbsp;<span>接收方卡号：</span> <input
+							id="payeeCardNo" name="payeeCardNo" style="width: 170px;"
+							class="easyui-textbox" /> <input id="payeeCardNoState"
+							name="payeeCardNoState" type="hidden" />
+					<p>
+				</div>
+
+				<div style="display: none;" id="channelId">
+					&nbsp;&nbsp;&nbsp;&nbsp;<span> 支付渠道类型：</span><input
+						id="channelType" name="channelType" class="easyui-combobox"
+						style="width: 120px;">
+					<p>
+					<div id="cardId" style="display: none;">
+					   <p>
+							&nbsp;&nbsp;&nbsp;&nbsp;<span>支付方户名：</span> <input
+								id="payerbankName" name="payerbankName" class="easyui-textbox" style="width: 170px;"> 
+						<p>		
+						&nbsp;&nbsp;&nbsp;&nbsp;<span>支付方卡号：</span>
+						 <input id="payerbankCardNo" name="payerbankCardNo"  class="easyui-textbox" style="width: 170px;">
+						<input id="payerbankCardNoState" name="payerbankCardNoState" type="hidden">
+							
+						
+						<p>	
+							&nbsp;&nbsp;&nbsp;&nbsp;<span>接收方户名：</span><input
+								id="payeebankName" name="payeebankName" class="easyui-textbox" style="width: 170px;"> 
+								<input id="payeebankCardNoState" name="payeebankCardNoState"
+								type="hidden">	
+						<p>
+							&nbsp;&nbsp;&nbsp;&nbsp;<span>接收方卡号：</span> <input
+								id="payeebankCardNo" name="payeebankCardNo" class="easyui-textbox" style="width: 170px;"> 
+						
+						<p>
+					</div>
+
+
+					<div id="thirdId" style="display: none;">
+						&nbsp;&nbsp;&nbsp;&nbsp;<span> 第三方支付类型：</span> 
+						<input	id="thirdType" name="thirdType" class="easyui-combobox"  style="width: 120px;"  >
+						<p>
+						<div id="Wei" style="display: none;">
+							&nbsp;&nbsp;&nbsp;&nbsp;<span>支付微信号：</span> <input
+								id="payerWeiNo" name="payerWeiNo"> <input
+								id="payerWeiNoState" name="payerWeiNoState" type="hidden">
+							<p>
+
+								&nbsp;&nbsp;&nbsp;&nbsp;<span>接收微信号：</span> <input
+									id="payeeWeiNo" name="payeeWeiNo"> <input
+									id="payeeWeiNoState" name="payeeWeiNoState" type="hidden">
+							<p>
+						</div>
+
+
+						<div id="Bao" style="display: none;">
+							&nbsp;&nbsp;&nbsp;&nbsp;<span>支付支付宝号：</span> <input
+								id="payerBaoNo" name="payerBaoNo"> <input
+								id="payerBaoNoState" name="payerBaoNoState" type="hidden">
+							<p>
+								&nbsp;&nbsp;&nbsp;&nbsp;<span>接收支付宝号：</span> <input
+									id="payeeBaoNo" name="payeeBaoNo"> <input
+									id="payeeBaoNoState" name="payeeBaoNoState" type="hidden">
+							<p>
+						</div>
+
+						<div id="QQ" style="display: none;">
+							&nbsp;&nbsp;&nbsp;&nbsp;<span>支付QQ号：</span> <input id="payerQQNo"
+								name="payerQQNo"> <input id="payerQQNoState"
+								name="payerQQNoState" type="hidden">
+
+							<p>
+								&nbsp;&nbsp;&nbsp;&nbsp;<span>接收QQ号：</span> <input
+									id="payeeQQNo" name="payeeQQNo"> <input
+									id="payeeQQNoState" name="payeeQQNoState" type="hidden" >
+							<p>
+						</div>
+					</div>
+
+				</div>
+			</div>
+
+			<!-- 表单页面使用一个隐藏表单域获取后端传过来的 token值，该表单页面提交时会将此 token 值一同提交到后端 -->
+			<input type="hidden" name="jockillerToken" value="${jockillerToken}"/>
+			
+			<div align="center"  style="text-align:center;clear:both;">
+				<br /> 
+				<a id="preBtn" class="easyui-linkbutton" data-options="iconCls:'icon-save'" onclick="submitOfflineModel();">提交</a>
+			</div> 
+		</form>
+	</div>
+
+	<div id="imgWin"> <img id="img" src="" width="100%" height="100%" > </div>
+    <div id="print"></div>
+    <div id="custOperationWin" align="center">
+		<p>请选择原因：</p>
+		<p><input id="operationReason" /></p>
+		<p>请输入备注：</p>
+ 		<div><textarea id="operationRemark" cols="20" rows="5"></textarea></div>
+		<a id="btn1" class="easyui-linkbutton window-submitBtn" onclick="submitCancelOrder();" >确定</a> 
+	</div>
+	<div id="detialLog" style="margin:0 auto">
+	    <div style="width: 100%;position:relative;">
+			<div class="pro"></div>
+		</div>
+		<div id="tt" class="easyui-panel">
+		     <div title="基本信息"> 
+ 			    <div style="margin:0 auto;width:90%;">
+			      <div style="margin:0 auto 10px;width:800px;overflow:hidden;" id="shopOrderPane">
+					     <div class="inputArea3">
+							<label>订单编号</label><input id="orderNo" class="easyui-textbox" type="text" readonly="readonly"/>
+							<label style="margin-left:140px;">总数量</label><input id="totalQuantity" class="easyui-textbox" type="text" readonly="readonly"/> 只
+						 </div>
+						 <div class="inputArea3">
+							<label>门店</label><input id="shopName" class="easyui-textbox" type="text" readonly="readonly"/>
+							<label style="margin-left:140px;">总重量</label><input id="tradeTotalWeight" class="easyui-textbox" type="text" readonly="readonly" /> KG
+						 </div>
+						 <div class="inputArea3">
+							<label>联系人</label><input id="custperson" class="easyui-textbox" type="text" readonly="readonly"/>
+							<label style="margin-left:140px;">总价格</label><input id="tradeTotalPrice" class="easyui-textbox" type="text" readonly="readonly" /> 元
+						 </div>
+						 <div class="inputArea3">
+							<label>手机号</label><input id="buyMoblie" class="easyui-textbox" type="text" readonly="readonly"/>
+							<label style="margin-left:140px;">对应回收单号</label><input id="toOrderNo" class="easyui-textbox" type="text" readonly="readonly"/>
+						 </div>
+						 <div class="inputArea3" style="margin-bottom:10px;">
+							<label>订单时间</label><input id="createTime" class="easyui-textbox" type="text" readonly="readonly"/>
+						 </div>
+						 <table id="dg1" align="center" style="margin-top: 10px"></table> 
+					</div>
+					<div style="width:100%;text-align:center;padding:10px;">
+						<a id="clanelButt" onclick="detialLogClose()" class="easyui-linkbutton window-submitBtn" style="padding-left: 10px;padding-right: 10px">关闭</a>
+		    		</div>
+		    	
+				</div> 
+
+			</div> 
+		    <div title="预付记录">
+		   	    <div style="margin:0 auto;width:95%;padding-top:20px;">
+			        <table id="advancePayBill" ></table>  
+			        <table id="payBill" ></table> 
+		        </div>  
+		    </div> 
+		</div>
+	 </div> 
+</body>
+</html>

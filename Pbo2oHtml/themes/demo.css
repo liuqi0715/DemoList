@@ -1,0 +1,629 @@
+*{
+	font-size:14px;
+}
+
+body {
+    font-family:Microsoft YaHei,\\5FAE\8F6F\96C5\9ED1,tahoma,arial,simsun,\\5B8B\4F53;
+    padding:10px;
+    font-size:12px;
+    margin:0;
+    background-color: white;
+}
+h2 {
+    font-size:18px;
+    font-weight:bold;
+    margin:0;
+    margin-bottom:15px;
+}
+.demo-info{
+	padding:0 0 12px 0;
+}
+.demo-tip{
+	display:none;
+}
+/*  价格走势页面 */
+.container{
+	width: 100%;
+	height: auto;
+	background-color:white;
+}
+.price_tendency{
+	width: 100%;
+}
+#price_tendency{
+	width: 100%;
+	height:430px ;
+	background-color: #42b196 !important;
+}
+
+
+.recycle_price{
+	width: 97%;
+	height: 435px;
+	margin: 0 auto;
+	margin-top: 30px;
+}
+.reP_top{
+	width: 100%;
+	height: 12%;
+	border: 1px solid #E6EEF6;
+}
+.reP_content{
+	width: 100%;
+	height: 86%;
+}
+/* 对奇数偶数div样式进行控制 */
+.reP_content div:nth-of-type(even) .con_bottom{
+	background-color: #FBE4A6; 
+}
+.reP_content div:nth-of-type(even) .con_bottom  ul li{
+	background-color: #DFB469;
+}
+.reP_content div:nth-of-type(even) .al_top span{
+	background-color: #E4ae50;
+}
+.reP_content div:nth-of-type(even) .al_top{
+	background-color: #E5c672;
+}
+.area_left{
+	width: 48%;
+    height: 100%;
+    float: left;
+    margin-right: 1%;
+    margin-left: 1%;
+    overflow-x: hidden;
+}
+.area_right{
+	width: 45%;
+	height: 75%;
+	float: left;
+	margin-left: 10%;
+}
+
+.Rep_left,.Rep_center,.Rep_right{
+	float: left;
+}
+.Rep_left{
+	width: 56%;
+	height: 100%;
+}
+.Rep_center{
+	width: 33%;
+	height: 100%;
+	line-height: 53px;
+}
+.Rep_center div{
+	float:left;
+	width: 44%;
+	line-height: 55px;
+}
+.Rep_center div:nth-of-type(2){
+	width: 55%;
+    margin-left: 1%;
+    float: right;
+}
+.Rep_center span{
+	display: block;
+	float: right;
+	width: 59%;
+	height: 35px;
+	border: 1px solid #a4bacd;
+	text-align: center;
+	line-height: 35px;
+	color: #DD7858;
+	border-radius: 4px;
+	margin-top: 11px;
+}
+.Rep_center input{
+    width: 31%;
+    height: 35px;
+    border-radius: 4px;
+    margin-top: 8px;
+	border: 1px solid #a4bacd;
+	margin-left: 5%;
+}
+.Rep_right{
+    width: 10%;
+    height: 100%;
+    float: right;
+    margin-right: 1%;
+}
+.Rep_right span{
+	display: block;
+	float: left;
+	/* margin-left: 5%; */
+	width: 100%;
+	height: 30px;
+	background-color: #DD7858;
+	border-radius: 3px;
+	color: white;
+	text-align: center;
+	line-height: 30px;
+	margin-top: 12px;
+	cursor: pointer;
+}
+.Rep_right span:nth-of-type(2){
+	background-color: #42B196;
+}
+.reP_top ul {
+	width:100%;
+	height:100%;
+	margin: 0;
+	padding: 0;
+}
+.reP_top ul li{
+	list-style: none;
+	width: 31%;
+	height: 35px;
+	line-height: 32px;
+	float: left;
+	border: 1px solid #a4bacd;
+	border-radius: 4px;
+	/* text-indent: 5%; */
+	box-sizing: border-box;
+	margin-top: 11px;
+	margin-left: 2%;
+	cursor: pointer;
+	position: relative;
+}
+
+.reP_top ul li span{
+	display:block;
+	width:30%;
+	height:35px;
+	float:right;
+	border-left:1px solid #a4bacd;
+}
+.reP_top ul li span img{
+	color:white;
+	width: 13px;
+    margin-top: 13px;
+    margin-left: 23px;
+}
+
+
+.reP_content P{
+	text-indent: 3%;
+    font-size: 20px;
+    margin: 10px 0 10px 0;
+}
+.al_top{
+	width: 100%;
+	height: 50px;
+	line-height: 50px;
+	text-align: center;
+	background-color: #65C3DF;
+	color:white;
+	font-size: 30px;
+}
+.al_top span{
+	width: 20%;
+	height: 50px;
+	display: block;
+	float: left;
+	background-color:#319AB9 ;
+	text-align: center;
+	line-height: 50px;
+	font-size: 20px;
+}
+
+.con_bottom ul{
+	width:103%;
+}
+.con_bottom,.con_bottom ul{
+	height: 280px;
+	width: 103.3%;
+	margin:0;
+	padding:0;
+    overflow-y: scroll
+}
+.con_bottom{
+	/* padding-left: 20px;
+	padding-top: 20px; */
+	background-color: #53CEE5;;
+	overflow-x: hidden;
+	overflow-y: scroll;
+}
+.con_bottom ul li{
+	list-style: none;
+	float: left;
+}
+.con_bottom ul li {
+	width: 27%;
+	height: 100px;
+	margin: 0;
+	padding: 1.3%;
+	background-color: #69A5B6;
+	color: white;
+	border-radius: 5px;
+    margin-top: 2%;
+    margin-left: 2.4%;
+}
+.area_data{
+	float:left;
+    background-color: #E5c672
+}
+.none{
+	float:right;
+	cursor: pointer
+}
+.top_info{
+	height:30px;
+}
+
+.price{
+	text-align: center;
+	font-size: 30px;
+}
+
+.al_top .al_back{
+	background-color: #E4ae50;
+}
+.area_data{
+/* background-color: #E5c672; */
+}
+.con_back{
+	background-color: #FBE4A6;
+    float: left;
+}
+
+.con_back ul li{
+	background-color: #DFB469;
+}
+/* 对省份城市进行控制 */
+#province2{
+    display: none;
+    position: absolute;
+    left: 0px;
+    top: 30px;
+    width: 107%;
+    height: 200px;
+    /* height: 100%; */
+    overflow-y: auto;
+    /* overflow-x: hidden; */
+	background-color: white;
+}
+#province2  li{
+ 	float: left;
+    width: 100%;
+    margin: 0;
+    margin-top: 10px;
+    text-align: center;
+ }
+ #styleCon{
+    display: none;
+    position: absolute;
+    left: 0px;
+    top: 30px;
+    width: 100%;
+    height: 200px;
+    /* height: 100%; */
+    overflow-y: auto;
+    /* overflow-x: hidden; */
+    background-color: white;
+}
+ #styleCon  li{
+ 	float: left;
+    width: 100%;
+    margin: 0;
+    margin-top: 10px;
+    text-align: center;
+ }
+  #cityCon{
+    display: none;
+    position: absolute;
+    left: 0px;
+    top: 30px;
+    width: 100%;
+    height: 200px;
+    /* height: 100%; */
+    overflow-y: auto;
+    /* overflow-x: hidden; */
+    background-color: white;
+}
+ #cityCon  li{
+ 	float: left;
+    width: 100%;
+    margin: 0;
+    margin-top: 10px;
+    text-align: center;
+ }
+ em{
+    display: block;
+    float: left;
+    width: 65%;
+    text-align: center;
+    font-size: 10px;
+ }
+ 
+#ID{
+	display:none;	/* //保存这个城市的ID */
+}
+ .smallSty{
+ 	font-size:10px;
+}
+ 
+ #refreshPri{
+ 	background-color:#65C3DF;
+}
+ #mtc{
+ 	width:100%;
+ 	height:100%;
+ 	position:fixed;
+ 	left:0;
+ 	top:0;
+ 	background-color:#65C3DF;
+ 	opacity:0.5;
+ 	z-index:1;
+ }
+ .tips{
+ 	width: 260px;
+    height: 160px;
+ 	position:fixed; 
+ 	top:0;  
+ 	right:0; 
+ 	bottom:0;
+ 	left:0;
+ 	margin:auto;
+ 	z-index:222;
+ 	background-color: lightslategrey;
+    padding: 12px;
+    color: white;
+    text-align: center;
+    border-radius: 5px;
+}	 
+.tips button{
+ 	width: 100px;
+	height: 30px;
+	background-color:#DD7858;
+	color:white;
+	cursor: pointer;
+	border: none;
+	border-radius: 3px;
+}
+.tips button:nth-of-type(2){
+	background-color:#42B196;
+	margin-left: 15px
+}
+.tips p:nth-of-type(2){
+	margin-top: 50px;
+}
+/*  //出库单部分css */
+.order_top{    
+    width: 100%;
+    height: 115px;
+}
+.order_state{
+    width: 50%;
+    height: 32px;
+    box-sizing: border-box;
+}
+.order_state ul{
+    width: 100%;
+	height: 30px;
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+.order_state ul li{
+    width: 20%;
+    height: 30px;
+    float: left;
+    list-style: none;
+    border-right:1px solid #B3DFDA;
+    text-align: center;
+    line-height: 30px;
+    cursor: pointer;
+    box-sizing: border-box;
+}
+.order_state ul li:nth-of-type(4){
+    border: none;
+}
+#search{
+    margin-top: 10px;
+}
+#search span{
+    font-size: 14px;
+    margin-right: 7px;
+
+}
+#pOrder .textbox{
+ 	width:145px !important;
+}
+.myload{
+    border:1px solid #B3DFDA;
+    height: 25px;
+    border-radius: 5px;
+    width: 120px;
+    height: 25px;
+    outline: none;
+} 
+.search{
+    display: block;
+    width: 100px;
+    height: 30px;
+    float: right;
+    border-radius: 5px;
+    background-color: #53cee5;
+    color: white;
+    text-align: center;
+    line-height: 30px;
+    cursor: pointer;
+}
+.searchImport{
+    display: block;
+    width: 100px;
+    height: 30px;
+    float: right;
+    border-radius: 5px;
+    background-color: #58B89F;
+    color: white;
+    text-align: center;
+    line-height: 30px;
+    cursor: pointer;
+}
+#order_num span{
+    margin-left: 18px;
+    margin-right: 35px;
+    font-size: 14px;
+}
+#order_num input{
+    border:1px solid #B3DFDA;
+    width: 330px;
+    height: 25px;
+    border-radius: 5px;
+    outline: none;
+}
+#order_num{
+    margin-top: 20px;
+}  
+#end,#start{
+  	border:none;
+} 
+#bgc li{
+	border: 1px solid #FA988B;
+	color:#F56A58;
+}
+#bgc li:nth-of-type(1){
+    background-color: #F56A58;
+    color:#FFF;
+}
+#bgc li:nth-child(1){
+	border-radius:15px 0 0 15px;
+}
+#bgc li:last-child{
+	border-radius:0 15px 15px 0;
+}
+	  
+	/* 验证更新价格提示信息的tips样式 */
+#priceBtn{
+    /* margin-top: 50px; */
+   width: 220px;
+   height: 30px;
+   border: none;
+   border-radius: 6px;
+   background-color: #42B196;
+   color: white;
+   cursor: pointer;
+}	 	 	  
+/*  //对各个模块进行样式调整   */	
+/* 支付管理-结算交易流水 */
+
+#inputArea1 label{
+	width:55px;
+}
+#inputArea2 label{
+	width:56px;
+}	  
+.inputAreaS {
+    display: inline-block;
+    width: 75px;
+    height: 30px;
+    line-height: 30px;
+    text-align: justify;
+    text-align-last: justify;
+}  
+ 	  
+.inputAreaNe{
+	 display: inline-block;
+	 width: 90px;
+	 height: 30px;
+	 line-height: 30px;
+	 text-align: justify;
+	 text-align-last: justify;
+}
+ .inputAreaNew{
+ 	  display: inline-block;
+	  width: 99px;
+	  height: 30px;
+	  line-height: 30px;
+	  text-align: justify;
+	  text-align-last: justify;
+ }  
+ 	  
+/*  对头部banne进行控制   */
+ .baine{
+ 	 max-width:200px;
+ 	 padding:0 20px;
+ 	 height:40px;
+ 	 background:#65BD83;
+ 	 border-radius:4px;
+ 	 border:1px solid white;
+ 	 color: white;
+     text-align: center;
+     line-height:40px;
+ }
+ .bainePos{
+ 	position:absolute;
+ 	top:13px;
+ 	right:10px;
+ 	height:60px;
+ 	line-height:60px;
+ }
+ 	  
+ 	/*修改密码页面*/
+ #bodyPwd{  
+    background:url(../images/pwdImg/beijing.png)no-repeat;  
+    width:100%;  
+    height:100%;  
+    background-size:100% 100%;  
+    position:fixed;
+    left:0;
+    top：50px;
+    bottom:0;
+    right:0;  
+    z-index: 9001;
+    /* filter:progid:DXImageTransform.Microsoft.AlphaImageLoader(src='bg-login.png',sizingMethod='scale');   */
+} 
+.logo{
+	margin: 0 auto;
+	margin-top:30px;
+	margin-bottom: 30px;
+}  
+#tableInput td .input-text-password{
+	width:350px;
+	height:35px;
+	border-radius: 20px;
+    border: none;
+    text-indent: 5px !important;
+    background: url(../images/pwdImg/mima.png)no-repeat;
+    background-position: 8% 40%;
+	outline: none;
+	margin-bottom:15px;
+	background-color:white;
+}  
+#tableInput td  #sub{
+	width:350px;
+	height:50px;
+	color:white;
+	font-size:20px;
+	margin-top:10px;
+	border-radius:30px; 
+	border: none;
+	outline: none;
+	text-align:center;
+	background: url(../images/pwdImg/submitPwd.png)no-repeat;
+	background-size: cover;
+	cursor: pointer;
+}
+ #tableInput tr{
+ 	background:transparent;
+ }	  
+#formCon{
+	position:fixed; 
+ 	top:0;  
+ 	right:0; 
+ 	bottom:0;
+ 	left:0;
+ 	margin:auto;
+}  
+ #quxiao{
+	position: absolute;
+    right: 20px;
+    top: 10px;
+    cursor: pointer;
+ }	  
+ 	  
+ 	  
+ 	  
+ 	  
