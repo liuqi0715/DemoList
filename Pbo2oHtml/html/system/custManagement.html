@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>客户管理</title>
+<link rel="stylesheet" type="text/css" href="../../themes/default/easyui.css">
+<link rel="stylesheet" type="text/css" href="../../themes/icon.css">
+<link rel="stylesheet" type="text/css" href="../../themes/demo.css">
+<script type="text/javascript" src="../../js/jquery.min.js"></script>
+<script type="text/javascript" src="../../js/jquery.easyui.min.js"></script>
+<script type="text/javascript" src="../../js/locale/easyui-lang-zh_CN.js"></script>
+<script type="text/javascript" src="../global.js"></script>
+</head>
+
+<body>
+	<div class="coverPane" id="w">
+	  <form method="post" id="form">
+		<div style="position:relative;width: 100%;">
+			<div class="custList">
+				<table id="dg"></table>
+			</div>
+			<div class="custAddr">
+				<label class="custAddr_label">客户信息</label>
+				<div style="float:left;">
+				  <div class="inputArea1">
+				  	<label>公司名</label>：<input id="companyName" name="companyName" class="easyui-textbox" data-options="multiline:true" />
+				  </div>
+				  <div class="inputArea1">
+				  	<label>负责人</label>：<input id="contact" name="contact" class="easyui-textbox" data-options="multiline:true" />
+				  </div>
+				  <div class="inputArea1">
+				  	<label>公司电话</label>：<input id="tel" name="tel" class="easyui-textbox" data-options="multiline:true" />
+				  </div>
+				</div>
+				<a id="btn22" class="cm_Btn" data-options="iconCls:'icon-ok'" style="margin: 30px 10px 0 30px;float:right;display:none;" onClick="saveMenu();">保存</a>
+			</div>
+		</div>
+		<div style="position:relative;width: 100%;">
+			<div class="custList">
+				<table id="dg1"></table>
+			</div>
+			<div class="custAddr">
+				<label class="custAddr_label">收货地址</label>
+				<div style="float:left;">
+				  <div class="inputArea1">
+				  	<label>收货联系人</label>：<input class="easyui-textbox address" id="saleContact" />
+				  </div>
+				  <div class="inputArea1">
+				  	<label>收货电话</label>：<input class="easyui-textbox address" id="saleTel" />
+				  </div>
+				  <div class="inputArea1">
+				  	<label>收货地址</label>：<input class="easyui-textbox address" id="saleAddress" />
+				  </div>
+				</div>
+				<a id="btn11" class="cm_Btn" data-options="iconCls:'icon-ok'" style="margin: 20px 10px 0 30px;
+					float:right;background:#E36C5D;display:none;" href="javaScript:void(0)" onclick="doSendSms()">追加</a>
+				<a class="easyui-linkbutton window-submitBtn" data-options="iconCls:'icon-reload'" style="position:absolute;
+					bottom:-80px;left:0;" onClick="refreshFeature();">刷新全部</a>
+			</div>
+		</div>
+	  </form>
+	</div>
+</body>
+</html>
+
+<style type="text/css">
+.coverPane {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	width: 100%;
+	height: 100%;
+	bottom: 0;
+	background: #FFF;
+}
+.custList{
+	width:52%;
+	float:left;
+	clear:both;
+}
+.custList .panel {
+	margin: 30px 0 0 30px;
+}
+.custList .datagrid-header-row, .datagrid-row{
+	height:30px !important;
+}
+.custAddr {
+	position:relative;
+	float:left;
+	width: auto;
+	padding: 20px;
+	margin: 30px 0 0 50px;
+	border: 1px solid #B3DFDA;
+	border-radius:10px;
+}
+.custAddr_label {
+	position: absolute;
+	display: block;
+	width: 70px;
+	height: 30px;
+	line-height: 30px;
+	background: #FFF;
+	text-align: center;
+	left: 30px;
+	top: -15px;
+}
+
+.custAddr_exp {
+	width: 80px;
+	height: 80px;
+	float: left;
+	margin: 30px;
+	border: 1px solid #B3DFDA;
+}
+
+.custAddr_input {
+	width: 70%;
+	float: left;
+	padding: 30px 0 0 30px;
+}
+
+.custAddr ul {
+	width: 100%;
+	margin: 0 0 50px 0;
+	padding: 0;
+}
+
+.custAddr li {
+	float: left;
+	width: 150px;
+	height: 30px;
+	line-height: 30px;
+	list-style: none;
+}
+
+.custAddr_label {
+	width: 100px !important;
+	text-align: center;
+}
+
+.custAddr .textbox {
+	width: 240px !important;
+}
+.cm_Btn{
+	display:inline-block;
+	width:50px;
+	height:50px;
+	border-radius:50%;
+	text-align:center;
+	line-height:50px;
+	color:#FFF !important;
+	background:#6FB3E0;
+}
+</style>
+<script type="text/javascript">
+    var tableH = Math.max(document.documentElement.scrollHeight/2,
+		document.body.scrollHeight/2) * 0.9;
+	$(function() {
+		var saCustId;
+		tableH = Math.max(document.documentElement.scrollHeight/2,
+				document.body.scrollHeight/2) * 0.9;
+		$('#dg').datagrid(
+			{
+				iconCls : 'icon-save',
+				width : "100%",
+				height : tableH,
+				fitColumns : true,
+				nowrap : true,
+				autoRowHeight : false,
+				striped : true,
+				singleSelect : true,
+				collapsible : true,
+				url : 'custManagement/getSaleCustomer',
+				remoteSort : false,
+				rownumbers : true,
+				checkOnSelect : true,
+				idField : "saCustId",
+				columns : [ [ 
+					{ field : 'saCustId',title : '客户id',width : 60,hidden : true,align:'left'}, 
+					{ field : 'companyName',title : '公司名',width : 60,align:'left'}, 
+					{ field : 'contact',title : '负责人',width : 140,align:'left'}, 
+					{ field : 'tel',title : '公司电话',width : 120,align:'left'}
+				] ],
+				onClickRow : function(index, row) {//注意3 
+					var custId = row.saCustId;
+					$('#contact').textbox('setValue', row.contact);
+					$('#companyName').textbox('setValue',
+							row.companyName);
+					$('#tel').textbox('setValue', row.tel);
+					$('#address').textbox('setValue', row.address);
+					$('#dg1').datagrid(
+						{	
+							iconCls : 'icon-save',
+							width : "100%",
+							height : tableH,
+							fitColumns : true,
+							nowrap : true,
+							autoRowHeight : false,
+							striped : true,
+							singleSelect : true,
+							collapsible : true,
+							url : 'custManagement/getCustAddress',
+							queryParams : {
+								saCustId : custId
+							},
+							remoteSort : false,
+							rownumbers : true,
+							checkOnSelect : true,
+							idField : "addressId",
+							columns : [ [
+									{ field : 'addressId',title : '收货id',width : 60,hidden : true},
+									{ field : 'contact',title : '收货联系人',width : 60,align:'left'},
+									{ field : 'tel',title : '收货人电话',width : 140,align:'left'},
+									{ field : 'address',title : '收货地址',width : 120,align:'left'},
+									{ field : 'op',title : '操作',width : 131,
+										formatter : function( value, row, index) {
+											return (verification("custManagement","delete")? 
+														"<a href=\"javascript:del('"+ index+ "');\">删除</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;": "");
+										}
+									}, ] ],
+							pagination : true,
+							pageSize : 40,
+							pageList : [ 40, 80, 120 ]
+						});
+				},
+				pagination : true,
+				pageSize : 40,
+				pageList : [ 40, 80, 120 ]
+			});
+		$('#dg1').datagrid(
+			{
+				iconCls : 'icon-save',
+				width : "100%",
+				height : tableH - 50,
+				fitColumns : true,
+				nowrap : true,
+				autoRowHeight : false,
+				striped : true,
+				singleSelect : true,
+				collapsible : true,
+				url:'custManagement/getCustAddress',
+				queryParams : {
+					saCustId : null
+				},
+				remoteSort : false,
+				rownumbers : true,
+				checkOnSelect : true,
+				idField : "addressId",
+				columns : [ [
+						{ field : 'addressId',title : '收货id',width : 60,hidden : true },
+						{ field : 'contact',title : '收货联系人',width : 60,align:'left' },
+						{ field : 'tel',title : '收货人电话',width : 140,align:'left' },
+						{ field : 'address',title : '收货地址',width : 120,align:'left' },
+						{ field : 'op',title : '操作',width : 131,
+							formatter : function(value, row, index) {
+								(verification("custManagement","delete")? "<a href=\"javascript:del('"+ index+ "');\">删除</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;": "");
+							}
+						},
+				] ],
+				pagination : true,
+				pageSize : 40,
+				pageList : [ 40, 80, 120 ]
+			});
+		
+		if(verification("custManagement","addAddress")){
+   		 	$("#btn11").css("display","");
+   		}
+		if(verification("custManagement","add")){
+	   		 $("#btn22").css("display","");
+   		}
+	});
+
+	function doSendSms() {
+		var row = $('#dg').datagrid('getSelected');
+		if (row == null || row == undefined) {
+			$.messager.alert('提示', "请选择公司", 'info');
+			return;
+		}
+		var saleContact = $("#saleContact").val();
+		var saleTel = $("#saleTel").val();
+		var saleAddress = $("#saleAddress").val();
+
+		if (saleContact == "" || saleContact == undefined) {
+			$.messager.alert('提示', "收货人不可为空", 'info');
+			return;
+		} else if (saleTel == "" || saleTel == undefined) {
+			$.messager.alert('提示', "手机号码不可为空", 'info');
+			return;
+		} else if (saleAddress == "" || saleAddress == undefined) {
+			$.messager.alert('提示', "收货地址不可为空", 'info');
+			return;
+		}
+
+		$.ajax({
+			url : "custManagement/addCustAddress",
+			data : {
+				contact : saleContact,
+				tel : saleTel,
+				address : saleAddress, 
+				saCustId : row.saCustId
+			},
+			type : "post",
+			success : function(text) {
+				if (text.success == "1") {
+					$.messager.alert('提示', text.msg, 'info'), $(".address")
+							.textbox("setValue", "");
+					$("#dg1").datagrid('reload');
+				} else if (text.success == "0") {
+					$.messager.alert('提示', text.msg, 'info');
+				}
+			},
+			error : function(jqXHR, textStatus, errorThrown) {
+				$.messager.show({
+					title : 'Error',
+					msg : jqXHR.responseText
+				});
+			}
+		});
+	}
+
+	function del(index) {
+		var addressId = $('#dg1').datagrid("getRows")[index].addressId;
+
+		$.messager.confirm('提示', '是否删除？', function(r) {
+			if (r) {
+				$.ajax({
+					url : "custManagement/delCustAddress",
+					data : {
+						addressId : addressId
+					},
+					type : "post",
+					success : function(text) {
+						if (text.success == "1") {
+							$.messager.alert('提示', text.msg, 'info',
+									function() {
+										$('#dg1').datagrid('reload');
+									});
+						} else if (text.success == "2") {
+							$.messager.alert('提示', text.msg, 'info');
+						}
+					},
+					error : function(jqXHR, textStatus, errorThrown) {
+						$.messager.show({
+							title : 'Error',
+							msg : jqXHR.responseText
+						});
+					}
+				});
+			} else {
+				return;
+			}
+		});
+	}
+
+	function refreshFeature() {
+		$(".easyui-textbox").textbox("setValue", "");
+		$('#dg').datagrid('clearSelections');
+		$("#dg1").datagrid("loadData", {
+			total : 0,
+			rows : []
+		});
+	}
+
+	function saveMenu() {
+		
+		var companyName = $('#companyName').textbox("getValue");
+		if (companyName == null || companyName == "") {
+			$.messager.alert('提示', '操作失败!公司名不能为空！', 'error');
+			return;
+		}
+		var contact = $('#contact').textbox("getValue");
+		if (contact == null || contact == "") {
+			$.messager.alert('提示', '操作失败!负责人不能为空！', 'error');
+			return;
+		}
+
+		var tel = $('#tel').textbox("getValue");
+		if (tel == null || tel == "") {
+			$.messager.alert('提示', '操作失败!公司电话不能为空！', 'error');
+			return;
+		}
+		var rowInfo = $("#dg").datagrid('getSelected');
+		
+		if (rowInfo != null) {
+			/* console.log('loadin2g');
+			$('#form').form('submit', {
+				url : 'custManagement/updateSaleCustomer',
+				onSubmit : function() {
+				},
+				queryParams : {
+					CustId : rowInfo.saCustId,
+					companyName : companyName,
+					contact : contact,
+					tel : tel
+				},
+				success : function(result) {
+					console.log(result);
+					
+					 var result = eval('(' + result + ')'); 
+					
+					if (result.msgCode == 'Y') {
+						$.messager.alert('提示', '操作成功!', 'info');
+						$('#form').form('clear');
+						$('#dg').datagrid('reload');
+					} else {
+						$.messager.alert('提示', result.msg, 'error');
+					}
+				}
+			}); */
+			
+			$.ajax({
+  				url : "custManagement/updateSaleCustomer",
+  				type : "post",
+  				data : {
+					CustId : rowInfo.saCustId,
+					companyName : companyName,
+					contact : contact,
+					tel : tel
+				},
+  				dataType : "json",
+  				success : function(result){
+  					if (result.msgCode == 'Y') {
+						$.messager.alert('提示', '操作成功!', 'info');
+						$('#form').form('clear');
+						$('#dg').datagrid('reload');
+					} else {
+						$.messager.alert('提示', result.msg, 'error');
+					}
+  				}
+  			});
+		} else {
+		/* 	$('#form').form('submit', {
+				url : 'custManagement/addSaleCustomer',
+				onSubmit : function() {
+				},
+				queryParams : {
+					companyName : companyName,
+					contact : contact,
+					tel : tel
+				},
+				success : function(result) {
+					console.log(result);
+					 var result = eval('(' + result + ')'); 
+					console.log(result);
+					if (result.msgCode == 'Y') {
+						$.messager.alert('提示', '操作成功!', 'info');
+						$('#form').form('clear');
+						$('#dg').datagrid('reload');
+					} else {
+						$.messager.alert('提示', result.msg, 'error');
+					}
+				}
+			}); */
+			
+			
+			$.ajax({
+  				url : "custManagement/addSaleCustomer",
+  				type : "post",
+  				data : {
+					companyName : companyName,
+					contact : contact,
+					tel : tel
+				},
+  				dataType : "json",
+  				success : function(result){
+  					if (result.msgCode == 'Y') {
+						$.messager.alert('提示', '操作成功!', 'info');
+						$('#form').form('clear');
+						$('#dg').datagrid('reload');
+					} else {
+						$.messager.alert('提示', result.msg, 'error');
+					}
+  				}
+  			});
+		}
+	}
+</script>
