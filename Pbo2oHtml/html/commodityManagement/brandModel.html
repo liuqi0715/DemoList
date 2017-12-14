@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<HTML>
+<HEAD>
+	<TITLE>品牌——类型关系</TITLE>
+	<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+	<link rel="stylesheet" href="../../themes/css/zTreeStyle/zTreeStyle.css" type="text/css">
+	<script type="text/javascript" src="../../js/jquery.min.js"></script>
+	<script type="text/javascript" src="../../js/jquery.ztree.core-3.5.js"></script>
+	<script type="text/javascript" src="../../js/jquery.ztree.excheck-3.5.js"></script>
+	<script type="text/javascript" src="../../js/jquery.json-2.3.js"></script>
+    <link rel="stylesheet" type="text/css" href="../../themes/default/easyui.css">
+    <link rel="stylesheet" type="text/css" href="../../themes/icon.css">
+    <link rel="stylesheet" type="text/css" href="../../themes/demo.css">
+    <script type="text/javascript" src="../../js/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="../../js/locale/easyui-lang-zh_CN.js"></script>
+    <script type="text/javascript" src="../global.js"></script>
+	<SCRIPT type="text/javascript">
+	console.log(11);
+		var url;
+		$(function (){
+			$('#updateBrand').dialog({
+	        	title: '修改品牌',
+	        	width:250,
+	        	height:150,
+	        	closed:true
+	    	});
+			 $('#updateModel').dialog({
+		        	title: '添加型号',
+		        	width:250,
+		        	height:150,
+		        	closed:true
+		    	});
+		});
+		function b(event, treeId, treeNode){
+			if(treeNode.pId == null){
+				$('#updateBrand_name').textbox('setValue',treeNode.name);
+				$('#brandId').val(treeNode.id);
+				$('#updateBrand').dialog('open');
+			}else{
+				$('#updateModelName').textbox('setValue',treeNode.name);
+				$('#modelLeadContent').textbox('setValue',treeNode.type);
+				$('#modelId').val(treeNode.id);
+				$('#updateModel').dialog('open');
+			}
+		}
+		function submitUpdateBrand(){
+			var brand_name  = $('#updateBrand_name').textbox('getValue');
+			if(brand_name==""){
+				$.messager.alert('提示','操作失败!品牌名不能为空','error');
+				return;
+			}
+			var treeNodes = $.fn.zTree.getZTreeObj("treeMenu").getCheckedNodes();
+			for(x in treeNodes){
+				if(treeNodes[x]["pId"] == null && brand_name == treeNodes[x]["name"]){
+					$.messager.alert('提示','操作失败!品牌名已存在或者品牌名没有发生改变','error');
+					return;
+				}
+					
+			}
+			$.ajax({
+  				url : "commodity/updateBrand",
+  				type : "post",
+  				data : new FormData(document.getElementById("form1")),
+  				dataType : "json",
+  				success : function(result){
+  					if (result.success =='Y'){
+  						$('#updateBrand').dialog('close');
+  						loadZree();
+  						$('#form1').form('clear');
+  					} else {
+						$.messager.alert('提示','操作失败!','error'); 
+  					}
+  				}
+  			});
+			/* $('#form1').form('submit',{
+  				url: url,
+  				onSubmit: function(){
+  					if(brand_name==""){
+  						$.messager.alert('提示','操作失败!品牌名不能为空','error');
+  						return false;
+  					}
+  					var treeNodes = $.fn.zTree.getZTreeObj("treeMenu").getCheckedNodes();
+  					for(x in treeNodes){
+  						if(treeNodes[x]["pId"] == null && brand_name == treeNodes[x]["name"]){
+  							$.messager.alert('提示','操作失败!品牌名已存在或者品牌名没有发生改变','error');
+  							return false;
+  						}
+  							
+  					}
+  					return true;
+  				},
+  				success: function(result){
+  					var result = eval('('+result+')');
+  					if (result.success =='Y'){
+  						$('#updateBrand').dialog('close');
+  						parent.brandModel();
+  						$('#form1').form('clear');
+  					} else {
+						$.messager.alert('提示','操作失败!','error'); 
+  					}
+  				},
+  				error : function() {  
+    	            // view("异常！");  
+       				$.messager.alert('提示','操作失败!','error'); 
+    	  		}
+  			}); */
+		}
+		
+		function submitUpdateModel(){
+			var modelName  = $('#updateModelName').textbox('getValue').trim();
+			var modelLeadContent = $('#modelLeadContent').textbox('getValue').trim();
+			if(modelName==""){
+				$.messager.alert('提示','操作失败!型号名不能为空','error');
+				return;
+			}if(modelLeadContent==""){
+				$.messager.alert('提示','操作失败!含铅量不能为空','error');
+				return;
+			}if(isNaN(modelLeadContent)){
+				$.messager.alert('提示','操作失败!含铅量只能是数字','error');
+				return;
+			}if(Number(modelLeadContent) > 1||Number(modelLeadContent) < 0||Number(modelLeadContent) == 0||Number(modelLeadContent) == 1){
+  				$.messager.alert('提示','操作失败!含铅量只能是0~1之间','error');
+  				return;
+  			}
+			var treeNodes = $.fn.zTree.getZTreeObj("treeMenu").getCheckedNodes();
+			for(x in treeNodes){
+				if(treeNodes[x]["pId"] != null && modelName == treeNodes[x]["name"]){
+					if($('#modelId').val() != treeNodes[x]["id"]){
+						$.messager.alert('提示','操作失败!类型名已存在','error');
+						return;
+					}/* else{
+						$.messager.alert('提示','操作失败!类型名没有改变','error');
+						return false;
+					}  */
+				}
+			}
+			$.ajax({
+  				url : "commodity/updateModel",
+  				type : "post",
+  				data : new FormData(document.getElementById("form2")),
+  				dataType : "json",
+  				success : function(result){
+  					if (result.success =='Y'){
+  						$('#updateModel').dialog('close');
+  						loadZree();
+  						$('#form2').form('clear');
+  					}else{
+  						$.messager.alert('提示','操作失败!','error');
+					} 
+  				}
+  			});
+			/* $('#form2').form('submit',{
+  				url: url,
+  				onSubmit: function(){
+  					if(modelName==""){
+  						$.messager.alert('提示','操作失败!型号名不能为空','error');
+  						return false;
+  					}if(modelLeadContent==""){
+  						$.messager.alert('提示','操作失败!含铅量不能为空','error');
+  						return false;
+  					}if(isNaN(modelLeadContent)){
+  						$.messager.alert('提示','操作失败!含铅量只能是数字','error');
+  						return false;
+  					}if(Number(modelLeadContent) > 1||Number(modelLeadContent) < 0||Number(modelLeadContent) == 0||Number(modelLeadContent) == 1){
+  		  				$.messager.alert('提示','操作失败!含铅量只能是0~1之间','error');
+  		  				return false;
+  		  			}
+  					var treeNodes = $.fn.zTree.getZTreeObj("treeMenu").getCheckedNodes();
+  					for(x in treeNodes){
+  						if(treeNodes[x]["pId"] != null && modelName == treeNodes[x]["name"]){
+  							if($('#modelId').val() != treeNodes[x]["id"]){
+  								$.messager.alert('提示','操作失败!类型名已存在','error');
+  								return false;
+  							} else{
+  								$.messager.alert('提示','操作失败!类型名没有改变','error');
+  								return false;
+  							} 
+  						}
+  					}
+  					return true;
+  				},
+  				success: function(result){
+  					var result = eval('('+result+')');
+  					if (result.success =='Y'){
+  						$('#updateModel').dialog('close');
+  						parent.brandModel();
+  						$('#form2').form('clear');
+  					}else{
+  						$.messager.alert('提示','操作失败!','error');
+					} 
+  				},
+  				error : function() {  
+       				$.messager.alert('提示','操作失败!','error'); 
+    	  		}
+  			}); */
+		}
+		var setting = {
+				callback :{
+						onClick:b
+				},
+				check: {
+					enable: true,
+					chkDisabledInherit: true
+				},
+				data: {
+					simpleData: {
+						enable: true
+					}
+				}
+			};
+		
+		
+		function loadZree(){
+			var zNodes = null;
+			$.ajax({  
+		         type:'post',
+		         async: false,
+		         url:'commodity/menuBrandModel',
+		         dataType:'json',  
+		         success:function(data){
+		        	 zNodes = data;
+		          }
+		     });
+			$.fn.zTree.init($("#treeMenu"), setting, zNodes);
+		}
+		$(document).ready(function(){
+			loadZree();
+			if(verification("commodity","addModel")){
+	    		 $("#PAddModel").css("display","");
+	    	}
+	    	if(verification("commodity","addBrand")){
+	    		 $("#PAddBrand").css("display","");
+	    	}
+	    	winAddBrand = $('#addBrand').dialog({
+	        	title: '添加品牌',
+	        	width:260,
+	        	height:170,
+	        	closed:true
+	    	});
+	    	winAddModel= $('#addModel').dialog({
+	        	title: '添加型号',
+	        	width:260,
+	        	height:200,
+	        	closed:true
+	    	});
+		});
+		function save(){
+			var treeNodes = $.fn.zTree.getZTreeObj("treeMenu").getCheckedNodes();
+			var jsons = [];
+			for(x in treeNodes){
+				var json = {};
+				json.brandId = treeNodes[x]["pId"];
+				json.moduleId = treeNodes[x]["id"];
+				if(json.brandId != null){
+					jsons.push(json);
+				}
+			}
+			var jsonText = $.toJSON(jsons);
+			$.ajax({
+				url : "commodity/addBrandModel",
+				type : "post",
+				data : {
+					brandModule : jsonText
+				},
+				dataType : "json",
+				success : function(data) {
+					if(data.success == "Y") {
+						$.messager.alert('提示','保存成功！','info');
+						loadZree();
+					}else {
+						$.messager.alert('提示','操作失败!','info');
+					}
+				},
+				error : function() {  
+	       			$.messager.alert('提示','操作失败!','error'); 
+	    	    }
+			});
+			
+		}
+		function submitAddBrand(){
+  			var brandName = $('#addBrand_name').val();
+  			if(brandName==""){
+				$.messager.alert('提示','操作失败!品牌名不能为空','error');
+				return;
+		    }
+  			$.ajax({
+  				url : "commodity/addBrand",
+  				type : "post",
+  				data : new FormData(document.getElementById("form4")),
+  				dataType : "json",
+  				success : function(result){
+  					if (result.success =='Y'){
+  						$('#addBrand').dialog('close');		// close the dialog
+  						loadZree();
+  						$.messager.alert('提示','操作成功!','info');
+  						$('#form4').form('clear');
+  					}else if(result.success =='N'){
+  						$.messager.alert('提示','操作失败!品牌已经存在了','info');
+					}else{
+						$.messager.alert('提示','操作失败!','error'); 
+					}
+  				}
+  			});
+  		}
+		function submitAddModel(){
+  			var modelName = $('#addModelName').val();
+  			var modelLeadContent = $('#addModelLeadContent').val();
+  			if(modelName==""){
+				$.messager.alert('提示','操作失败!型号名不能为空','error');
+				return;
+			}if(modelLeadContent==""){
+				$.messager.alert('提示','操作失败!含铅量不能为空','error');
+				return;
+			}if(isNaN(modelLeadContent)){
+				$.messager.alert('提示','操作失败!含铅量只能是数字','error');
+				return;
+			}if(Number(modelLeadContent) > 1||Number(modelLeadContent) < 0||Number(modelLeadContent) == 0||Number(modelLeadContent) == 1){
+  				$.messager.alert('提示','操作失败!含铅量只能是0~1之间','error');
+  				return;
+  			}
+			$.ajax({
+  				url : "commodity/addModel",
+  				type : "post",
+  				data : new FormData(document.getElementById("form5")),
+  				dataType : "json",
+  				success : function(result){
+  					if (result.success =='Y'){
+  						$('#addModel').dialog('close');		// close the dialog
+  						loadZree();
+  						$.messager.alert('提示','操作成功!','info');
+  						$('#form5').form('clear');
+  					}else if (result.success =='N') {
+  						$.messager.alert('提示','操作失败!型号已经存在了','error');
+					} else {
+  						$.messager.alert('提示',result.errorMsg,'error'); 
+  					}
+  				}
+  			});
+  		}
+		function addBrand(){
+  			$('#addBrand').dialog('open');
+  		}
+  		function addModel (){
+  			$('#addModel').dialog('open');
+  		}
+	</SCRIPT>
+  <body>
+  	<form style="text-align:center;">
+		<a class="easyui-linkbutton" data-options="iconCls:'icon-add'" onclick="addModel()" style="display:none;" id = "PAddModel">添加型号</a>&nbsp;&nbsp;&nbsp;&nbsp;
+		<a class="easyui-linkbutton" data-options="iconCls:'icon-add'" onclick="addBrand()" style="display:none;" id = "PAddBrand">添加品牌</a>
+		<div align="center"><ul id="treeMenu" class="ztree"></ul></div>
+		<a class="easyui-linkbutton" data-options="iconCls:'icon-save'" onclick="save();" >保存</a><br>
+	</form>
+	<div id="addBrand">
+		<br/>
+		<form action="commodity/addBrand" method="post" id="form4">
+				&nbsp;&nbsp;&nbsp;&nbsp;<span>品牌名 :</span>
+				<input id="addBrand_name" type="text" name="brandName" value="" class="easyui-textbox" style="width:100px;"/>
+				<font color="red">*</font>
+			<div align="center">
+				<br/>
+				<a id="btn2" class="easyui-linkbutton window-submitBtn" onclick="submitAddBrand();" >提交</a>
+			</div>
+		</form>
+	</div>
+	<div id="addModel">
+		<br/>
+		<form action="commodity/addModel" method="post" id="form5">
+				&nbsp;&nbsp;&nbsp;&nbsp;<span>型号名 :</span>
+				<input id="addModelName" type="text" name="modelName" value="" class="easyui-textbox" style="width:100px;"/>
+				<font color="red">*</font><br/>
+				<div style="margin-top:10px;">
+				&nbsp;&nbsp;&nbsp;&nbsp;<span>含铅量 :</span>
+				<input id="addModelLeadContent" type="text" name="modelLeadContent" value="" class="easyui-textbox" style="width:100px;"/>
+				<font color="red">*</font>
+				</div>
+			<div align="center">
+				<br/>
+				<a id="btn1" class="easyui-linkbutton window-submitBtn" onclick="submitAddModel();" >提交</a>
+			</div>
+		</form>
+	</div>
+	<div id="updateBrand">
+		<br/>
+		<form action="commodity/updateBrand" method="post" id="form1">
+			<input type="hidden" name="brandId" value="" id="brandId">
+			&nbsp;&nbsp;&nbsp;&nbsp;<span>品牌名 :</span>
+			<input id="updateBrand_name" type="text" name="brandName" value="" class="easyui-textbox" style="width:100px;"/>
+			<font color="red">*</font>
+			<div align="center">
+				<br/>
+				<a id="btn2" class="easyui-linkbutton" data-options="iconCls:'icon-save'" onclick="submitUpdateBrand();" >提交</a>
+			</div>
+		</form>
+	</div>
+	<div id="updateModel">
+		<br/>
+		<form action="commodity/updateModel" method="post" id="form2">
+			<input type="hidden" name="modelId" value="" id="modelId">
+			&nbsp;&nbsp;&nbsp;&nbsp;<span>型号名 :</span>
+			<input id="updateModelName" type="text" name="modelName" value="" class="easyui-textbox" style="width:100px;"/>
+			<font color="red">*</font><br/>
+			&nbsp;&nbsp;&nbsp;&nbsp;<span>含铅量 :</span>
+			<input id="modelLeadContent" type="text" name="modelLeadContent" value="" class="easyui-textbox" style="width:100px;"/>
+			<font color="red">*</font>
+			<div align="center">
+				<br/>
+				<a id="btn1" class="easyui-linkbutton" data-options="iconCls:'icon-save'" onclick="submitUpdateModel();" >提交</a>
+			</div>
+		</form>
+	</div>
+  </body>
+  
+</HTML>
