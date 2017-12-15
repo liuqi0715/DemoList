@@ -1,0 +1,215 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<title>Insert title here</title>
+    <link rel="stylesheet" type="text/css" href="../../themes/default/easyui.css">
+    <link rel="stylesheet" type="text/css" href="../../themes/icon.css">
+    <link rel="stylesheet" type="text/css" href="../../themes/demo.css">
+    <script type="text/javascript" src="../../js/jquery.min.js"></script>
+    <script type="text/javascript" src="../../js/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="../../js/locale/easyui-lang-zh_CN.js"></script>
+    <script type="text/javascript" src="../global.js"></script>
+</head>
+<style type="text/css">
+	#cat .textbox{
+		width:155px !important;
+	}
+</style>
+<script type="text/javascript">
+	$(function(){
+		
+		$('#province').combobox({
+            valueField:'provinceId', //值字段
+            textField:'provinceName', //显示的字段
+            url:'areaController/getAllProvince',
+            editable:false,//不可编辑，只能选择
+            width:'80',
+            value:'--请选择--',
+            onSelect:function(){      
+            	var province = $(this).combobox('getValue');
+                $('#city').combobox({
+                valueField:'cityId', 
+                textField:'cityName',
+                url:'areaController/getCityByProvinceId?provinceId='+province,
+                required:true,
+                editable:false,//不可编辑，只能选择
+                value:'--请选择--'
+              });
+            },
+         });
+         $('#city').combobox({
+            editable:false,
+            width:'80',
+            value:'请先选择省份',
+           	onSelect:function(){
+            	var city = $(this).combobox('getValue');
+                $('#area').combobox({
+                valueField:'areaId', 
+                textField:'areaName',
+                url:'areaController/getAreaByCityId?cityId='+city,
+                required:true,
+                editable:false,//不可编辑，只能选择
+                value:'--请选择--'
+               });
+           	}
+         });
+         $('#area').combobox({
+	 		width:'80',
+	 		editable:false,
+	 		value:'请选择先城市',
+	 		onSelect:function(){
+	 		}
+		});
+         $('#brandName').combobox({
+		 		url:'commodity/getAllBarnd',
+		 		valueField:'brandId',
+		 		textField:'brandName',
+		 		width:'100',
+		 		editable:false,
+		 		value:'请选择品牌'
+		});
+		$('#catName').combobox({
+	 		url:'commodity/getAllcategory',
+	 		valueField:'catId',
+	 		textField:'catName',
+	 		width:'145',
+	 		editable:false,
+	 		value:'请选择类型',
+	 		onSelect:function(){
+	 			
+	 		}
+		});
+		$('#catName').combobox('setValue','2');
+		$('#config_name').combobox({
+	 		url:'config/getAllcommType',
+	 		valueField:'CONFIG_ID',
+	 		textField:'CONFIG_NAME',
+	 		width:'150',
+	 		editable:false,
+		});
+		$('#start').datebox({    
+		    required:true,
+		    editable:false,
+		    width:'100px',
+		    onSelect:function(start){
+		    	var now = new Date();
+		    	if(start > now){
+		    		$.messager.alert('提示','操作失败!日期不能超过当前时间','error');
+		    		$('#start').datebox('setValue','');
+		    	}
+		    	
+	 		}
+		});
+		$('#end').datebox({    
+		    width:'100px',
+		    editable:false,
+		    onSelect:function(date){
+		    	var now = new Date();
+		    	if(date > now){
+		    		$.messager.alert('提示','操作失败!日期不能超过当前时间','error');
+		    		$('#end').datebox('setValue','');
+		    	}
+		    	var start = $('#start').datebox('getValue');
+		    	var end = $('#end').datebox('getValue');
+		    	if(start>end){
+		    		$.messager.alert('提示','操作失败!起始时间不能晚于结束时间','error');
+		    		$('#end').datebox('setValue','');
+		    	}
+	 		}
+		});
+		var tableH = Math.max(document.documentElement.scrollHeight,document.body.scrollHeight)-($('#dg').offset().top+20);
+		$('#dg').datagrid({
+        	iconCls: 'icon-save',
+        	width: '100%',
+        	height: tableH,
+        	fitColumns:true,
+        	nowrap: true,
+        	singleSelect: true,
+        	autoRowHeight: false,
+        	striped: true,
+        	collapsible: true,
+        	remoteSort: false,
+        	rownumbers:true,
+        	checkOnSelect: true,
+        	idField: "beginDate",
+        	columns: [[
+            	{ field: 'catName', title: '类型', width: 180 ,align:'left'},
+            	{ field: 'brandName', title: '品牌', width: 120 ,align:'left'},
+            	{ field: 'modelName', title: '型号', width: 100 ,align:'left'},
+            	{ field: 'commWeight', title: '重量（KG）', width: 100 ,align:'right'},
+            	{ field: 'commUnit', title: '单位', width: 100 ,align:'left'},
+            	{ field: 'modelLeadContent', title: '含铅量', width: 100 ,align:'left'},
+            	{ field: 'areaPrice', title: '价格',width: 100 ,align:'left',formatter: function (value, row, index) {
+                    if (row != null) {
+                        return (parseFloat(value).toFixed(2) + '').replace(/\d{1,3}(?=(\d{3})+(\.\d*)?$)/g, '$&,');
+                  }
+                  }},
+            	{ field: 'beginDate', title: '开始时间', width: 180,align:'center'},
+            	{ field: 'endDate', title: '结束时间', width: 180,align:'center'},
+            	{ field: 'updateUserName', title: '修改人',width: 100,hidden:true },
+        	]],
+        	pagination: true,
+        	pageSize : 40, 
+        	pageList : [ 40, 80, 120],
+    	});
+		$('#dg').datagrid('loadData', { total: 0, rows: [] });
+		if(verification("historyPrice","search")){
+			$("#btn").css("display","");
+		}
+	})
+	function history(){
+		var catName = $('#catName').combobox('getValue');
+		var province = $('#province').combobox('getValue');
+		var city = $('#city').combobox('getValue');
+		var area = $('#area').combobox('getValue');
+		var start = $('#start').datebox('getValue');
+		var end = $('#end').datebox('getValue');
+		var brandId = $('#brandName').textbox('getValue');				
+		var modelName = $('#modelName').textbox('getValue');
+		if (brandId == "请选择品牌" || brandId == "") {
+			brandId = "isEmpty";
+		}else{
+			brandId = brandId;
+		}
+		if(catName=="" || isNaN(catName)){
+			$.messager.alert('提示','操作失败!请选择商品类型','error');
+    		return;
+		}if(province=="" || isNaN(province)){
+			$.messager.alert('提示','操作失败!请选择区域','error');
+			return;
+		}if(start == ""){
+			$.messager.alert('提示','操作失败!请选择起始时间','error');
+    		return;
+		}if(start == ""){
+			$.messager.alert('提示','操作失败!请选择结束时间','error');
+    		return;
+		}
+		$('#dg').datagrid({
+			url : 'historyPrice/searchHistoryPrice?catName='+catName+'&province='+province+'&city='+city+'&area='+area+'&start='+start+'&end='+end+'&brandId='+brandId+'&modelName='+modelName
+		});
+	}
+</script>
+<body style="overflow:hidden;" id="historicalPrice">
+  
+  <form id="searchform">
+  <div class="inputArea1">
+  	<label>类型</label>：<input id="catName">
+  	<label >省份</label>：<input id="province" />
+  	<label>城市</label>：<input id="city" />
+  	<label>区域 </label>：<input id="area" />
+  </div>
+  <div class="inputArea1" style="margin-bottom:10px;">
+   	<label>起始时间</label>：<input id="start" type="text"></input> 
+	<label>结束时间</label>：<input id="end" type="text"></input>
+ 	<label>品牌</label>：<input type="text" id="brandName" name = "brandName" class="easyui-combobox"></input>
+	<label>型号</label>：<input type="text" id="modelName" name = "modelName" class="easyui-textbox"></input>
+	<!-- <c:if test="${sessionScope.rolBtn.get('historyPrice').containsKey('search') }"> -->
+		<a id="btn" class="easyui-linkbutton" style="display: none" data-options="iconCls:'icon-search'" onClick="history();">查看</a>
+	<!-- </c:if> -->
+	<a id="cbtn" class="easyui-linkbutton" data-options="iconCls:'icon-clear'" onClick="$('#searchform').form('clear')">清空</a>
+  </div>
+  </form>
+  <table id="dg" ></table> <br/>
+</body>
+</html>

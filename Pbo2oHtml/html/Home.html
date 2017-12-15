@@ -1,0 +1,701 @@
+<html>
+<head>
+<title>找铅网</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<script type="text/javascript" src="../js/jquery.min.js" ></script>
+<link rel="stylesheet" type="text/css" href="../themes/default/easyui.css">
+<link rel="stylesheet" type="text/css" href="../themes/icon.css">
+<link rel="stylesheet" type="text/css" href="../themes/demo.css">
+<link rel="stylesheet" type="text/css" href="../themes/css/style.css">
+<link rel="stylesheet" type="text/css" href="../themes/system.css">
+<script type="text/javascript" src="../js/jquery.easyui.min.js"></script>
+<script type="text/javascript" src="../js/locale/easyui-lang-zh_CN.js"></script>
+<script type="text/javascript" src="../js/jquery.ztree.core-3.5.js"></script>
+<link rel="stylesheet" href="../themes/css/zTreeStyle/zTreeStyle.css" type="text/css">
+<script type="text/javascript" src="global.js"></script>
+<style type="text/css">
+.ztree li span.button.pIcon01_ico_open {
+	margin-right: 2px;
+	background: url(../themes/images/diy/1_open.png) no-repeat scroll 0 0
+		transparent;
+	vertical-align: top;
+	*vertical-align: middle
+}
+
+.ztree li span.button.pIcon01_ico_close {
+	margin-right: 2px;
+	background: url(../themes/images/diy/1_close.png) no-repeat scroll 0 0
+		transparent;
+	vertical-align: top;
+	*vertical-align: middle
+}
+
+.ztree li span.button.pIcon02_ico_open, .ztree li span.button.pIcon02_ico_close
+	{
+	margin-right: 2px;
+	background: url(../themes/imagesdiy/2.png) no-repeat scroll 0 0 transparent;
+	vertical-align: top;
+	*vertical-align: middle
+}
+
+.ztree li span.button.icon01_ico_docu {
+	margin-right: 2px;
+	background: url(../themes/images/diy/3.png) no-repeat scroll 0 0
+		transparent;
+	vertical-align: top;
+	*vertical-align: middle
+}
+
+.ztree li span.button.icon02_ico_docu {
+	margin-right: 2px;
+	background: url(../themes/images/diy/4.png) no-repeat scroll 0 0
+		transparent;
+	vertical-align: top;
+	*vertical-align: middle
+}
+
+.ztree li span.button.icon03_ico_docu {
+	margin-right: 2px;
+	background: url(../themes/images/diy/5.png) no-repeat scroll 0 0
+		transparent;
+	vertical-align: top;
+	*vertical-align: middle
+}
+
+.ztree li span.button.icon04_ico_docu {
+	margin-right: 2px;
+	background: url(../themes/images/diy/6.png) no-repeat scroll 0 0
+		transparent;
+	vertical-align: top;
+	*vertical-align: middle
+}
+
+.ztree li span.button.icon05_ico_docu {
+	margin-right: 2px;
+	background: url(../themes/images/diy/7.png) no-repeat scroll 0 0
+		transparent;
+	vertical-align: top;
+	*vertical-align: middle
+}
+
+.ztree li span.button.icon06_ico_docu {
+	margin-right: 2px;
+	background: url(../themes/images/diy/8.png) no-repeat scroll 0 0
+		transparent;
+	vertical-align: top;
+	*vertical-align: middle
+}
+</style>
+
+<script type="text/javascript">
+   var treeIcons = [                                                                                                                                                                                                                       
+	   				"../images/system/shouye.png",                                                                                                                                                                                            
+	   				"../images/system/shangpinguanli.png",                                                                                                                                                                                    
+	   				"../images/system/kehuguanli.png",                                                                                                                                                                                        
+	   				"../images/system/dingdanguanli.png",                                                                                                                                                                                     
+	   				"../images/system/yunshuguanli.png",                                                                                                                                                                                      
+	   				"../images/system/cangkuguanli.png",                                                                                                                                                                                      
+	   				"../images/system/cangkuguanli.png",                                                                                                                                                                                      
+	   				"../images/system/shujuditu.png",                                                                                                                                                                                         
+	   				"../images/system/xitongguanli.png",                                                                                                                                                                                      
+	   				"../images/system/jifenguanli.png",                                                                                                                                                                                       
+	   				"../images/system/xinyongguanli.png",                                                                                                                                                                                     
+	   				"../images/system/zijinguanli.png",                                                                                                                                                                                       
+	   				"../images/system/guanggaoguanli.png",                                                                                                                                                                                    
+	   				"../images/system/tongjifenxi.png"                                                                                                                                                                                        
+	   				];                                                                                                                                                                                                                     
+   $.fn.treePane = function(datas){                                                                                                                                                                                                        
+	    var _this = this;                                                                                                                                                                                                                  
+	    var winH = $(window).height()-50;                                                                                                                                                                                                  
+	    _this.height(winH);                                                                                                                                                                                                                
+	    function  render() {                                                                                                                                                                                                               
+	       // var firstNav = '<div class="home_side_con home_choice"><img src='+datas[0].img +' alt="adam"/><span id='+datas[0].srcUrl+'>'+datas[0].name+'</span></div>';                                                                    
+	        var secondNav = $('<div class="home_side_con"></div>');                                                                                                                                                                        
+	        var childNav,innerWrap,childs;                                                                                                                                                                                                 
+	        for(var i = 0; i < datas.length; i++){                                                                                                                                                                                         
+	            var childBox = $('<div class="home_side_childBox"></div>');                                                                                                                                                                
+	            childNav = $('<div class="home_side_conBox rootInActive"><div class="home_side_root"><img src='+datas[i].img+' alt="adam"/><span id='+datas[i].srcUrl+'>'                                                                  
+	                +datas[i].name+'</span><div class="home_side_nav"><div class="home_side_navDot"></div></div></div></div>');                                                                                                            
+	            if(datas[i].children && datas[i].children.length>0){                                                                                                                                                                       
+	              var childArray = datas[i].children;                                                                                                                                                                                      
+	              for(var j = 0;j < childArray.length;j++){                                                                                                                                                                                
+	                var childCon = '<div class="home_side_conBox home_side_child home_choice"><span id='+childArray[j].srcUrl+'>'+childArray[j].name+'</span><div class="home_side_nav1">'                                                 
+	                    +'<div class="home_side_navDot1"></div></div></div>';                                                                                                                                                              
+	                innerWrap = childBox.append(childCon);                                                                                                                                                                                 
+	              }                                                                                                                                                                                                                        
+	              childs = childNav.append(innerWrap);                                                                                                                                                                                     
+	            }                                                                                                                                                                                                                          
+	            secondNav.append(childs);                                                                                                                                                                                                  
+	        };                                                                                                                                                                                                                             
+	        _this.append(secondNav);                                                                                                                                                                                      
+	    }                                                                                                                                                                                                                                  
+	    render();                                                                                                                                                                                                                          
+   };                                                                                                                                                                                                                                      
+                                                                                                                                                                                                                                           
+   function tabAct(node){                                                                                                                                                                                                                  
+	   if ($('#tabs').tabs('tabs').length>0) {                                                                                                                                                                                             
+	       var exsit=false;                                                                                                                                                                                                                
+	       for (var i = 0; i < $('#tabs').tabs('tabs').length; i++) {                                                                                                                                                                      
+	           var tab = $('#tabs').tabs('getTab',i).panel('options').title;                                                                                                                                                               
+	           if (node.name == $('#tabs').tabs('getTab',i).panel('options').title) {                                                                                                                                                      
+	              $('#tabs').tabs('select',i);                                                                                                                                                                                             
+	              var tab = $('#tabs').tabs('getTab',i);                                                                                                                                                                                   
+	              $("#tabs").tabs('update',{                                                                                                                                                                                               
+	                  tab: tab,                                                                                                                                                                                                            
+	                  options: {                                                                                                                                                                                                           
+	                      title: node.name,                                                                                                                                                                                                
+	                      content: newIframe(node.id)                                                                                                                                              
+	                  }                                                                                                                                                                                                                    
+	              });                                                                                                                                                                                                                      
+	              exsit=true;                                                                                                                                                                                                              
+	          }                                                                                                                                                                                                                            
+	      }                                                                                                                                                                                                                                
+	      if(exsit==false){                                                                                                                                                                                                                
+	           $("#tabs").tabs('add', {                                                                                                                                                                                                    
+	              title: node.name,                                                                                                                                                                                                        
+	              content: newIframe(node.id),                                                                                                                                                     
+	              fit: true,                                                                                                                                                                                                               
+	              closable: true                                                                                                                                                                                                           
+	           });                                                                                                                                                                                                                         
+	      }                                                                                                                                                                                                                                
+	   }else{                                                                                                                                                                                                                              
+	       $("#tabs").tabs('add', {                                                                                                                                                                                                        
+	          title: node.name,                                                                                                                                                                                                            
+	          content: newIframe(node.id),                                                                                                                                                         
+	          fit: true,                                                                                                                                                                                                                   
+	          closable: true                                                                                                                                                                                                               
+	       });                                                                                                                                                                                                                             
+	   }                                                                                                                                                                                                                                   
+	  if($(this).hasClass("paneSelected")){                                                                                                                                                                                                
+	   var fag = 0;                                                                                                                                                                                                                        
+	   if ($('#tabs').tabs('tabs').length>0) {                                                                                                                                                                                             
+	       for (var i = 0; i < $('#tabs').tabs('tabs').length; i++) {                                                                                                                                                                      
+	           var tab = $('#tabs').tabs('getTab',i).panel('options').title;                                                                                                                                                               
+	           if (node.name == $('#tabs').tabs('getTab',i).panel('options').title) {                                                                                                                                                      
+	              $('#tabs').tabs('select',i);                                                                                                                                                                                             
+	              var tab = $('#tabs').tabs('getTab',i);                                                                                                                                                                                   
+	              $("#tabs").tabs('update',{                                                                                                                                                                                               
+	                  tab: tab,                                                                                                                                                                                                            
+	                  options: {                                                                                                                                                                                                           
+	                      title: node.name,                                                                                                                                                                                                
+	                      content: newIframe(node.srcUrl)                                                                                                                                          
+	                  }                                                                                                                                                                                                                    
+	              });                                                                                                                                                                                                                      
+	              fag++;                                                                                                                                                                                                                   
+	          }                                                                                                                                                                                                                            
+	      }                                                                                                                                                                                                                                
+	      if (fag == 0) {                                                                                                                                                                                                                  
+	           if($('#tabs').tabs('tabs').length==10){                                                                                                                                                                                     
+	                  var tab = $('#tabs').tabs('getTab',9);                                                                                                                                                                               
+	                  $("#tabs").tabs('update',{                                                                                                                                                                                           
+	                      tab: tab,                                                                                                                                                                                                        
+	                      options: {                                                                                                                                                                                                       
+	                          title: node.name,                                                                                                                                                                                            
+	                          content: newIframe(node.id)                                                                                                                                          
+	                      }                                                                                                                                                                                                                
+	                  });                                                                                                                                                                                                                  
+	                  fag++;                                                                                                                                                                                                               
+	              }                                                                                                                                                                                                                        
+	        }                                                                                                                                                                                                                              
+	    }                                                                                                                                                                                                                                  
+	    if (fag > 0) {                                                                                                                                                                                                                     
+	        return;                                                                                                                                                                                                                        
+	    }                                                                                                                                                                                                                                  
+	    $("#tabs").tabs('add', {                                                                                                                                                                                                           
+	        title: node.name,                                                                                                                                                                                                              
+	        content: newIframe(node.id),                                                                                                                                                           
+	        fit: true,                                                                                                                                                                                                                     
+	        closable: true,                                                                                                                                                                                                                
+	    });                                                                                                                                                                                                                                
+	  }                                                                                                                                                                                                                                    
+	}                                                                                                                                                                                                                                      
+                                                                                                                                                                                                                                           
+   function newIframe(url) {                                                                                                                                                                                                               
+       var ifrStr = "<iframe scrolling='auto' src='" + url + "' frameborder='0' name='main' style='width:100%;height:100%; 'border='0'></iframe>";                                                                                         
+       return ifrStr;                                                                                                                                                                                                                      
+   }                                                                                                                                                                                                                                       
+//需求修改，修改密码时不再进行页面的跳转+++++++++++++++++++++++++++++++++                                                                                                                                                                                     
+ /*   function upPwd(){                                                                                                                                                                                                                    
+       $("#tabs").tabs('add', {                                                                                                                                                                                                            
+           title: '修改密码',                                                                                                                                                                                                                  
+           content: newIframe("uptatePwd?dae="+new Date()),                                                                                                                                                                                
+           fit: true,                                                                                                                                                                                                                      
+           closable: true,                                                                                                                                                                                                                 
+       });                                                                                                                                                                                                                                 
+   }; */                                                                                                                                                                                                                                   
+                                                                                                                                                                                                                                           
+   function upPwd(){                                                                                                                                                                                                                       
+	   $("#bodyPwd").show(1000)                                                                                                                                                                                                            
+   }                                                                                                                                                                                                                                       
+   function cancle(){                                                                                                                                                                                                                      
+	   $("#bodyPwd").hide(1000);                                                                                                                                                                                                           
+	   $('#newPwd').val("");                                                                                                                                                                                                               
+	   $('#newPwd2').val("");                                                                                                                                                                                                              
+	   $("#error").hide();                                                                                                                                                                                                                 
+   }                                                                                                                                                                                                                                       
+   var zNodes = eval('(' + getMenu() + ')');          
+   for(var a = 0;a<zNodes.length;a++){                                                                                                                                                                                                     
+	   zNodes[a].img = treeIcons[a];                                                                                                                                                                                                       
+   }                                                                                                                                                                                                                                       
+                                                                                                                                                                                                                                           
+	                                                                                                                                                                                                                                       
+	//修改密码确认++++++++++++++++++++++++++++++++                                                                                                                                                                                               
+	function submitData(){                                                                                                                                                                                                                 
+		console.log("修改密码++++")                                                                                                                                                                                                            
+		var reg = /^[a-z\d]{6,20}$/i                                                                                                                                                                                                       
+		var oldPwd = $('#oldPwd').val();                                                                                                                                                                                                   
+		var newPwd = $('#newPwd').val();                                                                                                                                                                                                   
+		var newPwd2 = $('#newPwd2').val();                                                                                                                                                                                                 
+		var new1 = reg.test(newPwd)                                                                                                                                                                                                        
+		var new2 = reg.test(newPwd2)                                                                                                                                                                                                       
+		if(new1==false||new2==false){                                                                                                                                                                                                      
+			$("#error").show();                                                                                                                                                                                                            
+			$("#error").html("新密码必须为6-20位的数字或者字母");                                                                                                                                                                                        
+		}else if(newPwd != newPwd2){                                                                                                                                                                                                       
+			$("#error").show();                                                                                                                                                                                                            
+			$("#error").html("两次输入的密码不一致！");                                                                                                                                                                                               
+		} else{                                                                                                                                                                                                                            
+			$.messager.alert('提示',"您确认修改密码吗？",'info',function () {                                                                                                                                                                         
+				console.log("修改++++")                                                                                                                                                                                                      
+				$.ajax({                                                                                                                                                                                                                   
+					url : "/updatePwd",                                                                                                                                                                                                    
+					type : "post",                                                                                                                                                                                                         
+					data : {                                                                                                                                                                                                               
+						oldPwd:oldPwd,                                                                                                                                                                                                     
+						newPwd:newPwd                                                                                                                                                                                                      
+					},                                                                                                                                                                                                                     
+					dataType : "json",                                                                                                                                                                                                     
+					beforeSend : function() {                                                                                                                                                                                              
+					},                                                                                                                                                                                                                     
+					success : function(data) {                                                                                                                                                                                             
+							if(data.code == "1") {                                                                                                                                                                                         
+								$.messager.alert('提示',data.msg,'info',function () {                                                                                                                                                        
+		        					location.reload();                                                                                                                                                                                     
+		        		        });                                                                                                                                                                                                        
+							}else if (data.code == "2") {                                                                                                                                                                                  
+								$("#error").show();                                                                                                                                                                                        
+								$("#error").html(data.msg);                                                                                                                                                                                
+							}                                                                                                                                                                                                              
+					}                                                                                                                                                                                                                      
+				});                                                                                                                                                                                                                        
+				                                                                                                                                                                                                                           
+		    });                                                                                                                                                                                                                            
+		                                                                                                                                                                                                                                   
+		}                                                                                                                                                                                                                                  
+	}                                                                                                                                                                                                                                      
+	function exit(){
+		setLoginToken("");
+		parent.parent.window.location.href = "./login.html";
+	}                                                                                                                                                                                                                                       
+                                                                                                                                                                                                                                           
+   $(document).ready(function(){                                                                                                                                                                                                           
+	   //对修改密码宽高进行控制+++++++++                                                                                                                                                                                                              
+	   var bgH = window.innerHeight;                                                                                                                                                                                                       
+		var bgW = window.innerWidth;                                                                                                                                                                                                       
+		$("#bodyPwd").css({"width":bgW+"px",height:bgH-50+"px"})                                                                                                                                                                           
+		$("#bodyPwd").hide(100)                                                                                                                                                                                                            
+	 //对修改密码页面进行逻辑控制++++++++++++++++++++++++++++++                                                                                                                                                                                         
+	   $("#error").hide();                                                                                                                                                                                                                 
+		                                                                                                                                                                                                                                   
+			var reg = /^[a-z\d]{6,20}$/i                                                                                                                                                                                                   
+			var newPwd;                                                                                                                                                                                                                    
+			var newPwd2;                                                                                                                                                                                                                   
+			var submit=false;                                                                                                                                                                                                              
+			$('#newPwd').keypress(function(e){                                                                                                                                                                                             
+				if (e.keyCode == 32) {                                                                                                                                                                                                     
+					return false;                                                                                                                                                                                                          
+				}                                                                                                                                                                                                                          
+			});                                                                                                                                                                                                                            
+			$('#newPwd').keyup(function(e){                                                                                                                                                                                                
+				 newPwd = $('#newPwd').val();                                                                                                                                                                                              
+				 newPwd2 = $('#newPwd2').val();                                                                                                                                                                                            
+				if (e.keyCode != 32) {                                                                                                                                                                                                     
+					/* if (newPwd.length < 6) {                                                                                                                                                                                            
+						$("#error").show();                                                                                                                                                                                                
+						$("#error").html("新密码不可小于六位！");                                                                                                                                                                                    
+					}else{                                                                                                                                                                                                                 
+						$("#error").hide();                                                                                                                                                                                                
+					} */                                                                                                                                                                                                                   
+					if(reg.test(newPwd)==false){                                                                                                                                                                                           
+						console.log(reg.test(newPwd),"+++")                                                                                                                                                                                
+						$("#error").show();                                                                                                                                                                                                
+						$("#error").html("新密码必须为6-20位的数字或者字母！");                                                                                                                                                                           
+					}else if(newPwd != newPwd2){                                                                                                                                                                                           
+						$("#error").show();                                                                                                                                                                                                
+						$("#error").html("两次输入的密码不一致！");                                                                                                                                                                                   
+					}else{                                                                                                                                                                                                                 
+						$("#error").hide();                                                                                                                                                                                                
+						submit =true;                                                                                                                                                                                                      
+					}                                                                                                                                                                                                                      
+				}                                                                                                                                                                                                                          
+			});                                                                                                                                                                                                                            
+			$('#newPwd2').keypress(function(e){                                                                                                                                                                                            
+				if (e.keyCode == 32) {                                                                                                                                                                                                     
+					return false;                                                                                                                                                                                                          
+				}                                                                                                                                                                                                                          
+			});                                                                                                                                                                                                                            
+			$('#newPwd2').keyup(function(e){                                                                                                                                                                                               
+			                                                                                                                                                                                                                               
+				 newPwd2 = $('#newPwd2').val();                                                                                                                                                                                            
+				 newPwd = $('#newPwd').val();                                                                                                                                                                                              
+				var new1 = reg.test(newPwd)                                                                                                                                                                                                
+				var new2 = reg.test(newPwd2)                                                                                                                                                                                               
+				if (e.keyCode != 32) {                                                                                                                                                                                                     
+					/* if (newPwd != newPwd2) {                                                                                                                                                                                            
+						$("#error").show();                                                                                                                                                                                                
+						$("#error").html("两次输入的密码不一致！");                                                                                                                                                                                   
+					}else{                                                                                                                                                                                                                 
+						$("#error").hide();                                                                                                                                                                                                
+					} */                                                                                                                                                                                                                   
+					if(new1==false||new2==false){                                                                                                                                                                                          
+						$("#error").show();                                                                                                                                                                                                
+						$("#error").html("新密码必须为6-20位的数字或者字母");                                                                                                                                                                            
+					}else if(newPwd != newPwd2){                                                                                                                                                                                           
+						$("#error").show();                                                                                                                                                                                                
+						$("#error").html("两次输入的密码不一致！");                                                                                                                                                                                   
+					}else{                                                                                                                                                                                                                 
+						$("#error").hide();                                                                                                                                                                                                
+						submit =true;                                                                                                                                                                                                      
+					}                                                                                                                                                                                                                      
+				}                                                                                                                                                                                                                          
+			});                                                                                                                                                                                                                                 
+	   $(".home_side_wrap").treePane(zNodes);                                                                                                                                                                                              
+	   $(".home_side_childBox").height(0);                                                                                                                                                                                                 
+	   $(".home_side_root").each(function(idx,val){                                                                                                                                                                                        
+	       var childBoxHeight = $(this).siblings(".home_side_childBox").find(".home_side_child").length*30;                                                                                                                                
+	       $(this).siblings(".home_side_childBox").height(0);                                                                                                                                                                              
+	       $(this).click(function(){                                                                                                                                                                                                       
+	           var self = this;                                                                                                                                                                                                            
+	           if($(self).parent().hasClass("rootInActive")){                                                                                                                                                                              
+	              $(self).parent().removeClass("rootInActive").addClass("rootActive");                                                                                                                                                     
+	              $(self).siblings(".home_side_childBox").stop().animate({"height":childBoxHeight},800);                                                                                                                                   
+	              setTimeout(function(){                                                                                                                                                                                                   
+	                $(self).find(".home_side_nav").addClass("dotCheck");                                                                                                                                                                   
+	              },800);                                                                                                                                                                                                                  
+	           }else{                                                                                                                                                                                                                      
+	              $(self).find(".home_side_nav").removeClass("dotCheck");                                                                                                                                                                  
+	              $(self).parent().addClass("rootActive").addClass("rootInActive");                                                                                                                                                        
+	              $(self).siblings(".home_side_childBox").stop().animate({"height":0},800);                                                                                                                                                
+	           }                                                                                                                                                                                                                           
+	       });                                                                                                                                                                                                                             
+	   });                                                                                                                                                                                                                                 
+	   $(".home_choice").click(function(){                                                                                                                                                                                                 
+	       var node = {};                                                                                                                                                                                                                  
+	       node.name = $(this).find("span").html();                                                                                                                                                                                        
+	       node.id = $(this).find("span").attr("id");                                                                                                                                                                                      
+	       $(".home_choice").removeClass("paneSelected");                                                                                                                                                                                  
+	       $(this).addClass("paneSelected");                                                                                                                                                                                               
+	       if($(this).hasClass("home_side_child") == true){                                                                                                                                                                                
+	    	   $(this).parent().find(".home_side_child").removeClass("side_child_selected");                                                                                                                                               
+	    	   $(this).addClass("side_child_selected");                                                                                                                                                                                    
+	       }                                                                                                                                                                                                                               
+	       tabAct(node);                                                                                                                                                                                                                   
+	   });
+	   console.log(typeof zNodes);
+       $("#tabs").tabs('add', {                                                                                                                                                                                                            
+          title: zNodes[0].name,                                                                                                                                                                                                           
+          content: newIframe(zNodes[0].srcUrl),                                                                                                                                                    
+          fit: true,                                                                                                                                                                                                                       
+          closable: true                                                                                                                                                                                                                   
+       });                                                                                                                                                                                                                                 
+       $(".tabs-panels").css("background","none");                                                                                                                                                                                         
+       $(".tabs").css({"background":"rgba(0,0,0,.3)","border-bottom":"none"});                                                                                                                                                             
+       $("#tabs").tabs({                                                                                                                                                                                                                   
+    	  onSelect:function(title){                                                                                                                                                                                                        
+    		 //if(title == "首页"){                                                                                                                                                                                                            
+    			 $(".tabs-panels").css("background","none");                                                                                                                                                                               
+    			 $(".tab_block").hide();                                                                                                                                                                                                   
+    			 $(".tabs-header").css({"border-bottom":"none"});                                                                                                                                                                          
+    			 $(".tabs").css({"background":"rgba(0,0,0,.3)"});                                                                                                                                                                          
+    		 //}else{                                                                                                                                                                                                                        
+    			 $(".tab_block").show();                                                                                                                                                                                                   
+    			 $(".tabs-panels").css("background","#E6E8EA");                                                                                                                                                                            
+    			 $(".tabs").css({"background":"#E6E8EA"});                                                                                                                                                                                 
+    			 $(".tabs-header").css({"border-bottom":"1px solid #DBDDDE"});                                                                                                                                                             
+    		 //}                                                                                                                                                                                                                             
+    	  }                                                                                                                                                                                                                                
+      });
+      $("#loginName").html(getLogin().loginName);
+      $("#contact").html(getLogin().contact);
+   });         
+
+</script>
+
+</head>
+<body class="easyui-layout sys">
+	<div data-options="region:'north',border:false"
+		style="height: 50px; overflow: hidden;">
+		<div class="topNav" style="height: 50px;">
+			<div class="topNav_left">
+				<img src="../images/system/zhao.png" /> <span>O2O管理系统</span>
+			</div>
+			<div class="topNav_right">
+				<a><img src="../images/system/wode.png" style="display: inline-block; width: 22px; height: 22px; position: relative; top: 5px;" /></a>
+				<a style="color: #F7EAB7 !important;">当前登录名：<span style="color: #FFF;" id="loginName"></span></a> &nbsp;
+				<a style="color: #F7EAB7 !important;">当前用户名：<span style="color: #FFF;" id="contact"></span></a> &nbsp; 
+				<a class="home-exit" onclick="exit()"><img src="../images/system/anquantuichu.png" /><span>安全退出</span></a> 
+				<a onclick="upPwd()" class="home-code"><img src="../images/system/mima.png" /></a>
+			</div>
+		</div>
+	</div>
+	<!-- <div id="treeMenus" data-options="region:'west',split:true,title:'菜单栏'" style="width:200px;padding:10px;">
+		<ul id="treeMenu" class="ztree"></ul>
+		</div>
+		<div data-options="region:'south',border:false" style="height:50px;background:rgb(179, 223, 218);padding:10px;"></div>
+     -->
+	<section data-options="region:'west',split:true" class="home_side">
+		<section class="home_side_wrap"></section>
+	</section>
+	<div class="home_content">
+		<div id="tabs" class="easyui-tabs" data-options="region:'center',fit:true">
+			<img src="../images/system/page_block.png" alt="page_block" class="tab_block" />
+		</div>
+	</div>
+
+	<!--  修改密码部分-->
+
+	<div style="margin-left: auto; margin-right: auto;" id="bodyPwd">
+		<div id="quxiao" onclick="cancle()">
+			<img src="../images/pwdImg/quxiao.png" alt="logo">
+		</div>
+		<div id="w">
+			<form action="congfigSearch/saveCongfig" method="post" id="form1">
+				<div align="center" style="width: 500px; height: 400px;" id="formCon">
+					<div class="logo">
+						<img src="../images/pwdImg/logo.png" alt="logo">
+					</div>
+					<table align="center" width="80%" style="margin-top: 0px;" id="tableInput">
+						<tr>
+							<td align="left" width="350px;">
+								<div id="error" style="color: red; text-align: center;">222</div>
+							</td>
+						</tr>
+						<tr>
+							<td align="center" colspan="6">
+								<input id="oldPwd" type="password" autocomplete="new-password" placeholder="请输入原密码" value="" name="oldPwd" class="input-text-password input-click" />
+								<input type="password" style="display: none" name="oldPwd" />
+							</td>
+						</tr>
+						<tr>
+							<td align="center" colspan="6">
+								<input id="newPwd" type="password" value="" placeholder="请输入新密码" name="newPwd" class="input-text-password input-click" /> 
+							</td>
+						</tr>
+						<tr>
+							<td align="center" colspan="6">
+								<input id="newPwd2" type="password" value="" placeholder="请确认新密码" name="newPwd2" class="input-text-password input-click" /> 
+							</td>
+						</tr>
+						<tr>
+							<td align="center" colspan="6">
+								<div align="center">
+									<input type="button" id="sub" value="提交"
+										onclick="submitData();" />
+								</div>
+							</td>
+						</tr>
+					</table>
+				</div>
+			</form>
+		</div>
+	</div>
+</body>
+
+</html>
+<style type="text/css">
+.sys {
+	background: url(../images/system/sysBg.jpg);
+	background-size: 100% 100%;
+}
+
+.home_side {
+	position: absolute;
+	top: 50px;
+	left: 2px;
+	width: 160px;
+	height: 100%;
+	overflow: hidden;
+}
+
+.home_content {
+	position: absolute;
+	top: 50px;
+	left: 165px;
+	right: 0;
+	bottom: 0;
+	width: auto;
+	height: auto;
+}
+
+.home_side_wrap {
+	width: 180px;
+	height: 100%;
+	padding: 0 5px 40px;
+	overflow-x: hidden;
+	overflow-y: scroll;
+}
+
+.home_side_con {
+	width: 100%;
+	min-height: 30px;
+	background: rgba(255, 255, 255, .2);
+	border-radius: 5px;
+	cursor: pointer;
+	margin-bottom: 20px;
+	overflow: hidden;
+}
+
+.home_side_conBox, .home_side_root {
+	width: 100%;
+	min-height: 30px;
+	overflow: hidden;
+}
+
+.home_side_con img, .home_side_root img {
+	width: 20px;
+	height: 20px;
+	margin: 5px 8px 0 8px;
+}
+
+.home_side_con span, .home_side_root span {
+	position: relative;
+	top: -4px;
+	display: inline-block;
+	min-width: 50px;
+	text-align: center;
+	padding: 2px 10px;
+	font-size: 12px;
+	color: #FFF;
+	background: #3B4C61;
+	border-radius: 10px;
+}
+
+.home_side_childBox {
+	width: 100%;
+	background: rgba(0, 0, 0, .3);
+}
+
+.home_side_child {
+	color: #FFF;
+}
+
+.home_side_child span {
+	position: relative;
+	margin-left: 15px;
+	top: 3px;
+	color: inherit;
+	text-align: left;
+	background: none;
+}
+
+.side_child_selected, .home_side_child:hover {
+	background: rgba(255, 255, 255, .2);
+	color: #F7EAB7 !important;
+}
+
+.home_side_nav, .home_side_nav1 {
+	position: relative;
+	float: right;
+	width: 12px;
+	height: 12px;
+	border-radius: 50%;
+	margin: 10px 8px 0 0;
+	border: 2px solid #FFF;
+}
+
+.home_side_nav1 {
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	margin: 12px 11px 0 0;
+	border: 1px solid #FFF;
+}
+
+.home_side_navDot, .home_side_navDot1 {
+	position: absolute;
+	width: 4px;
+	height: 4px;
+	top: 2px;
+	left: 2px;
+	border-radius: 50%;
+	background: #FFF;
+	z-index: 100;
+}
+
+.home_side_navDot1 {
+	display: none;
+}
+
+.side_child_selected .home_side_nav1 {
+	border: none;
+}
+
+.side_child_selected .home_side_navDot1 {
+	display: block;
+	opacity: 1;
+	left: 1;
+	background: #F7EAB7;
+}
+
+.rootActive .home_side_navDot {
+	animation: dotMove1 .8s;
+	-webkit-animation: dotMove1 .8s; /*Safari and Chrome*/
+}
+
+.rootInActive .home_side_navDot {
+	animation-delay: 50;
+	animation: dotMove .8s;
+	-webkit-animation: dotMove .8s; /*Safari and Chrome*/
+}
+
+.dotCheck {
+	background: #3B4C61;
+	border: 2px solid #3B4C61;
+}
+
+.dotCheck .home_side_navDot {
+	background: #3B4C61;
+}
+
+@
+keyframes dotMove { 0% {
+	transform: scale(2);
+}
+
+50%
+{
+transform
+:scale(1)
+;
+
+     
+}
+100%
+{
+transform
+:scale
+(1
+.5
+);
+
+     
+}
+}
+@
+keyframes dotMove1 {from { transform:scale(1);
+	
+}
+
+to {
+	transform: scale(2);
+}
+
+}
+.tab_block {
+	position: absolute;
+	top: 0;
+	left: -1px;
+	display: none;
+	z-index: 1000;
+}
+</style>
