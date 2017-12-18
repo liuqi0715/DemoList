@@ -17,7 +17,7 @@
     </style>
     <title>回收</title>
 </head>
-<body ng-app="myApp" ng-controller="myCtr">
+<body ng-app="myAppD" ng-controller="myCtrD">
     <div class="header">
         <div class="name">
             <span id="companyName">
@@ -29,9 +29,9 @@
         </div>
         <div class="allIn">
             <ul>
-                <li class="InAccount">到账</li>
-                <li class="creat">生成</li>
-                <li class="export">导出</li>
+                
+                <li class="creat" ng-click="search()">查询</li>
+                <li class="export" ng-click="export()">导出</li>
             </ul>
         </div>
     </div>
@@ -47,7 +47,7 @@
                             
                         </div> 
                         <div class="range-info">
-                            <p>10% </p>
+                            <p >{{clearprop}}% </p>
                             <p>服务费比例</p> 
                         </div>
                          
@@ -56,19 +56,20 @@
                 </div>
                 <div class="payAccount">
                     <ul>
-                        <li class="dateRange">帐期: <span id=dateRange>{{dateRange}}</span> </li>
-                        <li class="numAccount">131.25.253</li>
+                        <li class="dateRange">帐期: <span id=dateRange ng-bind="payment"></span> </li>
+                        <li class="numAccount" ng-bind="proptotal"></li>
                         <li class="needPay needPay2" >本期应付金额</li>
-                        <li class="numAccount">131.25.253</li>
+                        <li class="numAccount" ng-bind="propfee"></li>
                         <li class="needPay">本期金额</li>
                     </ul>
                 </div>
+                <p class="lineP"></p>
                 <div class="payDate">
                     <ul>
-                        <li class="dateRange" >到期支付日：{{2017-12-3}}</li>
-                        <li class="numAccount">0</li>
+                        <li class="dateRange" >到期支付日：{{expire}}</li>
+                        <li class="numAccount">{{propowefee}}</li>
                         <li class="needPay needPay2">上次欠款金额</li>
-                        <li class="numAccount">131.25.253</li>
+                        <li class="numAccount">{{moneytotal}}</li>
                         <li class="needPay">帐期内支付金额</li>
                     </ul>
                 </div>
@@ -100,26 +101,26 @@
                     </div>
                     <div class="bottom2"></div>
                     <div class="warpInfo">
-                        <p>500</p>
+                        <p ng-bind="tonnfee"></p>
                         <p>服务费单价</p>
                     </div>
                     </div>
                 </div>
                 <div class="payAccount" id="payAccount">
                     <ul>
-                        <li class="dateRange" style="color:#B9B9B9">帐期:<span id="dateRange2">{{dateRange}}</span> </li>
-                        <li class="numAccount">131.25.253</li>
+                        <li class="dateRange" style="color:#B9B9B9">帐期:<span id="dateRange2">{{payment}}</span> </li>
+                        <li class="numAccount">{{tonnmoney}}</li>
                         <li class="needPay needPay2" >本期应支付金额</li>
-                        <li class="numAccount">131.25.253</li>
+                        <li class="numAccount">{{tonnmoney}}</li>
                         <li  class="needPay">本期金额</li>
                     </ul>
                 </div>
                 <div class="payDate" id="payDate">
                     <ul>
-                        <li  style="color:#B9B9B9">到期支付日：{{2017-12-3}}</li>
-                        <li class="numAccount">0</li>
+                        <li  style="color:#B9B9B9">到期支付日：{{expire}}</li>
+                        <li class="numAccount">{{tonnowefee}}</li>
                         <li class="needPay needPay2" >上次欠款金额</li>
-                        <li class="numAccount">131.25.253</li>
+                        <li class="numAccount">{{weighttotal}}</li>
                         <li  class="needPay">帐期内回收重量</li>
                     </ul>
                 </div>
@@ -141,110 +142,212 @@
                 <th>重量</th>
                 <th>金额</th>
             </tr>
-            <tr>
-                <td>2017-11-28</td>
-                <td>PO20171102</td>
-                <td>200KG</td>
-                <td>11151.26</td>
+            <tr ng-repeat="purcha in purchase">
+                <td>{{purcha.rttime}}</td>
+                <td>{{purcha.ordernum}}</td>
+                <td>{{purcha.rtweight}}kg</td>
+                <td>{{purcha.rtmoney}}</td>
             </tr>
-            <tr>
-                <td>2017-11-28</td>
-                <td>PO20171102</td>
-                <td>200KG</td>
-                <td>11151.26</td>
-            </tr>
-            <tr>
-                <td>2017-11-28</td>
-                <td>PO20171102</td>
-                <td>200KG</td>
-                <td>11151.26</td>
-            </tr>
-            <tr>
-                <td>2017-11-28</td>
-                <td>PO20171102</td>
-                <td>200KG</td>
-                <td>11151.26</td>
-            </tr>
-            <tr>
-                <td>2017-11-28</td>
-                <td>PO20171102</td>
-                <td>200KG</td>
-                <td>11151.26</td>
-            </tr>
-            <tr>
-                <td>2017-11-28</td>
-                <td>PO20171102</td>
-                <td>200KG</td>
-                <td>11151.26</td>
-            </tr>
-            <tr>
-                <td>2017-11-28</td>
-                <td>PO20171102</td>
-                <td>200KG</td>
-                <td>11151.26</td>
-            </tr>
-            <tr>
-                <td>2017-11-28</td>
-                <td>PO20171102</td>
-                <td>200KG</td>
-                <td>11151.26</td>
-            </tr>
-            <tr>
-                <td>2017-11-28</td>
-                <td>PO20171102</td>
-                <td>200KG</td>
-                <td>11151.26</td>
-            </tr>
+            
         </table>
-        <div class="cr_bottom">
-            <div id="next" @click="next()">下一页</div>
-            <div class="different_b"><span class="current">{{pageNo}}</span>/ <span class="all_num">{{pageAll}}</span></div>
-            <div @click="prve()">上一页</div>
+
+        <div id="noData" ng-if="noData2">
+            <img src="images/noData.png" alt=""  >
+            --暂无数据--
         </div>
-        <input type="text" class="demo-input" placeholder="请选择日期" id="test1">
+
+        <div class="cr_bottom">
+            <div id="next" ng-click="next()">下一页</div>
+            <div class="different_b"><span class="current">{{nowPage}}</span>/ <span class="all_num">{{pageAll||1}}</span></div>
+            <div ng-click="prve()">上一页</div>
+        </div>
+      
     </div>
     <script>
-        angular.module("myApp",[])
-        .controller("myCtr",function($scope,$http) {
+        angular.module("myAppD",[])
+        .controller("myCtrD",["$scope","$http","$filter",function($scope,$http,$filter) {
+            var today = new Date();
+            $scope.date = $filter('date')(today, 'yyyy-MM');  //日期控件被调用后赋值开始结束日期---------
+           
 
+            var urls = "http://192.168.0.126:8888/";
+
+            $scope.noData2 = false;
+            $scope.nowPage = 1;
+            $scope.page = 1;
+            $scope.pageAll = 1;
+            $scope.date = "";
             laydate.render({
-            elem: '#date-range',
-            position: 'absolute',
-            theme: 'grid',
-            change: function(value, date){ 
+                elem: '#date-range', //指定元素
+                position: 'absolute',
+                theme: 'grid',
+                format: 'yyyy-MM',
+                change: function(value, date){ 
                 
-               
-            },
-           
-            done: function(value, date, endDate){
-                console.log("?");
-                console.log(value,"--");
-                $("#dateRange").text(value);
-                $("#dateRange2").text(value);
-                console.log("--value---",$scope.dateRange);
-            },
-            range: true
+                },
+            
+                done: function(value, date, endDate){
+                
+                    $scope.date = value;
+                    console.log("--value---",$scope.date);
+                },
+                
         });
-        laydate.render({
-			elem: '#test1', //指定元素
-            position: 'absolute',
-            theme: 'grid',
-            change: function(value, date){ 
-                
-               
-            },
-           
-            done: function(value, date, endDate){
-                console.log("?");
-                console.log(value,"--");
-               // $("#dateRange").text(value);
-                //$("#dateRange2").text(value);
-                console.log("--value---",$scope.dateRange);
-            },
-            range: true
-      });
+//JS逻辑部分-----------------------------------------------------
 
-        })
+      $scope.load = function(){
+            $.ajax({
+                type: "post",
+                url: urls+"statement/selectByMonth",             
+                data: {
+                    "page":$scope.page,
+                    "rows":8
+                },
+                dataType : "json",
+                success: function(data){
+                    console.log("data----",data.data);     
+                    if(data.data.rows.length==0){
+                        console.log("1")
+                        $scope.noData2 = true;   
+                    }else{
+                        $scope.noData2 = false;
+                        $scope.purchase = data.data.rows; 
+                        $scope.pageAll = data.data.total/1;
+                    } 
+                    $scope.payment = data.data.payment;  //帐期
+                    $scope.expire =data.data.expire; //到期支付日
+                    $scope.clearprop =data.data.clearprop*100;   //服务费比例
+                    $scope.proptotal =data.data.proptotal;   //本期应支付金额
+                    $scope.propowefee =data.data.propowefee; //上次欠款金额
+                    $scope.propfee =data.data.propfee;   //本期金额 
+                    $scope.moneytotal =data.data.moneytotal; //账期内支付金额
+                    $scope.orgname =data.data.orgname; //组织名称按吨位
+                    $scope.tonnfee =data.data.tonnfee; //服务费单价
+                    $scope.tonnmoney =data.data.tonnmoney; //本期金额
+                    $scope.weighttotal =data.data.weighttotal; //回收重量
+                    $scope.tonntotal =data.data.tonntotal; //本期应支付
+                    $scope.tonnowefee =data.data.tonnowefee; //上次欠款
+                   
+                    $scope.$apply();
+
+                },
+                error:function(info){
+                    console.log(info);
+                }
+            });
+
+      }
+      $scope.load();
+      $scope.search = function(){
+        $.ajax({
+                type: "post",
+                url: urls+"statement/selectByMonth",             
+                data: {
+                    "page":$scope.page,
+                    "rows":8,
+                    "date":$scope.date
+                },
+                dataType : "json",
+                success: function(data){
+
+                    console.log(data.data,"searchInfo");
+                    if(data.data.rows.length==0){
+                        console.log("1")
+                        $scope.noData2 = true;   
+                    }else{
+                        $scope.noData2 = false;
+                        $scope.purchase = data.data.rows; 
+                        $scope.pageAll = data.data.total/1;
+                    } 
+                    $scope.payment = data.data.payment;  //帐期
+                    $scope.expire =data.data.expire; //到期支付日
+                    $scope.clearprop =data.data.clearprop*100;   //服务费比例
+                    $scope.proptotal =data.data.proptotal;   //本期应支付金额
+                    $scope.propowefee =data.data.propowefee; //上次欠款金额
+                    $scope.propfee =data.data.propfee;   //本期金额 
+                    $scope.moneytotal =data.data.moneytotal; //账期内支付金额
+                    $scope.orgname =data.data.orgname; //组织名称按吨位
+                    $scope.tonnfee =data.data.tonnfee; //服务费单价
+                    $scope.tonnmoney =data.data.tonnmoney; //本期金额
+                    $scope.weighttotal =data.data.weighttotal; //回收重量
+                    $scope.tonntotal =data.data.tonntotal; //本期应支付
+                    $scope.tonnowefee =data.data.tonnowefee; //上次欠款
+                    $scope.$apply();
+
+                },
+                error:function(info){
+                    console.log(info);
+                }
+            });
+        
+        }
+
+        
+        $scope.next = function(){
+            if($scope.nowPage>=$scope.pageAll){
+                console.log("没有数据了");
+                
+            }else if($scope.pageAll==1){
+                console.log("没有数据了-----")
+            }else{
+               // console.log(pageNumber,$scope.totalPage3)
+                $scope.nowPage++;
+                $scope.page++;              
+                $scope.search();             
+            }       
+        };
+
+        $scope.prve = function(){
+            console.log($scope.nowPage,"nowPage")
+            if($scope.nowPage<=1){
+                console.log("没有数据了");
+                $scope.nowPage = 1;
+            }else{     
+                $scope.page--;           
+                $scope.nowPage--;                            
+                $scope.search();
+                
+            } 
+        }
+
+        //将页面导出-------------------------------------------------------
+
+        $scope.export = function(){
+            $.ajax({
+                type: "post",
+                url: urls+"statement/poExcle",             
+                data: {
+                   
+                        "date":$scope.date,                       
+                        "weighttotal": $scope.weighttotal,
+                        "tonnowefee": 0,
+                        "propfee": 554.66,
+                        "propowefee": 0,
+                        
+                        "tonnfee": 500,
+                        "tonntotal": 1908.15,
+                        "payment": "2017-12-01~2017-12-31",
+                        "clearprop": 0.02,
+                        "proptotal": 554.66,
+                        "moneytotal":27733.04,
+                        "tonnmoney": 1908.15
+                },
+                dataType : "json",
+                success: function(data){
+
+                    console.log(data.data,"exportInfo");
+                
+                    $scope.$apply();
+
+                },
+                error:function(info){
+                    console.log(info);
+                }
+            });
+        }
+
+
+        }])
        
     </script>
 </body>
