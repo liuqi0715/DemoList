@@ -1,0 +1,1179 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<TITLE>装车单</TITLE>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<link rel="stylesheet" type="text/css" href="../../themes/default/easyui.css">
+<link rel="stylesheet" type="text/css" href="../../themes/icon.css">
+<link rel="stylesheet" type="text/css" href="../../themes/demo.css">
+<link rel="stylesheet" type="text/css" href="../../css/timeline.css">
+<script type="text/javascript" src="../../js/jquery.min.js"></script>
+<script type="text/javascript" src="../../js/jquery.easyui.min.js"></script>
+<script type="text/javascript" src="../../js/locale/easyui-lang-zh_CN.js"></script>
+<script type="text/javascript" src="../../js/ajaxfileupload.js"></script>
+<script type="text/javascript" src="../../js/timeline.js"></script>
+<script type="text/javascript" src="../global.js"></script>
+<style type="text/css">
+		.report-title {
+		    color: #00A8BD;
+		    font: bold 34px "黑体";
+		    margin: 0.5em 0;
+		    text-align: center;
+		}
+		#inOrder3 .textbox{
+			width:472px !important;
+		}
+		#freNo .textbox{
+			width:130px !important;
+		}
+</style>
+<script type="text/javascript">
+	var url;
+	var hig=0;
+	function domark(er,index){
+    	$('#mark').dialog('open');
+    	var markId = $("input[type=radio][name=markId]");
+    	for (var i = 0; i < markId.length; i++) {
+			if (markId[i].value == er) {
+				markId[i].checked = true;
+			}else {
+				markId[i].checked = false;
+			}
+		}
+		var inStockNoMk = $('#dg').datagrid("getRows")[index].inStockNo;
+		var orderMemo = $('#dg').datagrid("getRows")[index].orderMemo;
+		$("input[name='inStockNoMk").val(inStockNoMk);
+		$("textarea[name='orderMemo']").val(orderMemo);
+	}
+	$(function () {			
+		$('#queryStatus').combobox({
+			url:'instock/getCongfigStatus',
+	 		valueField:'configId',
+	 		textField:'configName',
+	 		queryParams: {
+	 			configType : "inStockState"
+			}, 
+			width:'140',
+	 		panelHeight: '80',
+	 		editable:false,
+	        value:'--请选择--' 
+	    });
+		$('#orderHead').window({
+	    	title: '采购订单信息',
+	    	width:810,
+	    	height:400,
+	    	closed:true
+		});
+		 $('#wareHouse').window({
+		    	title: '仓库信息',
+		    	width:810,
+		    	height:250,
+		    	closed:true
+		});
+		/* $('#province').combobox({
+			 	valueField:'provinceId', //值字段
+		        textField:'provinceName', //显示的字段
+		        url:'areaController/getAllProvince',
+		        editable:false,//不可编辑，只能选择
+		        width:'100',
+		        value:'--请选择--',
+		        onSelect:function(){
+		        	var province = $(this).combobox('getValue');
+		            $('#city').combobox({
+		            	 valueField:'cityId', 
+		                 textField:'cityName',
+		                 url:'areaController/getCityByProvinceId?provinceId='+province,
+			             required:true,
+			             editable:false,//不可编辑，只能选择
+			             value:'--请选择--' 
+		          }); 
+		        },
+		});
+		$('#city').combobox({
+	        editable:false,
+	        width:'100',
+	        value:'请先选择省份',
+	       	onSelect:function(){
+	        	var city = $(this).combobox('getValue');
+	            $('#area').combobox({
+	            	valueField:'areaId', 
+	                textField:'areaName',
+	                url:'areaController/getAreaByCityId?cityId='+city,
+		            required:true,
+		            editable:false,//不可编辑，只能选择
+		            value:'--请选择--'
+	           });
+	       	},
+	     	onLoadSuccess:function(){
+	       		$('#area').combobox({
+			 		width:'100',
+			 		editable:false,
+	       			value:'请先选择城市',
+	       			
+				});
+	    	}
+	    });
+		$('#area').combobox({
+	 		width:'100',
+	 		editable:false,
+	 		value:'请先选择城市'
+		}); */
+		$('#start').datebox({    
+			width:'130px',
+			onSelect:function(start){
+			    	var now = new Date();
+			    	if(start > now){
+			    		$.messager.alert('提示','操作失败!日期不能超过当前时间','error');
+			    		$('#start').datebox('setValue','');
+			    	}
+			    	
+		 	}
+		});
+		$('#end').datebox({    
+			width:'130px',
+		    onSelect:function(date){
+		    	var start = $('#start').datebox('getValue');
+		    	var end = $('#end').datebox('getValue');
+		    	if(start>end){
+		    		$.messager.alert('提示','操作失败!起始时间不能晚于结束时间','error');
+		    		$('#end').datebox('setValue','');
+		    	}
+	 		}
+		});
+		$('#mark').window({
+        	title: '修改标识',
+        	width:600,
+        	height:405,
+        	resizable:false, 
+        	closed:true,
+            minimizable: false,
+            maximizable: false,
+            collapsible: false
+   		});
+		$('#add').dialog({
+	       	title: '添加装车单',
+	       /* 	width:'100%',
+	       	height:document.body.scrollHeight*0.9, */
+	       	width:'700',
+	    	height:'600',
+	       	closed:true,
+	       	resizable:false, 
+	    	closed:true,
+	        minimizable: false,
+	        maximizable: false,
+	        collapsible: false,
+	        maximized:true,
+	        onOpen:function(){
+				$.ajax({
+			        url: 'instock/getToken',
+			        type: "post",
+			        success: function (text) {
+			        	$('#inStockToken').val(text.inStockToken);
+			        },
+			        error: function (jqXHR, textStatus, errorThrown) {
+			        	$.messager.show({
+							title: 'Error',
+							msg: jqXHR.responseText
+						});
+			        }
+			    });
+	        },
+	        onBeforeClose:function(){
+				$('#dg').datagrid('reload');
+			},
+	    	/* onClose: function () {  
+				$('#form1').form('clear'); 
+				$('#itemsdg').datagrid('loadData', { total: 0, rows: [] }); 
+				$('#orderHead').window('close');
+				$('#wareHouse').window('colse');
+				alert(1111);
+	        }  */
+	   	});
+		var toolbar = [];
+		if(verification("instock","add")){
+			toolbar.push({
+				id: 'btnadd',
+                text: '新增装车单',
+                iconCls: 'icon-add',
+                handler: function () {
+                	addInStock();
+                }
+			});
+		}
+		var tableH = Math.max(document.documentElement.scrollHeight,document.body.scrollHeight)-($('#dg').offset().top+20);
+		$('#dg').datagrid({
+	        iconCls: 'icon-save',
+	        width: "100%",
+	        height: tableH,
+            nowrap: true,
+        	autoRowHeight: true,
+        	singleSelect: true,
+        	multiSort : true,
+        	striped: true,
+        	resizable : true, 
+        	collapsible: true,
+        	rownumbers:true,
+        	fitColumns: true,
+        	checkOnSelect: true,
+	        url: 'instock/getAllInStockInfo',
+	        queryParams: {
+	        	queryStatus : 'isEmpt'
+			}, 
+	        idField: 'inStockNo',
+	        columns: [[	           
+	        	{ field: 'markId', title: '标识',
+		            	formatter:function(value, row, index){//使用formatter格式化刷子
+
+							return '<img onclick="javascript:domark('+value+','+index+');" src="../../images/'+value+'.png">';
+
+				}},
+	        	{ field: 'inStockNo', title: '装车单编号',width:150,align:'center'},
+	            { field: 'warehouseNo', title: '仓库编号',width:100,align:'center'},
+	            { field: 'warehouseName', title: '仓库名',width:120,align:'center'},
+	            { field: 'wareEmploye', title: '仓库负责人',width:100,align:'center'},
+	            { field: 'poNo', title: '采购单号',align:'center',width:150},
+	            { field: 'inStockDate', title: '装车时间',width:150,align:'center'},
+	            { field: 'contact', title: '货主', hidden:true},
+	            { field: 'tel', title: '货主手机号', hidden:true},
+	            { field: 'status', title: '状态',width:60,align:'center'},
+	            { field: 'type', title: '类型',align:'center', hidden:true},
+	            { field: 'totalWeight', title: '总重量(kg)',width:100,align:'center'},
+	            { field: 'totalQuanlity', title: '总数量',width:100,align:'center'},
+	            { field: 'totalCost', title: '总成本(元)',width:100,align:'center'},
+	            { field: 'createTime', title: '创建时间',width:180,align:'center'},
+	            { field: 'createName', title: '创建人',width:100,align:'center'},
+	            { field: 'updateTime', title: '修改时间',width:180, hidden:true},
+	            { field: 'updateName', title: '修改人',width:100, hidden:true},
+	       /*     <%--  { field: 'operational', title: '查看详情',width:100, 
+	             	formatter: function (value, row, index) {
+	         			return (<%=((Map<String, Map<String,String>>)session.getAttribute("rolBtn")).get("instock").containsKey("searchDetile")%>?
+	         					"<a href=\"javascript:editRow('"+row.inStockNo+"');\">查看</a>":"");
+	                 }
+	         	},  --%>    */        		 
+	        ]], 
+	        onLoadSuccess:function(){
+	        	  $(this).datagrid('clearChecked');
+	       	},
+			onDblClickRow:function(index,row){ 
+				editRow(row.inStockNo);
+        	},
+	        toolbar:toolbar,
+	        pagination: true,
+	    	pageSize : 40, 
+	    	pageList : [ 40, 80, 120]
+	    });	
+		
+		$('#itemsdg').datagrid({
+	        iconCls: 'icon-save',
+	        width: "100%",
+	    	height: 300,
+	    	fitColumns:true,
+	        nowrap: true,
+	        autoRowHeight: false,
+	        striped: true,
+	        collapsible: true,
+	    	singleSelect:true,
+	        remoteSort: false,
+	        rownumbers:true,
+	        checkOnSelect: true,
+	        url: '',
+	        columns: [[
+	        		  {field:'commId',title:'商品ID',width:150},
+		              {field:'configName',title:'商品类型',width:150,align:'center'},
+		              {field:'modelName',title:'型号',width:100,align:'center'},
+		              {field:'brandName',title:'品牌',width:100,align:'center'},
+		              {field:'Quanlity',title:'数量',width:100,align:'center'},
+		              {field:'Unit',title:'单位',width:100,align:'center'},
+		              {field:'unitWeight',title:'单位重量',width:100,align:'center'},
+		              {field:'Predictunitprice',title:'预计单价(元/kg)',width:100,align:'center'},
+		              {field:'tradeUnitPrice',title:'交易单价(元/kg)',width:100,align:'center'},
+		              {field:'predictSubtotal',title:'预计成本(元)',width:100,align:'center'},
+		              {field:'Cost',title:'实际成本(元)',width:100,align:'center'}
+	        ]],
+	        pagination: false,
+	        onLoadSuccess:function(date){
+	    	}
+	    });
+	});	
+	
+function addInStock(){
+	var datas=[
+        {
+            time:"",//对应的时间
+            text:"已制单",//对应的文字内容
+            state:1//当前状态，配1为亮色，0为暗色
+        },{
+            time:"",
+            text:"已装车",
+            state:0
+        },{
+            time:"",
+            text:"已作废",
+            state:0 
+        }];
+    var conf={
+    	      textAlign:'left',//设置文字位置,left在点上方,center在线上方
+    	      lineWidth:200//设置线条长度
+    	    };
+    $('#add').dialog({
+    	title: '添加装车单',
+       	width:'700',
+    	height:'600',
+       	closed:true,
+       	resizable:false, 
+    	closed:true,
+        minimizable: false,
+        maximizable: false,
+        collapsible: false,
+        maximized:true
+   	});
+    $("#add").dialog('open'); 
+    $(".pro").empty().timeLines(datas,conf);
+	$('#btn1').linkbutton('enable');
+	$('#btn1').show();
+	$('#delBtn').linkbutton('disable');
+	$('#delBtn').hide();
+	$('#inStockNo').textbox('textbox').css('background','#EBEBE4');
+	$('#createUser').textbox('textbox').css('background','#EBEBE4');
+	$('#inStockState').textbox('textbox').css('background','#EBEBE4');
+	$('#totalWeight').textbox('textbox').css('background','#EBEBE4');
+	$('#totalQuanlity').textbox('textbox').css('background','#EBEBE4');
+	$('#warehouseNo').textbox('textbox').css('background','#EBEBE4');
+	$("#poNo").textbox('textbox').css('background','');
+	$("#warehouseNo").textbox({readonly:true,prompt:"请先选择采购单号"});
+	$('#Cost').textbox('textbox').css('background','#EBEBE4');
+	$("#inStockDate").datebox({readonly:false});
+	$('#inStockDate').datebox({    
+	    required:true,
+	    editable:false,
+	    onSelect:function(start){
+	    	var now = new Date();
+	    	if(start > now){
+	    		$.messager.alert('提示','操作失败!日期不能超过当前时间','error');
+	    		$('#inStockDate').datebox('setValue','');
+	    	}
+ 		}
+	});
+	var inStockDate=getNowFormatDate();
+	$('#inStockDate').datebox('setValue',inStockDate);
+	$('#inStockState').textbox('setValue','已制单');	
+	$('#owner').combogrid('setValue','请先选择采购单号');
+	$('#owner').combogrid({    
+	    fitColumns:true,
+	    value:'请先选择采购单号', 
+	    idField:'saCustId',    
+	    textField:'companyName',    
+	    url:'', 
+	    editable:false,
+	    columns:[[    
+	    	{field:'saCustId',title:'客户id',hidden:true},   
+	        {field:'companyName',title:'客户公司',width:180,align:'center'},  
+	        {field:'contact',title:'客户',width:100,align:'center'}, 
+	        {field:'tel',title:'电话',width:130,align:'center'}, 
+	    ]],
+	}); 
+	$.ajax({
+	        url: 'instock/getCreateUser',
+	        type: "post",
+	        success: function (text) {
+	        	$('#createUser').textbox('setValue',text.contact);
+	        },
+	        error: function (jqXHR, textStatus, errorThrown) {
+	        	$.messager.show({
+					title: 'Error',
+					msg: jqXHR.responseText
+				});
+	        }
+	});
+}
+
+function getNowFormatDate() {
+    var date = new Date();
+    var seperator1 = "-";
+    var seperator2 = ":";
+    var month = date.getMonth() + 1;
+    var strDate = date.getDate();
+    if (month >= 1 && month <= 9) {
+        month = "0" + month;
+    }
+    if (strDate >= 0 && strDate <= 9) {
+        strDate = "0" + strDate;
+    }
+    var currentdate = date.getFullYear() + seperator1 + month + seperator1 + strDate
+    return currentdate;
+}
+
+function addInStockSubmit(stateId){
+	var inStockToken = $('#inStockToken').val();
+	var warehouseNo=$('#warehouseNo1').val();
+	var owner=$('#owner').combogrid("getValue");
+	var poNo=$('#poNo').textbox("getValue");
+	var inStockDate=$('#inStockDate').datebox("getValue");
+	if(inStockDate==null || inStockDate==""){
+		$.messager.alert('提示','操作失败!请选择装车时间','error');
+		return;
+	}
+	if(warehouseNo==null || warehouseNo==""){
+		$.messager.alert('提示','操作失败!请选择车辆','error');
+		return;
+	}
+	if(poNo==null || poNo==""){
+		$.messager.alert('提示','操作失败!请选择或输入采购单号','error');
+		return;
+	}
+	if(isNaN(owner)){
+		$.messager.alert('提示','操作失败!请选择货主','error');
+		return;
+	}
+	var json1=getJsonDate();
+	$('#btn1').linkbutton('disable');
+	var formData = new FormData(document.getElementById("form1"));
+	formData.append("data",json1);
+	formData.append("stateId",stateId);
+	formData.append("inStockToken",inStockToken);
+	$.ajax({
+			url :  "instock/addInStock",
+			type : "post",
+			data : formData,
+			dataType : "json",
+			success : function(result){
+				$('#btn1').linkbutton('enable');
+				if (result.msgCode =='Y'){
+					$('#form1').form('clear');
+					$('#itemsdg').datagrid('loadData', { total: 0, rows: [] });  
+					editRow(result.msg,'op',result.errorMsg);
+					$.ajax({
+				        url: 'instock/getToken',
+				        type: "post",
+				        success: function (text) {
+				        	$('#inStockToken').val(text.inStockToken);
+				        },
+				        error: function (jqXHR, textStatus, errorThrown) {
+				        	$.messager.show({
+								title: 'Error',
+								msg: jqXHR.responseText
+							});
+				        }
+				    });
+					$("#selectLotNo").dialog('close');
+				} else {
+					$.messager.alert('提示',result.msg,'error');
+				}
+			}
+		});
+	
+/* 	$('#form1').form('submit',{
+			url: url,
+			onSubmit: function(){
+			},
+			queryParams:{
+				data:json1,
+				stateId:stateId,
+				inStockToken:inStockToken
+			},
+			success: function(result){
+				$('#btn1').linkbutton('enable');
+				var result = eval('('+result+')');
+				if (result.msgCode =='Y'){
+					$('#form1').form('clear');
+					$('#itemsdg').datagrid('loadData', { total: 0, rows: [] });  
+					editRow(result.msg,'op',result.errorMsg);
+					$.ajax({
+				        url: 'instock/getToken',
+				        type: "post",
+				        success: function (text) {
+				        	$('#inStockToken').val(text.inStockToken);
+				        },
+				        error: function (jqXHR, textStatus, errorThrown) {
+				        	$.messager.show({
+								title: 'Error',
+								msg: jqXHR.responseText
+							});
+				        }
+				    });
+					$("#selectLotNo").dialog('close');
+				} else {
+					$.messager.alert('提示',result.msg,'error');
+				}
+			}
+	});  */
+}
+
+function getCollectOrderHead(){
+	$('#orderInfo').datagrid({
+        iconCls: 'icon-save',
+        width: "100%",
+    	height: "300px",
+    	//fitColumns:true,
+        nowrap: true,
+        autoRowHeight: false,
+        striped: true,
+        collapsible: true,
+    	singleSelect:true,
+        sortOrder: 'desc',
+        remoteSort: false,
+        rownumbers:true,
+        checkOnSelect: true,
+        url: 'instock/getCollectOrderHead',
+        queryParams:{
+        	poNo : $("#poNo1").val() ,
+        	buyMblie : $("#buyMblie").textbox('getValue'),
+        	orderNo : $('#orderNo').textbox('getValue'),
+        	contact:$('#contact').textbox('getValue'), 
+        },
+        idField: 'orderNo',
+        columns: [[
+	              {field:'orderNo',title:'采购单单号',width: 150,align:'center'},
+	              {field:'contact',title:'回收员',width: 100,align:'center'},
+	              {field:'buyMblie',title:'回收员手机号',width: 120,align:'center'},
+	              {field:'totalQuantity',title:'总数量',align:'center'},
+	              {field:'predictTotalWeight',title:'预计总重量(kg)',hidden:true},
+	              {field:'tradeTotalWeight',title:'实际总重量(kg)',align:'center'},
+	              {field:'tradeTotalPrice',title:'实际总成本(元)',align:'center'},
+	              {field:'toWarehouseNo',title:'装车仓编号',hidden:true},
+	              {field:'warehouseName',title:'装车仓名',hidden:true},
+	              {field:'owner',title:'货主ID'},
+	              {field:'createTime',title:'创建时间'}
+        ]],
+       onDblClickRow:function(index,row){ 
+    	    if(row.owner==null || row.owner==""){
+	       		$.messager.alert('提示','获取该采购单货主失败','error');
+	       		return;
+       		}
+    	    var row=$('#orderInfo').datagrid('getRows')[index];
+        	$('#poNo').textbox('setValue',row.orderNo);
+        	$('#totalWeight').textbox('setValue',row.tradeTotalWeight);
+        	$('#totalQuanlity').textbox('setValue',row.totalQuantity);
+        	$('#Cost').textbox('setValue',row.tradeTotalPrice);
+        	$('#owner').combogrid({    
+			    fitColumns:true,
+			    idField:'saCustId',    
+			    textField:'companyName',    
+			    url:'instock/getAllSaleCust?owner='+row.owner, 
+			    editable:false,
+			    columns:[[    
+			        {field:'saCustId',title:'客户id',hidden:true},   
+			        {field:'companyName',title:'客户公司',width:180,align:'center'},  
+			        {field:'contact',title:'客户',width:100,align:'center'}, 
+			        {field:'tel',title:'电话',width:130,align:'center'}, 
+			    ]],
+			});  
+        	$('#owner').combogrid('setValue',row.owner);
+        	$("#orderHead").window('close');
+        	check(row.orderNo);
+        	$.ajax({
+    	        url: 'instock/getWarehouse',
+    	        type: "post",
+    	        data : {
+    	        	wareHouseNo:"add",
+    	            op:'in',
+    	            poNo:row.orderNo
+				},
+    	        success: function (result) {
+    	        	text=result.rows[0];
+    	        	if(text!=null && text.warehouseNo!=''){
+    	        		$('#warehouseNo').textbox('setValue',text.warehouseNo+'('+text.contact+')');
+        	        	$('#warehouseNo1').val(text.warehouseNo);
+    	        	}else if(text==null || text.warehouseNo==''){
+    	        		$('#warehouseNo').textbox('setValue','未指定车辆');
+    	        	}   	        	
+    	        },
+    	        error: function (jqXHR, textStatus, errorThrown) {
+    	        	$.messager.show({
+    					title: 'Error',
+    					msg: jqXHR.responseText
+    				});
+    	        }
+    	    });
+  		}, 
+        pagination: true,
+    	pageSize : 40, 
+    	pageList : [ 40, 80, 120]
+    });
+	 $("#orderHead").window('open');
+}
+
+function getWarehouse(){
+	var state;
+	var inStockId;
+	var inStockState=$('#inStockState').textbox('getValue');
+	if(inStockState=='已制单'){
+		inStockId='0';
+	}else if(inStockState=='已装车'){
+		inStockId='2';
+	}else if(inStockState=='已作废'){
+		inStockId='9';
+	}
+	if(inStockId!='0'){
+		state=$("#warehouseNo1").val();
+	}else if(inStockId=='0'){
+		state='add';
+		if($("#warehouseNo").val()==null || $("#warehouseNo").val()==''){
+			$.messager.alert('提示','请选择采购单号','error');
+			return;
+		}
+	}
+	$('#wareHouseInfo').datagrid({
+        iconCls: 'icon-save',
+        width: "100%",
+    	height: 200,
+    	fitColumns:true,
+        nowrap: true,
+        autoRowHeight: false,
+        striped: true,
+        collapsible: true,
+    	singleSelect:true,
+        sortOrder: 'desc',
+        remoteSort: false,
+        rownumbers:true,
+        checkOnSelect: true,
+        url: 'instock/getWarehouse',
+        queryParams:{
+        	//wareHouseNo:$("#warehouseNo1").val(),
+        	wareHouseNo:state,
+        	op:'in',
+        	poNo:$('#poNo').textbox('getValue')
+        },
+        idField: 'warehouseNo',
+        columns: [[
+    		{field:'warehouseNo',title:'仓库编号',width:60,align:'center'},
+            {field:'warehouseName',title:'仓库名称',width:80,align:'center'},
+            {field:'contact',title:'负责人',width:80,align:'center'},
+            {field:'userPhone',title:'负责人手机号',width:105,align:'center'},
+            {field:'areaName',title:'区域',width:120,align:'center'},
+            {field:'createTime',title:'创建时间',width:120,align:'center'}
+        ]],
+        onDblClickRow:function(index,row){ 
+        	var row=$('#wareHouseInfo').datagrid('getRows')[index];
+        	$('#warehouseNo').textbox('setValue',row.warehouseNo+'('+row.contact+')');
+        	$('#warehouseNo1').val(row.warehouseNo);
+        	$("#wareHouse").window('close');
+  		}
+    });
+	 $("#wareHouse").window('open');
+}
+//采购单详情
+function check(orderNo){
+	$('#itemsdg').datagrid({
+        iconCls: 'icon-save',
+        width: "100%",
+    	height: 300,
+    	fitColumns:true,
+        nowrap: true,
+        autoRowHeight: false,
+        striped: true,
+        collapsible: true,
+    	singleSelect:true,
+        remoteSort: false,
+        rownumbers:true,
+        checkOnSelect: true,
+        url: 'instock/getOrderDetilByNo?poNo='+orderNo,
+        columns: [[
+  		    {field:'commId',title:'商品ID'},
+  		    {field:'boxCode',title:'箱号'},
+            {field:'configName',title:'商品类型'},
+            {field:'modelName',title:'型号'},
+            {field:'brandName',title:'品牌'},
+            {field:'quanlity',title:'数量'},
+            {field:'unit',title:'单位'},
+            {field:'unitWeight',title:'单位重量'},
+            {field:'predictUnitPrice',title:'预计单价(元/kg)'},
+            {field:'tradeUnitPrice',title:'交易单价(元/kg)'},
+            {field:'predictSubtotal',title:'预计成本(元)'},
+            {field:'cost',title:'实际成本(元)'}
+  		]],
+  		onLoadSuccess:function(date){
+    	},
+        pagination: false
+    });
+}
+//装车单详情
+function getInStockDetilByNo(inStockNo){
+	$('#itemsdg').datagrid({
+        iconCls: 'icon-save',
+        width: "100%",
+    	height: 300,
+  /*   	fitColumns:true, */
+        nowrap: true,
+        autoRowHeight: false,
+        striped: true,
+        collapsible: true,
+    	singleSelect:true,
+        remoteSort: false,
+        rownumbers:true,
+        checkOnSelect: true,
+        url: 'instock/getInStockDetilByNo?inStockNo='+inStockNo,
+        columns: [[
+  		    {field:'commId',title:'商品ID'},
+  		    {field:'boxCode',title:'箱号'},
+            {field:'configName',title:'商品类型',width:"150"},
+            {field:'modelName',title:'型号',width:"80"},
+            {field:'brandName',title:'品牌'},
+            {field:'quanlity',title:'数量'},
+            {field:'unit',title:'单位'},
+            {field:'unitWeight',title:'单位重量'},
+            {field:'weight',title:'总重量(kg)'},
+            {field:'cost',title:'总成本(元)'}
+  		]],
+        pagination: false,
+        onLoadSuccess:function(date){
+        	$('#totalWeight').textbox('setValue',date.totalWeight);
+	        $('#totalQuanlity').textbox('setValue',date.totalQuanlity);
+	        $('#Cost').textbox('setValue',date.totalCost);	
+    	}
+    });
+	
+}
+//构造json数据传送到服务器  
+function getJsonDate(){
+    var rowsData = $('#itemsdg').datagrid('getRows');  
+	var json = [];  
+	 var loc;  
+	 $.each(rowsData, function (i) {  
+	     loc= {  "unit": rowsData[i].unit,  
+			     "unitWeight": rowsData[i].unitWeight,  
+			     "quanlity": rowsData[i].quanlity,  
+			     "cost":rowsData[i].cost,  
+			     "commId":rowsData[i].commId,
+			     "boxCode":rowsData[i].boxCode,
+	     };  
+	     json.push(loc);  
+	     });  
+	     json = JSON.stringify(json); //转换成json数据  
+	     return json;
+}
+
+function editRow(inStockNo,op,errorMsg){
+	var delRole = verification("instock","delete");
+	var searchRole =verification("instock","searchDetile");
+	if (searchRole == false) {
+    	return;
+	}
+	$('#add').dialog({
+    	title: '装车单详情'
+   	});
+	$('#btn1').linkbutton('disable');
+	$('#btn1').hide();
+	$('#delBtn').linkbutton('enable');
+	$('#delBtn').show();
+	$('#inStockNo').textbox('textbox').css('background','#EBEBE4');
+	$('#createUser').textbox('textbox').css('background','#EBEBE4');
+	$('#inStockState').textbox('textbox').css('background','#EBEBE4');
+	$('#totalWeight').textbox('textbox').css('background','#EBEBE4');
+	$('#totalQuanlity').textbox('textbox').css('background','#EBEBE4');
+	$('#warehouseNo').textbox('textbox').css('background','#EBEBE4');
+	$("#inStockDate").datebox('textbox').css('background','#EBEBE4');
+	$("#poNo").textbox('textbox').css('background','#EBEBE4');
+	$('#Cost').textbox('textbox').css('background','#EBEBE4');
+	if (delRole == false) {
+    	$('#delBtn').hide();
+	}else{
+    	$('#delBtn').show();
+	}
+	 $.ajax({
+	        url: 'instock/getAllInStockInfo',
+	        data: { 
+	        	inStockNo:inStockNo
+	        },
+	        type: "post",
+	        success: function (date) {
+	        	$("#add").dialog('open'); 
+	        	var stateTimes = date.stateTimes;
+	        	var text=date.rows[0];
+	        	$("#inStockNo").textbox('setValue',text.inStockNo);//赋值text.rows[0].Contact
+	        	$('#btn1').linkbutton('disable');
+	        	$('#btn1').hide();
+	        	$("#inStockDate").datebox({readonly:true});
+	        	$('#inStockDate').datebox('setValue',text.inStockDate);
+	    		$("#createUser").textbox('setValue',text.createName);//赋值
+	       		$("#inStockState").textbox('setValue',text.status);//赋值
+	       		$("#poNo").textbox('setValue',text.poNo);//赋值 
+	       		$("#poNo1").val(text.poNo);
+	       	 	/* $.ajax({
+	    	        url: 'instock/getCollectOrderHead?poNo='+text.poNo,
+	    	        type: "post",
+	    	        success: function (date) {
+	    	        	row=date.rows[0];
+	    	        	$('#totalWeight').textbox('setValue',row.tradeTotalWeight);
+	       	        	$('#totalQuanlity').textbox('setValue',row.totalQuantity);
+	       	        	$('#Cost').textbox('setValue',row.tradeTotalPrice);	
+	    	        },
+	    	        error: function (jqXHR, textStatus, errorThrown) {
+	    	        	$.messager.show({
+	    					title: 'Error',
+	    					msg: jqXHR.responseText
+	    				});
+	    	        }
+	    	    }); */
+	    	    getInStockDetilByNo(text.inStockNo); 
+	        	$("#warehouseNo").textbox('setValue',text.warehouseNo+'('+text.wareEmploye+')');//赋值
+	        	$("#warehouseNo1").val(text.warehouseNo);
+	        	$('#owner').combogrid({    
+	        		   // panelWidth:300,
+	        		    fitColumns:true,
+	        		    value:text.Owner,    
+	        		    idField:'saCustId',    
+	        		    textField:'companyName',    
+	        		    url:'instock/getAllSaleCust?owner='+text.owner, 
+	        		    editable:false,
+	        		    columns:[[    
+	        		        {field:'saCustId',title:'客户id',hidden:true},   
+	        		        {field:'companyName',title:'客户公司',width:180},  
+	        		        {field:'contact',title:'客户',width:100}, 
+	        		        {field:'tel',title:'电话',width:130}, 
+	        		    ]]    
+	        	});  
+	        	$("#owner").combogrid('setValue',text.owner);//赋值
+	        	var conf={
+	        			textAlign:'left',//设置文字位置,left在点上方,center在线上方
+	        			lineWidth:200//设置线条长度
+	           	    };
+	            $(".pro").empty().timeLines(stateTimes,conf);
+	       		//doDivCss();
+	        	if(op!=null && op=='op'){
+	        		if(errorMsg!=null && errorMsg!=""){
+						$.messager.alert('提示',errorMsg,'info');
+					}else{
+						$.messager.alert('提示','操作成功','info');
+					}
+	        	}
+	        },
+	        error: function (jqXHR, textStatus, errorThrown) {
+	        	$.messager.show({
+					title: 'Error',
+					msg: jqXHR.responseText
+				});
+	        }
+	    });
+}
+
+function del(){
+	var inStockToken = $('#inStockToken').val();
+	var inStockNo=$('#inStockNo').textbox("getValue");
+	var poNo=$('#poNo').textbox("getValue");
+	if(inStockNo=null || inStockNo==""){
+		$.messager.alert('提示','该装车单号不存在','error');
+		return;
+	}
+	$.messager.confirm('提示','是否确删除？',function (r) {
+		if(r){
+			$('#delBtn').linkbutton('disable');
+			var formData = new FormData(document.getElementById("form1"));
+			formData.append("inStockNo",inStockNo);
+			formData.append("stateId",'9');
+			formData.append("inStockToken",inStockToken);
+			formData.append("poNo",poNo);
+			$.ajax({
+				url :  "instock/addInStock",
+				type : "post",
+				data :formData,
+				dataType : "json",
+				success : function(result){
+					$('#delBtn').linkbutton('enable');
+					//var result = eval('('+result+')');
+					if (result.msgCode =='Y'){
+						$('#form1').form('clear');
+						$('#itemsdg').datagrid('loadData', { total: 0, rows: [] });
+						if(result.errorMsg!=null && result.errorMsg!=""){
+							$.messager.alert('提示',result.errorMsg,'info');
+						}else{
+							$.messager.alert('提示','操作成功','info');
+						}
+						$("#add").dialog('close');
+					}else {
+						$.messager.alert('提示',result.msg,'error');
+					}
+				}
+			});
+			/* $('#form1').form('submit',{
+					url: url,
+					onSubmit: function(){
+					},
+					queryParams:{
+						inStockNo:inStockNo,
+						stateId:'9',
+						inStockToken:inStockToken,
+						poNo:poNo
+					},
+					success: function(result){
+						$('#delBtn').linkbutton('enable');
+						var result = eval('('+result+')');
+						if (result.msgCode =='Y'){
+							$('#form1').form('clear');
+							$('#itemsdg').datagrid('loadData', { total: 0, rows: [] });
+							if(result.errorMsg!=null && result.errorMsg!=""){
+								$.messager.alert('提示',result.errorMsg,'info');
+							}else{
+								$.messager.alert('提示','操作成功','info');
+							}
+							$("#add").dialog('close');
+						}else {
+							$.messager.alert('提示',result.msg,'error');
+						}
+					}
+			});  */
+		}else{
+			return;
+		}
+	});
+}
+
+function doSearch(){
+	/* var province = $('#province').combobox('getValue');
+	var city = $('#city').combobox('getValue');
+	var area = $('#area').combobox('getValue'); */
+	var start = $('#start').datebox('getValue');
+	var end = $('#end').datebox('getValue');
+	var queryWarehouseNo = $("#queryWarehouseNo").textbox('getValue');
+	var queryInStockNo = $('#queryInStockNo').textbox('getValue');
+	var queryPoNo = $('#queryPoNo').textbox('getValue');
+	var queryStatus = $('#queryStatus').combobox('getValue');
+	/* var areaId;
+	if (province == "--请选择--" || province == "") {
+		province = "isEmpty";
+	} else {
+		areaId = province;
+	}
+	if (city != "--请选择--" && city != "请先选择省份" && city != "") {
+		areaId = city;
+	}
+	if (area != "--请选择--" && area != "请先选择城市" && area != "") {
+		areaId = area;
+	}	 */
+	if(queryWarehouseNo==null || queryWarehouseNo=='' || queryWarehouseNo=='undefined'){
+		queryWarehouseNo='isEmpt';
+	}else{
+		queryWarehouseNo=queryWarehouseNo;
+	}
+	if(queryInStockNo==null || queryInStockNo=='' || queryInStockNo=='undefined'){
+		queryInStockNo='isEmpt';
+	}else{
+		queryInStockNo=queryInStockNo;
+	}
+	if(queryPoNo==null || queryPoNo=='' || queryPoNo=='undefined'){
+		queryPoNo='isEmpt';
+	}else{
+		queryPoNo=queryPoNo;
+	}
+	if(queryStatus==null || queryStatus=='' || queryStatus=='undefined' || queryStatus=='--请选择--'){
+		queryStatus='isEmpt';
+	}else{
+		queryStatus=queryStatus;
+	}
+    $('#dg').datagrid('load',{
+    	queryWarehouseNo : queryWarehouseNo,
+    	queryInStockNo : queryInStockNo,
+    	queryPoNo : queryPoNo,
+    	queryStatus : queryStatus,
+    	/* areaId : areaId, */
+		start : start,
+		end : end
+    });
+}
+
+$(function () {	
+	$('#add').dialog({  
+		onClose:function(){  
+        	 $('#form1').form('clear');
+        	 $('#itemsdg').datagrid('loadData', { total: 0, rows: [] });  
+        	 $('#orderHead').window('close');
+        	 $("#wareHouse").window('close');
+         }  
+     });  
+});
+function goClose(){
+	$('#add').dialog('close');  
+}
+
+function searchOrder(){
+	var buyMblie = $("#buyMblie").textbox('getValue');
+	var orderNo = $('#orderNo').combobox('getValue');
+    $('#orderNo').datagrid('load',{
+    	buyMblie : buyMblie,
+    	orderNo: orderNo
+    });
+}
+
+function saveMark(){
+	var markId = $('input:radio[name="markId"]:checked').val();
+	var inStockNoMk = $('#inStockNoMk').val();
+	var orderMemo = $('#orderMemo').val();
+	$.ajax({ 
+		async: false,
+        type:'post',
+        url:'instock/updateOrderMemo',  
+        data:{
+        	markId : markId,
+        	inStockNoMk : inStockNoMk,
+        	orderMemo : orderMemo
+        },
+        dataType:'json',  
+        success:function(data){
+        	if(data.msgCode == "Y"){
+	       		 $.messager.alert('提示','操作成功!','info');
+	       		 $('#mark').dialog('close');
+	       		 $('#dg').datagrid('reload');
+	       	}else{
+	       		$.messager.alert('提示',data.msg,'error');
+	       	}
+        },
+        error : function() {  
+       		$.messager.alert('提示','操作失败!','error'); 
+   	    }
+    });
+}
+
+$(function(){
+	
+	if(verification("instock","add")){
+		$("#btn1").css("display","");
+	}
+	if(verification("instock","delete")){
+		$("#delBtn").css("display","");
+	}
+})
+</script>
+</head>
+<body>	
+	<div id="tb" style="margin-bottom:10px;">
+    	<form id="searchform">
+		  <div class="inputArea1">
+		  	<label>状态</label>：<input type="text"  id="queryStatus" />
+		  <!-- 	<label>省份</label>：<input id="province" />
+		  	<label>城市</label>：<input id="city" />
+		  	<label>区域 </label>：<input id="area" /> -->
+		  	<label>仓库编号</label>：<input type="text" class="easyui-textbox" id="queryWarehouseNo" />
+		  	<span id="freNo"><label>装车单号</label>：<input type="text" class="easyui-textbox" id="queryInStockNo" />
+		  	<label>采购单号</label>：<input type="text" class="easyui-textbox" id="queryPoNo" /></span>
+		  </div>
+		  <div class="inputArea1" id="inStock">
+			
+			<label>创建时间</label>：<input id="start" type="text"></input> 
+			<label style="margin-right:14px;text-align:center;text-align-last:center;">至 </label><input id="end" type="text"></input>
+			<span>
+				<a onclick="doSearch()" class="easyui-linkbutton" data-options="iconCls:'icon-search'" style="padding-left: 5px;padding-right: 5px">查询</a>
+				<a class="easyui-linkbutton" data-options="iconCls:'icon-clear'" style="margin-left:10px;padding-left: 5px;padding-right: 5px" onclick="$('#searchform').form('clear');">清空</a>
+			</span>  
+		  </div>
+		</form>
+	</div>
+	<table id="dg" style="align:center;"></table> 
+	<div id="mark">
+  		<form id = "markfrom" action="" method="get" style="padding: 50px"> 
+  			<input type="hidden" name="inStockNoMk" id="inStockNoMk">
+  			<table>
+  				<tr>
+					<td align="right" width="100px;">
+						<font color="red">*</font>
+						 <span style="font-weight: 600;">标记:</span>
+					</td>
+					<td align="left" width="300px;">
+						<label><input name="markId" type="radio" value="1" /><img src="../../images/1.png"> </label> 
+						<label><input name="markId" type="radio" value="2" /><img src="../../images/2.png"> </label> 
+						<label><input name="markId" type="radio" value="3" /><img src="../../images/3.png"> </label> 
+						<label><input name="markId" type="radio" value="4" /><img src="../../images/4.png"> </label> 
+						<label><input name="markId" type="radio" value="5" /><img src="../../images/5.png"> </label> 
+						<label><input name="markId" type="radio" value="6" /><img src="../../images/6.png"> </label> 
+					</td>
+				</tr>
+				<tr>
+					<td align="right" width="100px;">
+						<font color="red">*</font>
+						 <span style="font-weight: 600;">标记信息:</span>
+					</td>
+					<td align="left" width="300px;">
+						<textarea id='orderMemo'name="orderMemo" style="width: 300px;height: 200px;max-width: 300px;max-height: 200px;"></textarea>
+					</td>
+				</tr>
+  				<tr>
+					<td>&nbsp;</td>
+					<td align="center">
+						<div align="center">
+							<a class="easyui-linkbutton" data-options="iconCls:'icon-save'" onclick="saveMark()">提交</a>
+						</div>
+					</td>
+				</tr>
+  			</table>
+		</form> 
+  	</div>
+	<div id="add" style="margin:0 auto" >
+		<div style="width: 100%;position:relative;">
+			<div class="pro"></div>
+		</div>
+	  	<form action="instock/addInStock" method="post" id="form1">
+	  		  <input type="hidden" id="inStockToken" >
+	  		  <div style="margin: 0px auto;width:90%;" align="center">
+		  		  <div style="text-align:justify;text-justify:distribute-all-lines;text-align-last:justify;width:200px">
+		  		  	<h3 class="report-title">装车单</h3>
+		  		  </div>
+	  		  </div>
+			 <fieldset  style="margin:0 auto;border: 1px solid;width:870px;" >
+			   <legend>装车信息</legend>
+			   <div style="margin:0 auto;width:98%;">
+			 	  <div style="padding-left:10px;">
+					  <div class="inputArea1" id="inStock0">
+					  	<label>单号</label>：<input id="inStockNo" name="inStockNo" class="easyui-textbox" type="text" data-options="readonly:true"/>
+					  	<label>日期</label>：<input id="inStockDate" name="inStockDate" class="easyui-datebox" type="text" editable="false" required="required">
+					  	<label>制单人</label>：<input id="createUser" name="createUser"  class="easyui-textbox" type="text" data-options="readonly:true"/>
+					  </div>
+					
+					  <div class="inputArea1" id="inStock2">
+						<input id="inStockState1" name="inStockState1" type="hidden" value="1"> 
+						<label>采购单号</label>：<input id="poNo" name="poNo" class="easyui-textbox" type="text" required="required"/>
+						<input type="hidden"  id="poNo1" name="poNo1">
+						<a href="javascript:void(0)" onclick="getCollectOrderHead()" class="easyui-linkbutton" style="padding-left: 6px;padding-right: 6px">...</a>
+						<label style="margin-left:10px;">车辆</label>：<input id="warehouseNo1" name="warehouseNo1" type="hidden" /><input id="warehouseNo" name="warehouseNo" class="easyui-textbox" type="text" data-options="readonly:true" />
+						<a href="javascript:void(0)" onclick="getWarehouse()" class="easyui-linkbutton" style="padding-left: 6px;padding-right: 6px">...</a>
+					  </div>
+					  
+					   <div class="inputArea1" id="inStock1">
+					   <label>状态</label>：<input id="inStockState" name="inStockState" class="easyui-textbox" type="text" data-options="readonly:true"/>
+					  	<span id="inOrder3"><label>货主</label>：<input id="owner" name="owner" class="easyui-combogrid" type="text" />
+					  	</span>
+					  </div>
+				  </div>
+ 				  <fieldset style="width:95%;margin:0 auto;">
+ 						<legend>合计信息</legend>
+		 				<div class="inputArea1">
+						  <label>装车总重量</label>：<input id="totalWeight" name="totalWeight" class="easyui-textbox" type="text" data-options="readonly:true" style="width: 125px"/>(kg)
+						  <label style="margin-left:10px;">装车总数量</label>：<input id="totalQuanlity" name="totalQuanlity" class="easyui-textbox" type="text" data-options="readonly:true"/>
+						  <label>总成本</label>：<input id="Cost" name="Cost" class="easyui-textbox" type="text" data-options="readonly:true" style="width: 125px"/> (元)
+					    </div>
+ 				  </fieldset>
+	    		  <div style="width:98%;margin:10px auto;">
+						<table id="itemsdg" align="center">
+						</table> 
+	    		  </div>
+	    		  <div style="margin:0 auto;width:100%;text-align:center;">
+					<a href="javascript:void(0)" onclick="goClose()" class="easyui-linkbutton window-submitBtn" style="margin-right: 20px">取消</a>
+	    			<!-- <c:if test="${sessionScope.rolBtn.get('instock').containsKey('add') }"> -->
+	    				<a id="btn1" onclick="addInStockSubmit('1')" class="easyui-linkbutton window-submitBtn" style="margin-right: 20px;display: none">提交</a>
+	    			<!-- </c:if>
+	    			<c:if test="${sessionScope.rolBtn.get('instock').containsKey('delete') }"> -->
+	    				<a id="delBtn" href="javascript:void(0)" onclick="del()" class="easyui-linkbutton window-submitBtn" style="margin-right: 20px;display: none">删除</a>            
+			 	  	<!-- </c:if> -->
+			 	  </div>
+			    </div>
+			  </fieldset>
+		</form>
+	 </div>
+	 <div id="orderHead" style="margin:0 auto;width:900px">
+	 	<div style="width:98%;margin:0 auto;padding-top:10px;">
+		 	<form id="orderform">
+			  <div class="inputArea">
+			  	<label>回收员手机号：</label><input id="buyMblie" class="easyui-textbox">
+			  	<label>采购单号：</label><input id="orderNo" class="easyui-textbox">
+			  	<label>回收员姓名：</label><input id="contact" class="easyui-textbox">
+			  	<a onclick="getCollectOrderHead()" class="easyui-linkbutton" data-options="iconCls:'icon-search'" style="padding-left: 10px;padding-right: 10px">查询</a>
+			  </div>
+	  		</form>
+	  		<div style="width:100%;height:300px;">
+	  			<table id="orderInfo"></table>
+	  		</div>
+  		</div>
+	 </div>
+	 <div id="wareHouse" style="margin:0 auto;width:900px">
+	 	<table id="wareHouseInfo"></table>
+	 </div>
+</body>
+</html>
