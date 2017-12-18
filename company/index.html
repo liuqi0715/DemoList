@@ -320,17 +320,16 @@
                    
                         "date":$scope.date,                       
                         "weighttotal": $scope.weighttotal,
-                        "tonnowefee": 0,
-                        "propfee": 554.66,
-                        "propowefee": 0,
-                        
-                        "tonnfee": 500,
-                        "tonntotal": 1908.15,
-                        "payment": "2017-12-01~2017-12-31",
-                        "clearprop": 0.02,
-                        "proptotal": 554.66,
-                        "moneytotal":27733.04,
-                        "tonnmoney": 1908.15
+                        "tonnowefee": $scope.tonnowefee,
+                        "propfee": $scope.propfee,
+                        "propowefee": $scope.propowefee,                       
+                        "tonnfee": $scope.tonnfee,
+                        "tonntotal": $scope.tonntotal,
+                        "payment": $scope.payment,
+                        "clearprop":$scope.clearprop,
+                        "proptotal": $scope.proptotal,
+                        "moneytotal":$scope.moneytotal,
+                        "tonnmoney": $scope.tonnmoney
                 },
                 dataType : "json",
                 success: function(data){
@@ -345,7 +344,12 @@
                 }
             });
         }
-
+        // var a = $(".right").style.transform;
+       
+        // console.log(a,"style");
+    
+        // $(".right").innerHTML = "@-webkit-keyframes right{from {transform: rotate(0deg);} to{transform: rotate("+$scope.clearprop*88+"deg)} }"
+        // $(".right").css({"transform":"rotate("+$scope.clearprop*88+"deg)"});
 
         }])
        
