@@ -1,0 +1,451 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="../../js/bootstrap/css/bootstrap.min.css">
+<link rel="stylesheet" href="../../css/prize/zyupload-1.0.0.min.css" type="text/css" />
+<link rel="stylesheet" type="text/css" href="../../css/prize/app.css">
+<link rel="stylesheet" type="text/css" href="../../css/jquery-ui.min.css" />
+<link rel="stylesheet" type="text/css" href="../../css/jquery-ui-timepicker-addon.min.css" />
+<script type="text/javascript" src="../../js/jquery-3.1.1.min.js"></script>
+<script type="text/javascript" src="../../libs/angular.min.js"></script>
+<script src="../../js/wangEditor.min.js"></script>
+<script src="../../js/zyupload-1.0.0.min.js"></script>
+<script src="../../js/jquery-ui.min.js"></script>
+<script src="../../js/jquery-ui-timepicker-addon.min.js"></script>
+<script type="text/javascript" src="prizeListCtrl.js"></script>
+<script type="text/javascript" src="../global.js"></script>
+<script type="text/javascript" src="../../js/bootstrap/js/bootstrap.min.js"></script>
+<title>用户管理</title>
+</head>
+<body style="background:#FFF;overflow:hidden;" ng-app="prize">
+	<div ng-controller="listCtrl" style="padding-top:20px;">
+		<!-- <section class="contentHead">
+			<div class="row text-center">
+				<div class="col-md-1"
+					ng-class="{stateSelected:state.state==currentState}"
+					ng-repeat="state in goodsState track by $index"
+					ng-click="getState($index)">{{state.name}}</div>
+			</div>
+		</section> -->
+	
+		<section class="picPane" ng-if="tagsBoxShow">
+	    <section class="gl_addBox inner-center">
+	        <div class="gl_addBox_head">
+	            修改奖品标签
+	            <i class="glyphicon glyphicon-remove" ng-click="closeEditTagBox()"></i>
+	        </div>
+	        <div class="gl_addBox_body">
+	        	<h5>正在编辑  {{selectedGoodNums}} 条数据</h5>
+	            <div class="input-group">
+	              <label class="gl_inputTag" style="float:left;"><b>*</b>奖品标签 : </label>
+	              <div style="float:left;">
+	                  <div class="gl_addBox_tag" ng-repeat="gtg in goodsTagsGroup track by $index"><div class="selectBox" ng-click="checkTags($index)"><div class="selectBoxFilled inner-center" ng-show="gtg.check"></div></div><span ng-click="checkTags($index)">{{gtg.tagName}}</span></div>
+	              </div>
+	            </div>
+	        </div>
+	        <div class="gl_btns">
+	            <div class="btn-group" role="group" aria-label="操作">
+	              <button type="button" class="btn btn-danger" ng-click="editTagsSave()">保存</button>
+	              <button type="button" class="btn btn-default" ng-click="editTagsCancel()">取消</button>
+	            </div>
+	        </div>
+	    </section>
+	    </section>
+
+		<section class="goodsBox">
+			<button class="btn btn-success goodsAddBtn" type="button" ng-click="goPublish()">
+				<span class="fa fa-plus-circle"></span> 发布奖品
+			</button>
+			<section class="goodsInputBar">
+				<label>奖品类型</label>
+                <span style="position:relative;">
+                    <input type="text" readonly="readonly" ng-model="searchObj.type.prizeModel" style="width:110px;padding-left:10px;height:30px;" ng-click="toggleTypes()">
+                    <ul class="dropdown-menu1" ng-show="typeShow" style="width:110px;top:25px;left:0;height:100px;z-index:1000;overflow:hidden;">
+                        <li ng-repeat="t in prizeModel track by $index" ng-click="slcTypes(t)">{{t.prizeModel}}</li>
+                    </ul>
+                </span>
+                <label style="margin-left:10px;">奖品状态</label>
+                <span style="position:relative;">
+                    <input type="text" readonly="readonly" ng-model="searchObj.state.prizeState" style="width:110px;padding-left:10px;height:30px;" ng-click="toggleStatus()"/>
+                    <ul class="dropdown-menu1" ng-show="statusShow" style="width:110px;top:25px;left:0;height:100px;z-index:1000;overflow:hidden;">
+                        <li ng-repeat="s in prizeState track by $index" ng-click="slcStatus(s)">{{s.prizeState}}</li>
+                    </ul>
+                </span>
+                <label style="margin-left:10px;">奖品名称</label><input type="text" ng-model="searchObj.name" style="width:220px;padding-left:10px;"/>
+				<button class="btn btn-primary" type="button" ng-click="searchGoods()">搜索</button>
+				<span>高级搜索<i class="fa fa-filter" style="margin-left: 5px;"></i></span>
+			</section>
+			<!-- <div class="btn-group goods_btns" role="group" aria-label="分类标签">
+				<button type="button" class="btn btn-default" ng-click="updateGoodsStatus()">{{goodsState[currentState-1].buttonTitle}}</button>
+				<button type="button" class="btn btn-default">奖品排序</button>
+				<button type="button" class="btn btn-default" ng-click="editGoodsTags()">修改奖品标签</button>
+				<button type="button" class="btn btn-default">参与会员折扣</button>
+			</div> -->
+			<div class="divMain">
+				<table class="table table-bordered goodsTable" border="0">
+					<thead>
+						<!--<th><div class="selectBox" ng-click="checkAll()"><div class="selectBoxFilled inner-center" ng-show="selectedAll"></div></div></th>-->
+						<th ng-repeat="y in itemTitle track by $index"><span>{{
+								y }}</span></th>
+					</thead>
+					<tbody>
+						<div style="width:100%;height:40px;line-height:40px;text-align:center;" ng-if="!goodsList.length>0"><p>无相关搜索结果</p></td><div>
+						<tr ng-repeat="x in goodsList track by $index" >
+							<!-- <td width="4%"><div class="selectBox" ng-click="selectOne(x,$index)"><div class="selectBoxFilled inner-center" ng-show="x.isChecked"></div></div></td>  -->
+							<td width="6%"><img ng-src="{{x.imageUrl}}" width="60px" height="60px" /></td>
+							<td width="20%" ng-bind="x.prizesName"></td>
+							<td width="9%"><div class="goodsName"><span ng-bind="x.prizesType"></span></div></td>
+							<td width="8%" ng-bind="x.bpPrice"></td>
+							<td width="7%" ng-bind="x.prizesNum"></td>
+							<!-- <td width="5%" ng-bind="x.source"></td> -->
+							<td width="24%" ng-bind="x.orgName"></td>
+							<td width="9%" ng-bind="x.status"></td> 
+							<td width="14%"><a style="margin-right: 10px;"
+								ng-click="edit(x)">编辑 </a><a href="#"> 预览</a>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+				<nav>
+					<ul class="pagination">
+						<li><a style="margin-right: 10px; border: none;"> <span>共
+									{{totalPage}} 页</span>
+						</a> <a ng-click="goFirst()"> <span>首页</span>
+						</a> <a ng-click="previous()"> <span>上一页</span>
+						</a></li>
+						<li ng-show="currentPage>=9" ng-click="goPrev()"><a>...</a></li>
+						<li ng-repeat="page in pageList"
+							ng-class="{active: isActivePage(page.page,currentPage)}"><a
+							ng-click="selectPage(page)">{{ page.page }}</a></li>
+						<li><a ng-click="next()"> <span>下一页</span>
+						</a> <a ng-click="goLast()"> <span>尾页</span>
+						</a> <input type="text" style="width: 40px; height: 30px; margin: 0 5px;text-align:center;" ng-model="searchPage" />
+							<button type="button" class="btn btn-default" ng-click="search()">查找</button>
+						</li>
+					</ul>
+				</nav>
+			</div>
+		</section>
+		
+		
+	<!-- 子 -->
+	  <div ng-controller="editCtrl" id="pEdit" class="gp" ng-class="{'eShow':paneShow,'eHide':!paneShow}" style="position:absolute;width:100%;height:100%;top:0;left:0;right:0;bottom:0;background:#FFF;padding-bottom:20px;overflow-y:scroll;z-index:-2;opacity:0;">
+	    <section class="picPane" ng-show="choosePics">
+	        <div class="inner-center">
+	            <div class="picPane_close" ng-click="closePicsPane()">
+	                <i class="glyphicon glyphicon-remove inner-center"></i>
+	            </div>
+	            <div id="zyupload"></div>
+	        </div>
+	    </section>
+	    <section class="picPane" ng-show="choosePics1">
+	        <div class="inner-center">
+	            <div class="picPane_close" ng-click="closePicsPane1()">
+	                <i class="glyphicon glyphicon-remove inner-center"></i>
+	            </div>
+	            <div id="expload"></div>
+	        </div>
+	    </section>
+	    <section class="picPane" ng-if="goodsTypeShow">
+	        <div class="inner-center goodsTypeBox">
+	            <div class="gtb_title">
+	                添加奖品类型
+	                <i class="fa fa-times" ng-click="goodsTypeCancel()"></i>
+	            </div>
+	            <div class="gtb_inner">
+	                <div class="gtb_inner_wrap" ng-init="outerIndex = $index" ng-repeat="parent in catalogs track by $index">
+	                    <div class="gtb_inner_parent" ng-click="actionChild($index)">
+	                        <input type="checkbox" ng-checked="parent.check" ng-model="parent.check" id="{{parent.catName}}" ng-if="(parent.lowerCategory == undefined)|| parent.lowerCategory.length==0" ng-click="getParentType($index)" />
+	                        <label for="{{parent.catName}}">{{parent.catName}}</label><i class="fa fa-sort-down" ng-if="parent.lowerCategory.length>0"></i></div>
+	                    <div class="gtb_inner_in" ng-show="parent.showChild" ng-init="innerIndex = $index" ng-repeat="child in parent.lowerCategory track by $index" ng-if="parent.lowerCategory">
+	                        <div class="gtb_inner_child" ng-click="actionSubChild($parent.$index,$index)">
+	                            <input type="checkbox" ng-checked="child.check" ng-model="child.check" id="{{child.catName}}" ng-if="child.lowerCategory.length==0" ng-click="getChildType(outerIndex,$index)" />
+	                            <label for="{{child.catName}}">{{child.catName}}</label><i class="fa fa-sort-down" ng-if="child.lowerCategory.length>0"></i></div>
+	                        <div class="gtb_inner_inner" ng-show="child.showChild" ng-repeat="subChild in child.lowerCategory track by $index">
+	                            <div class="gtb_inner_subChild">
+	                                <input type="checkbox" ng-checked="subChild.check" ng-model="subChild.check" id="{{subChild.catName}}" ng-click="getSubChildType(outerIndex,innerIndex,$index)" />
+	                                <label for="{{subChild.catName}}">{{subChild.catName}}</label><i class="fa fa-sort-down"></i></div>
+	                        </div>
+	                    </div>
+	                </div>
+	            </div>
+	            <div class="gtb_btns">
+	                <div class="btn-group" role="group" aria-label="分类操作">
+	                    <button type="button" class="btn btn-default" ng-click="goodsTypeCancel()">取消</button>
+	                    <button type="button" class="btn btn-danger" ng-click="goodsTypeSure()">确定</button>
+	                </div>
+	            </div>
+	        </div>
+	    </section>
+	    <h5>奖品信息</h5>
+	    <section class="gp_cox">
+	        <div>
+	            <label class="gp_inputTag"><b>*</b>奖品名称 : </label>
+	            <input type="text" class="gp_inputSpecical" placeholder="请输入奖品名称" ng-model="goods.goodsName"/>
+	        </div>
+	        <div class="gp_upLoadPicBox">
+	            <label class="gp_inputTag" style="float:left;"><b>*</b>奖品图片 : </label>
+	            <div class="gp_picsArea">
+		            <div class="gp_upLoadPic" ng-if="goods.mainPic.length>0" ng-repeat="g in goods.mainPic track by $index">
+		            	<div class="gp_addWrap_itemClose" ng-click="delectMainPic($index)" style="z-index:1000;"><i class="glyphicon glyphicon-remove inner-center"></i></div>
+		                <img ng-src="{{g.thumbUrl}}" alt="mainPic" width="100%" height="100%" />
+		            </div>
+		            <div class="gp_upLoadPic" ng-click="uploadPic()" ng-show="goods.mainPic.length<13">
+		                <i class="fa fa-file-image-o inner-center"></i>
+		            </div>
+		            <p ng-show="goods.mainPic.length<13">建议尺寸: 750*750px</p>
+	            </div>
+	        </div>
+	    </section>
+	    <h5>上架设置</h5>
+	    <section class="gp_cox gp_cox_footer">
+	        <div>
+	            <label class="gp_inputTag"><b>*</b>奖品类型 : </label>
+	            <div class="dropdown gp_cox_goodsType" ng-click="getGoodsType()">
+	                <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+	                    {{slcTypeName}}
+	                    <span class="caret"></span>
+	                </button>
+	            </div>
+	        </div>
+	        <!-- <div>
+	            <label class="gp_inputTag"><b>*</b>奖品标签:</label>
+	            <span ng-repeat="gts in goodsTags track by $index"><input type="checkBox" ng-checked="gts.check" ng-click="getThisType($index)" id="{{gts.tagName}}"><label for="{{gts.tagName}}">{{gts.tagName}}</label></span>
+	        </div>  -->
+	        <div>
+	            <label class="gp_inputTag"><b>*</b>是否包邮 : </label>
+	            <input type="radio" id="fee" ng-value="1" ng-model="goods.shipFree">
+	            <label for="fee">是</label>
+	            <input type="radio" id="nofee" ng-value="0" ng-model="goods.shipFree" style="margin-left:10px;">
+	            <label for="nofee">否</label>
+	        </div>
+	        <!-- <div>
+	            <label class="gp_inputTag"><b>*</b>会员折扣:</label>
+	            <input type="radio" id="discount"><label for="discount">是</label>
+	            <input type="radio" id="nodiscount"><label for="nodiscount">否</label>
+	       </div>-->
+	        <div>
+	            <label class="gp_inputTag"><b>*</b>上架状态 : </label>
+	            <input type="radio" id="discount" ng-value="1" ng-model="goods.status">
+	            <label for="discount">立即上架</label>
+	            <input type="radio" id="nodiscount" ng-value="0" ng-model="goods.status" style="margin-left:10px;">
+	            <label for="nodiscount">暂不上架</label>
+	        </div>
+	    </section>
+	    <h5>发放设置</h5>
+	    <section class="gp_cox gp_cox_footer" style="min-height:100px !important;">
+		    <div class="input-group">
+	            <label class="gp_inputTag">奖品数量 : </label>
+	            <input type="text" placeholder="请输入奖品数量" class="gp_inputSpecical" ng-change="intNums()" ng-model="goods.stockQuantity" style="width:140px !important;"/>
+	        </div>
+	        <div class="input-group">
+	            <label class="gp_inputTag">积分值 : </label>
+	            <input type="text" placeholder="请输入对应积分值" class="gp_inputSpecical" ng-change="intNums()" ng-model="goods.bpPrice" style="width:140px !important;"/>
+	        </div>
+			<div class="gp_areaBox">
+			   <div class="btn-group" style="margin-bottom:10px;">
+				  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="margin-right:20px;" ng-click="toggleProvince()">
+				   {{provinceSlc}} <span class="caret"></span>
+				  </button>
+				  <ul class="dropdown-menu" ng-if="provinceShow" style="z-index:1001;">
+				    <li ng-repeat="p in province track by $index" ng-click="slcProvince(p)"><a href="#">{{p.provinceName}}</a></li>
+				  </ul>
+				  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="margin-right:20px;" ng-click="toggleCity()">
+				   {{citySlc}} <span class="caret"></span>
+				  </button>
+				  <ul class="dropdown-menu" ng-if="cityShow" style="left:85px !important;z-index:1001;">
+					<li ng-repeat="c in city track by $index" ng-click="slcCity(c)"><a href="#">{{c.cityName}}</a></li>
+				  </ul>
+				  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="margin-right:20px;" ng-click="toggleArea()">
+				   {{areaSlc}} <span class="caret"></span>
+				  </button>
+				  <ul class="dropdown-menu" ng-if="areaShow" style="left:162px !important;z-index:1001;">
+					<li ng-repeat="a in area track by $index" ng-click="slcArea(a)"><a href="#">{{a.areaName}}</a></li>
+				  </ul>
+				</div>
+				<button class="btn btn-danger" type="button" style="float:right;" ng-click="addArea()">
+					<span class="fa fa-plus-circle"></span> +添加区域
+				</button>
+				<table class="table table-bordered prize_table prize_table_head" border="0" style="margin-bottom:0;">
+					<thead>
+						<!--<th><div class="selectBox" ng-click="checkAll()"><div class="selectBoxFilled inner-center" ng-show="selectedAll"></div></div></th>-->
+						<th ng-repeat="y in itemTitle track by $index" style="height:20px;line-height:20px !important;"><span>{{
+								y }}</span></th>
+					</thead>
+				</table>
+				<div class="prize_tableBody">
+				   <table class="table table-bordered prize_table" border="0" id="prize_table">
+						<tbody>
+							<tr ng-repeat="x in areaList track by $index" >
+								<!-- <td width="5%"><div class="selectBox" ng-click="selectOne(x,$index)"><div class="selectBoxFilled inner-center" ng-show="x.isChecked"></div></div></td>  -->
+								<td width="60%" ng-bind="x.areaName"></td>
+								<td width="20%"><input ng-model="x.prizesNum" ng-change="intNums($index)" ng-blur="countNums($index)" style="text-align:center;"/></td>
+								<td width="20%"><a style="color:#F05050;"
+									ng-click="delArea($index)">删除 </a>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+	    </section>
+	    
+	    <h5>其他信息</h5>
+	    <section class="gp_cox">
+	
+	        <div class="input-group">
+	            <label class="gp_inputTag" style="float:left;"><b>*</b>开始时间 : </label>
+	            <div style="float:left;">
+	                <span class="input-group-addon">*</span>
+	                <input type="text" class="form-control" aria-describedby="sizing-addon2" id="date_start"/>
+	            </div>
+	        </div>
+	        <div class="input-group">
+	            <label class="gp_inputTag" style="float:left;"><b>*</b>结束时间 : </label>
+	            <div style="float:left;">
+	                <span class="input-group-addon">*</span>
+	                <input type="text" class="form-control" aria-describedby="sizing-addon2" id="date_end"/>
+	            </div>
+	        </div>
+	        <div class="input-group">
+	            <label class="gp_inputTag">奖品排序 : </label>
+	            <input type="text" placeholder="请输入奖品排序号" ng-model="goods.order" />
+	        </div>
+	        <div class="input-group">
+	            <label class="gp_inputTag">奖品说明 : </label>
+	            <input type="text" class="gp_inputSpecical" placeholder="请输入奖品说明" ng-model="goods.content" />
+	        </div>
+	        <div class="input-group">
+	            <label class="gp_inputTag">使用条件 : </label>
+	            <input type="text" class="gp_inputSpecical" placeholder="请输入奖品使用条件 " ng-model="goods.condition" />
+	        </div>
+	        <div class="input-group">
+	            <label class="gp_inputTag">兑换流程 : </label>
+	            <input type="text" class="gp_inputSpecical" placeholder="请输入奖品兑换流程" ng-model="goods.progress" />
+	        </div>
+	        <div class="input-group">
+	            <label class="gp_inputTag">重要说明 : </label>
+	            <input type="text" class="gp_inputSpecical" placeholder="请输入奖品重要说明" ng-model="goods.important" />
+	        </div>
+	        <!-- <div class="input-group" ng-if="unify"><label class="gp_inputTag">重量 : </label><input type="text"  ng-model="goods.weight" /> KG(公斤)</div>
+	            <label class="gp_inputTag">体积 : </label>
+	            <input type="text" ng-model="goods.volume" /> m3(立方米)</div>
+	             -->
+	
+	        <!-- <div class="input-group">
+	            <label class="gp_inputTag"><b>*</b>奖品规格 : </label>
+	            <form>
+	                <input type="radio" id="unify" ng-checked="unify" ng-model="unify" ng-click="showUnify()" ng-disabled="!canEdit"/>
+	                <label for="unify">统一规格</label>
+	                <input type="radio" id="multiple" ng-checked="multiple" ng-model="multiple" ng-click="showMultiple()" ng-disabled="!canEdit"/>
+	                <label for="multiple">多规格</label>
+	            </form>
+	        </div>  -->
+	        <div class="input-group" style="width:100%;padding-left:85px;" ng-if="!unify">
+	            <section class="gp_inputExp gp_inputExp_p1">
+	                <div class="gp_addModel" ng-init="parentIdx = $index" ng-repeat="a in addModelPane track by $index">
+	                    <section class="gp_addSelect">
+	                        <div class="btn-group">
+	                            <button type="button" class="btn gp_addBtn" ng-click="selectList($index)">{{a.selectValue}}</button>
+	                            <button type="button" class="btn dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" ng-click="selectList($index)">
+	                                <span class="caret inner-center"></span>
+	                                <span class="sr-only">Toggle Dropdown</span>
+	                            </button>
+	                            <ul class="dropdown-menu" ng-show="a.selectListShow">
+	                                <li>
+	                                    <a>
+	                                        <input type="text" placeholder="请输入" ng-model="a.selectListInput" ng-change="selectListChange($index)" />
+	                                    </a>
+	                                </li>
+	                                <li ng-repeat="s in a.selectList track by $index" ng-click="getModelName($parent.$index,$index)" style="text-indent:10px;">{{s.attrName}}</li>
+	                            </ul>
+	                        </div>
+	                        <input type="checkBox" ng-model="a.showUpLoad" style="width:30px;" ng-if="$index==0" />
+	                        <label ng-if="$index==0">添加规格图片仅支持为第一个规格设置图片， 建议尺寸：300 x 300 像素</label>
+	                        <span ng-click="removeModelPane($index)" ng-class="{inactive:!canEdit}">删除</span>
+	                    </section>
+	                    <section class="gp_addWrap" ng-if="a.modelValueTags.length>0">
+	                        <div class="gp_addWrap_con" ng-repeat="m in a.modelValueTags track by $index">
+	                            <div class="gp_addWrap_item">{{m}}
+	                                <div class="gp_addWrap_itemClose" ng-click="delectModelVal($parent.$index,$index,a.selectValueId)" ng-show="canEdit"><i class="glyphicon glyphicon-remove inner-center"></i></div>
+	                            </div>
+	                            <div class="gp_upLoadPicBox" style="height:120px;" ng-show="a.showUpLoad && a.modelValueTags.length>0">
+	                                <div class="gp_upLoadPic" ng-click="uploadPic1(a.selectValueId,m,parentIdx,$index)" style="float:left;">
+	                                    <i class="fa fa-file-image-o inner-center"></i>
+	                                    <img src="null" alt="expPic" id="{{a.selectValueId+m}}">
+	                                </div>
+	                            </div>
+	                        </div>
+	                    </section>
+	                    <p ng-click="addValueBox($index)" ng-show="a.selectValue!=null" ng-class="{inactive:!canEdit}">+添加规格值</p>
+	                    <div class="gp_addEdit" ng-if="a.boxShow">
+	                        <div class="gp_addEdit_inner">
+	                            <div class="gp_addEdit_box">
+	                                <input type="text" ng-model="a.modelValue" />
+	                                <div class="gp_addEdit_history" ng-show="a.modelValueHistory.length>0">
+	                                    <ul>
+	                                        <li ng-repeat="mvh in a.modelValueHistory">
+	                                            <input type="checkbox" ng-checked="mvh.check" ng-model="mvh.check" id="{{mvh.attrValue}}" />
+	                                            <label for="{{mvh.attrValue}}">{{mvh.attrValue}}</label>
+	                                        </li>
+	                                    </ul>
+	                                </div>
+	                            </div>
+	                            <div class="btn-group goods_btns" role="group" aria-label="分类标签">
+	                                <button type="button" class="btn btn-Success" ng-click="getModelValue($index)">确认</button>
+	                                <button type="button" class="btn btn-default" ng-click="closeValueBox($index)">取消</button>
+	                            </div>
+	                        </div>
+	                        <div class="ui-popover-arrow"></div>
+	                    </div>
+	                </div>
+	                <div class="gp_inputBar">
+	                    <button class="btn btn-success goodsAddBtn" type="button" ng-if="addModelNums<2" ng-click="addModel()" ng-class="{inactive:!canEdit}">
+	                        添加规格
+	                    </button>
+	                    <p>添加/删除规格后将影响原有规格值数据<span style="color:#FE313C;">（货号、销售价、库存、重量等数据将清零）</span>，请谨慎操作。</p>
+	                </div>
+	            </section>
+	        </div>
+	        <div class="input-group" style="width:100%;padding-left:85px;pisition:relative;" ng-if="!unify">
+	            <label class="gp_inputTag gp_inputTag_exp">价格库存 : </label>
+	            <section class="gp_inputExp">
+	                <section class="gp_inputBar">
+	                    <label>批量填充</label>
+	                    <input type="text" placeholder="销售价" ng-model="bulkDatas.price" />
+	                    <label>元</label>
+	                    <input type="text" placeholder="库存" ng-model="bulkDatas.rest" />
+	                    <label>件</label>
+	                    <input type="text" placeholder="重量" ng-model="bulkDatas.weight" />
+	                    <label>公斤</label>
+	                    <button class="btn btn-primary" type="button" ng-click="bulk()">确认填充</button>
+	                </section>
+	                <section class="gp_table">
+	                    <div class="gp_table_head">
+	                        <div class="ui-table-list width-auto gp_table_title" ng-repeat="y in itemTitle track by $index"><span>{{ y }}</span></div>
+	                        <div class="ui-table-list width-auto gp_table_title">货号 选填</div>
+	                        <div class="ui-table-list width-auto gp_table_title">销售价(元) 必填</div>
+	                        <div class="ui-table-list width-auto gp_table_title">库存(件) 选填</div>
+	                        <div class="ui-table-list width-auto gp_table_title">重量(公斤)</div>
+	                    </div>
+	                    <div class="gp_table_body">
+	                    </div>
+	                </section>
+	            </section>
+	        </div>
+	    </section>
+	    <h5>奖品描述</h5>
+	    <section class="gp_cox" style="padding:20px;">
+	        <div id="editor" style="margin-bottom:10px;">
+	        </div>
+	        <!--  <button class="btn btn-primary" type="button">导入奖品图片</button> -->
+	    </section>
+	    <div class="btn-group goods_btns" role="group" aria-label="操作">
+	        <button type="button" class="btn btn-default" ng-click="save()">保存</button>
+	        <button type="button" class="btn btn-default" ng-click="cancelOpt()">取消</button>
+	    </div>
+	</div>
+		
+	</div>
+</body>
+</html>

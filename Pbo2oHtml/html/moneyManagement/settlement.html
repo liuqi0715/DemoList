@@ -1,0 +1,222 @@
+<!-- <%@ page language="java" import="java.util.*" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/fmt" prefix="fmt" %>
+<%
+	String path = request.getContextPath();
+	String basePath = request.getScheme() + "://"
+			+ request.getServerName() + ":" + request.getServerPort()
+			+ path + "/";
+%> -->
+
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Insert title here</title>
+<link rel="stylesheet" type="text/css" href="../../themes/default/easyui.css">
+<link rel="stylesheet" type="text/css" href="../../themes/icon.css">
+<link rel="stylesheet" type="text/css" href="../../themes/demo.css">
+<script type="text/javascript" src="../../js/jquery.min.js"></script>
+<script type="text/javascript" src="../../js/jquery.easyui.min.js"></script>
+<script type="text/javascript" src="../../js/locale/easyui-lang-zh_CN.js"></script>
+ <script type="text/javascript" src="../../js/customValidator.js"></script>
+ <script type="text/javascript" src="../global.js"></script>
+<script type="text/javascript">
+var baseline = Number.NEGATIVE_INFINITY;
+			function getParams(key) {
+			    var reg = new RegExp("(^|&)" + key + "=([^&]*)(&|$)");
+			    var r = window.location.search.substr(1).match(reg);
+			    if (r != null) {
+			        return unescape(r[2]);
+			    }
+			    return null;
+			};
+	$(function() {
+	    $("#orderNo").val(getParams("orderNo"));
+		$("#state").val(getParams("state"));
+		$("#stateId").val(getParams("stateId")); 
+		$('#showOrderNo').textbox('setValue',getParams("orderNo"));
+		$.ajax({
+	        type:'post',
+	        url:'poOrder/settleFirst',  
+	        data:{
+	        	orderNo : $('#orderNo').val()
+	        },
+	        dataType:'json',  
+	        success:function(data){
+	        	console.info(data);
+	        	if(data.success=='Y'){
+	        		baseline = data.baseline;
+	        		$('#payType').textbox('setValue',data.payee.payTypeName);
+	        		$('#settleToken').val(data.settleToken);
+					$('#tradeTotalPrice').textbox('setValue',data.payee.tradeTotalPrice);
+					$('#showName').textbox('setValue',data.payee.showName);
+					if(data.payee.prepaidAccounts!=0){
+						$('#prepaidAccounts').textbox('setValue',data.payee.prepaidAccounts);
+					}
+					$('#accountsPayable').textbox('setValue',data.payee.accountsPayable);
+					$('#custName').textbox('setValue',data.payee.custName);
+					$('#custCardNo').textbox('setValue',data.payee.custCardNo);
+					if(data.payee.payType==2){
+						$('#payerCardNo').textbox({
+							editable:false,
+							value : data.payer[0].payerCardNo
+					  });
+						$('#payerName').textbox('setValue',data.payer[0].payerName);
+					}else{
+						$('#payerCardNo').combobox({
+							valueField : 'payerName',
+							textField : 'payerCardNo',
+							editable:false,
+							data : data.payer,
+							onSelect:function(record){
+								$('#payerName').textbox('setValue',record.payerName);
+								
+							}
+					  });
+					}
+	        	}else{
+	        		$.messager.alert('我的消息',data.msg,'error',function(){
+	        			window.parent.closeDd();
+	        		});
+	        	}
+	         },
+	      	  error : function() {
+	      		$.messager.alert('我的消息','操作失败!','error',function(){
+        			window.parent.closeDd();
+        		});
+	   	  }
+	    });
+	});
+
+
+
+	function submitSfn() {
+		var payerName=$('#payerName').textbox('getValue');
+		var accountsPayable=$('#accountsPayable').textbox('getValue');
+		var payerCardNo ;
+		if(payerName==''){
+			$.messager.alert('提示','请选择付款方信息','error'); 
+			return ;
+		}
+		try {
+			payerCardNo = $('#payerCardNo').textbox('getValue');
+			if(payerName == payerCardNo){
+				payerCardNo = $('#payerCardNo').combobox('getText');
+			}
+		} catch (e) {
+			
+		}
+		$.messager.defaults = { ok: "确认", cancel: "取消" ,width:"400",height:"250"};
+		$.messager.confirm('支付提示', '您确定要向</br><pre>    姓名：    '+$('#custName').textbox('getValue')+'</br>    账号：    '+
+				$('#custCardNo').textbox('getValue')+'</br>    &nbsp;&nbsp;&nbsp; 支付：    '+$('#accountsPayable').textbox('getValue')+'(元)</pre>',
+				function(r){
+			if (r){
+				if(accountsPayable>Number(baseline)){
+					$.ajax({ 
+				        type:'post',
+				        url:'poOrder/paymentMessage',  
+				        data:{
+				        	orderNo : $('#orderNo').val()
+				        },
+				        dataType:'json',  
+				        success:function(data){
+				        	if(data.success=='Y'){
+					        	$.messager.prompt('提示信息', '请输入验证码', function(r){
+									if (r){
+										$.ajax({ 
+									        type:'post',
+									        url:'poOrder/settleBill',  
+									        data:{
+									        	orderNo : $('#orderNo').val(),
+									        	payerName :  payerName,
+									        	payerCardNo : payerCardNo,
+									        	state : $('#state').val(),
+									        	stateId : $('#stateId').val(),
+									        	settleToken : $('#settleToken').val(),
+									        	code : r
+									        	
+									        },
+									        dataType:'json',  
+									        success:function(data){
+									        	if(data.success=='Y'){
+									        		$.messager.defaults = { ok: "确认" ,width:"300",height:"150"};
+									        		$.messager.alert('我的消息','提交银行成功','info',function(){
+									        			window.parent.closeDd();
+									        		});
+									        	}else{
+									        		$('#settleToken').val(data.settleToken);
+									        		$.messager.alert('提示',data.msg,'error'); 
+									        	}
+									         },
+									      	  error : function() {  
+									      		$.messager.alert('提示','操作失败!','error'); 
+									   	  }
+									    });
+									}
+								});
+				        	}else{
+				        		$.messager.alert('提示',data.msg,'error'); 
+				        	}
+				         },
+				      	error : function() {  
+				      		$.messager.alert('提示','操作失败!','error'); 
+				   	  }
+				    });
+				}else{
+					$.ajax({ 
+				        type:'post',
+				        url:'poOrder/settleBill',  
+				        data:{
+				        	orderNo : $('#orderNo').val(),
+				        	payerName :  payerName,
+				        	payerCardNo : payerCardNo,
+				        	state : $('#state').val(),
+				        	stateId : $('#stateId').val(),
+				        	settleToken : $('#settleToken').val()
+				        },
+				        dataType:'json',  
+				        success:function(data){
+				        	if(data.success=='Y'){
+				        		$.messager.defaults = { ok: "确认" ,width:"300",height:"150"};
+				        		$.messager.alert('我的消息','提交银行成功','info',function(){
+				        			window.parent.closeDd();
+				        		});
+				        	}else{
+				        		$('#settleToken').val(data.settleToken);
+				        		$.messager.alert('提示',data.msg,'error'); 
+				        	}
+				         },
+				      	  error : function() {  
+				      		$.messager.alert('提示','操作失败!','error'); 
+				   	  }
+				    });
+				}
+			}
+		});
+	}
+</script>
+</head>
+<body>
+	<form id="stateFrom" method="POST" >
+		<input  name="orderNo" id="orderNo" hidden="true">
+		<input  name="state" id="state"  hidden="true">
+		<input  name="stateId" id="stateId"  hidden="true">
+		<input name="settleToken" id="settleToken" hidden="true">
+		<table >
+		<tr>
+			<td>采购订单号：</td><td><input id="showOrderNo"  class="easyui-textbox" data-options="readonly : true" style="width:200px"></td>
+			<td>客户姓名：</td><td><input id="showName" class="easyui-textbox" data-options="readonly : true" style="width:200px"></td></tr>
+			<tr><td>支付方式：</td><td><input type="text" id="payType" name="payType" class="easyui-textbox" data-options="readonly : true" style="width:200px"></td>
+			<td>订单金额：</td><td><input id="tradeTotalPrice" name="tradeTotalPrice" class="easyui-textbox" data-options="readonly : true" style="width:200px"></td></tr>
+			<tr><td>预付金额：</td><td><input id="prepaidAccounts" name="prepaidAccounts" class="easyui-textbox" value="0" data-options="readonly : true" style="width:200px"></td>
+			<td>结算金额：</td><td><input id="accountsPayable" name="accountsPayable" class="easyui-textbox" data-options="readonly : true" style="width:200px"></td></tr>
+			<tr><td>支付方账号：</td><td><input id="payerCardNo" name="payerCardNo" style="width:200px"></td>
+			<td>支付方姓名：</td><td><input id="payerName" name="payerName" class="easyui-textbox" data-options="readonly : true" style="width:200px"></td></tr>
+			<tr><td>收款方账号：</td><td><input id="custCardNo" name="custCardNo" class="easyui-textbox" data-options="readonly : true" style="width:200px"></td>
+			<td>收款方户名：</td><td><input id="custName" name="custName" class="easyui-textbox" data-options="readonly : true" style="width:200px"></td></tr>
+			<tr><td rowspan="2"><td align="center" colspan="4"><a id="btn1" class="easyui-linkbutton" data-options="iconCls:'icon-save'" onclick="submitSfn();" >提交</a></td></tr>
+		</table>
+	</form>
+</body>
+</html>

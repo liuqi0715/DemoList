@@ -1,0 +1,1372 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<link rel="stylesheet" type="text/css" href="../../themes/default/easyui.css">
+<link rel="stylesheet" type="text/css" href="../../themes/icon.css">
+<link rel="stylesheet" type="text/css" href="../../themes/demo.css">
+<script type="text/javascript" src="../../js/jquery.min.js"></script>
+<script type="text/javascript" src="../../js/jquery.easyui.min.js"></script>
+<script type="text/javascript" src="../../js/locale/easyui-lang-zh_CN.js"></script>
+<script type="text/javascript" src="../../js/datagrid-detailview.js"></script>
+<script type="text/javascript" src="../../js/datagrid-dnd.js"></script>
+<script type="text/javascript" src="../../js/jquery.edatagrid.js"></script>
+<script type="text/javascript" src="../../js/ajaxfileupload.js"></script>
+<script type="text/javascript" src="../global.js"></script>
+<style type="text/css">
+	.report-title {
+	    color: #00A8BD;
+	    font: bold 34px "黑体";
+	    margin: 0.5em 0;
+	    text-align: center;
+	}
+	#allmap {width: 100%;height: 100%;overflow: hidden;margin:0;font-family:"微软雅黑";}
+	#allmap2 {position:absolute;width: 100%;height: auto;top:50px;left:0;bottom:0;overflow: hidden;margin:0;font-family:"微软雅黑";}
+	#p2 .textbox{
+		width:445px !important;
+	}
+</style>
+<script type="text/javascript">
+var url;
+var url2;
+var map2;
+var hig = 0;
+var wareIde = []; 
+var wareToken = '';
+$(function () {
+    $('#p2').dialog({    
+		width:550,    
+		height:550,
+		closed:true,
+		title: '地图',
+	   	onClose:function(){
+	   	    $('#mapAdd2').textbox('setValue','');
+	   	}   
+    });
+	$('#imgWin').dialog({
+    	title: '查看图片',
+    	width:800,
+    	height:600,
+    	resizable:false, 
+    	closed:true,
+        minimizable: false,
+        maximizable: false,
+        collapsible: false
+		});
+    $('#upda').dialog({
+    	title: '仓库操作',
+    	width:600,
+    	height:300,
+    	resizable:false, 
+    	closed:true,
+        minimizable: false,
+        maximizable: false,
+        collapsible: false,
+        maximized:true,
+    	closed:true,
+    	onBeforeOpen:function(){
+    	     $('#wareToWares').datagrid({
+    	         iconCls: 'icon-save',
+    	         width: "100%",
+    	     	 height:265,
+    	     	 data: wareIde,
+    	    	 nowrap: true,
+    	         fitColumns:true,
+    	     	 autoRowHeight: false,
+    	     	 singleSelect: true,
+    	     	 striped: true,
+    	     	 collapsible: true,
+    	     	 remoteSort: false,
+    	     	 rownumbers:true,
+    	     	 checkOnSelect: true,
+    	         idField: 'warehouseId',
+    	         columns: [[
+    	             { field: 'warehouseId', title: '仓库id',hidden:true, width: 100,align:'left'},
+    	             { field: 'warehouseNo', title: '调拨仓库编号', width: 100,align:'left'},
+    	             { field: 'warehouseName', title: '调拨仓库名', width: 140,align:'left'},
+    	             { field: 'warehouseAdd', title: '调拨仓库地址', width: 140,align:'left'},
+    	             { field: 'employee', title: '负责人id',hidden:true, width: 100,align:'left'},
+    	             { field: 'contact', title: '负责人', width: 140,align:'left'}
+    	         ]],
+    	         toolbar: [     
+    	             {
+    	                 id: 'btnadd',
+    	                 text: '调拨仓库选择',
+    	                 iconCls: 'icon-add',
+    	                 handler: function () {
+    	                	 addToWare();
+    	                 }
+    	             }
+    	         ]
+    	     });
+    	},
+    	onBeforeClose:function(){
+	    		$('#wareTodo').dialog('close');
+	    		$('#p2').dialog('close');//启用滚轮放大缩小
+    	},
+    	onClose:function(){
+    	    $('#warehouseNo2').textbox('enable');
+    		$('#form2').form('clear');
+			$("#imgs img").remove();  
+    		wareIde = [];
+			$('#dg').datagrid('load');
+    	}
+	});
+    $('#wareTodo').dialog({
+    	title: '交单仓库',
+    	width:700,
+    	height:660,
+    	closed:true,
+    	onClose:function(){
+    		$('#wareTodoform2').form('clear');
+	   	     $('#wareToWares').datagrid({
+		     	 data: wareIde
+		     });
+    	}
+	});
+    /* $('#queryPrincipalNo').combobox({
+	 	url:'warehouseMg/searchAllLogin',
+ 		valueField:'LOGIN_ID',
+ 		textField:'CONTACT',
+ 		width:'160',
+        value:'--请选择--',
+        filter: function(q, row){
+         	var opts = $(this).combobox('options');
+            //只要航悠输入的内容，即可匹配
+			return row[opts.textField].indexOf(q) >-1;
+		}
+	}); */
+	
+	 $('#wareType').combobox({
+		editable:false,
+		panelHeight:'auto',
+		value: '',
+        onSelect:function(){
+			var warehouseNo = $('#warehouseNo2').textbox('getValue');
+			var wareType = $(this).combobox('getValue');
+			    $('#employee').combobox({
+				 	url:'warehouse/searchAllLogin',
+			 		queryParams: {
+			 			wareType : wareType,
+			 			warehouseNo : warehouseNo
+			 		},
+			 		valueField:'userId',
+			 		textField:'contact', 
+			 		width:'150',
+			        value:'--请选择--',
+			        filter: function(q, row){
+			         	var opts = $(this).combobox('options');
+				             //只要航悠输入的内容，即可匹配
+						return row[opts.textField].indexOf(q) >-1;
+			        }
+				});
+			
+			if(wareType==1){
+				$('#warehouseAdd').textbox('setValue','');
+				$('#warehouseAdd').textbox('disable');
+				$("#theMap").linkbutton("disable");
+				$('#areaName').textbox('setValue','');
+				$('#areaName').textbox('disable'); 
+				$('#wType').combobox('setValue','');
+				$('#wType').combobox('disable');
+				$('#recevingImg').textbox('setValue','');
+				$('#recevingImg').textbox('disable');
+				$('#ownerType').combobox('setValue','');
+				$('#ownerType').combobox('disable');
+				$('#acreage').textbox('setValue','');
+				$('#acreage').textbox('disable');
+				$('#Image').hide();
+			}else{
+				$('#theMap').linkbutton('enable');
+				$('#warehouseAdd').textbox('enable');
+				$('#recevingImg').textbox('enable');
+				$('#wType').combobox('enable');
+				$('#ownerType').combobox('enable');
+				$('#acreage').textbox('enable');
+				$('#Image').show();
+			}
+        },
+     });
+	
+	$('#province').combobox({
+		valueField:'provinceId', //值字段
+        textField:'provinceName', //显示的字段
+        url:'areaController/getAllProvince',
+        editable:false,//不可编辑，只能选择
+        width:'120',
+        value:'--请选择--',
+        onSelect:function(){
+        	var province = $(this).combobox('getValue');
+		    /* $('#queryPrincipalNo').combobox({
+ 		 		queryParams: {
+ 		 			areaId : province
+ 	    		},
+		        value:'--请选择--'
+			}); */
+            $('#city').combobox({
+            valueField:'cityId', 
+            textField:'cityName',
+            url:'areaController/getCityByProvinceId?provinceId='+province,
+            required:true,
+            editable:false,//不可编辑，只能选择
+            value:'--请选择--'
+          });
+        },
+     });
+     $('#city').combobox({
+        editable:false,
+        width:'100',
+        value:'请先选择省份',
+       	onSelect:function(){
+        	var city = $(this).combobox('getValue');
+		   /*  $('#queryPrincipalNo').combobox({
+ 		 		queryParams: {
+ 		 			areaId : city
+ 	    		},
+		        value:'--请选择--'
+			}); */
+            $('#area').combobox({
+            valueField:'areaId', 
+            textField:'areaName',
+            url:'areaController/getAreaByCityId?cityId='+city,
+            required:true,
+            editable:false,//不可编辑，只能选择
+            value:'--请选择--'
+           });
+       	},
+     	onLoadSuccess:function(){
+       		$('#area').combobox({
+		 		width:'100',
+		 		editable:false,
+       			value:'请先选择城市',
+       	       	onSelect:function(){
+       	        	var area = $(this).combobox('getValue');
+       			   /*  $('#queryPrincipalNo').combobox({
+       	 		 		queryParams: {
+       	 		 			areaId : area
+       	 	    		},
+       			        value:'--请选择--'
+       				}); */
+       	       	}
+			});
+    	}
+     });
+     $('#area').combobox({
+	 		width:'100',
+	 		editable:false,
+	 		value:'请先选择城市',
+	 });
+	$('#province2').combobox({
+		valueField:'provinceId', //值字段
+        textField:'provinceName', //显示的字段
+        url:'areaController/getAllProvince',
+        editable:false,//不可编辑，只能选择
+        width:'120',
+        value:'--请选择--',
+        onSelect:function(){
+        	var province = $(this).combobox('getValue');
+            $('#city2').combobox({
+            valueField:'cityId', 
+            textField:'cityName',
+            url:'areaController/getCityByProvinceId?provinceId='+province,
+            required:true,
+            editable:false,//不可编辑，只能选择
+            value:'--请选择--'
+          });
+        },
+     });
+     $('#city2').combobox({
+        editable:false,
+        width:'100',
+        value:'请先选择省份',
+       	onSelect:function(){
+        	var city = $(this).combobox('getValue');
+            $('#area2').combobox({
+            	 valueField:'areaId', 
+                 textField:'areaName',
+                 url:'areaController/getAreaByCityId?cityId='+city,
+            required:true,
+            editable:false,//不可编辑，只能选择
+            value:'--请选择--'
+           });
+       	},
+     	onLoadSuccess:function(){
+       		$('#area2').combobox({
+		 		width:'100',
+		 		editable:false,
+       			value:'请先选择城市',
+       			
+			});
+    	}
+     });
+     $('#area2').combobox({
+	 		width:'100',
+	 		editable:false,
+	 		value:'请先选择城市',
+	 });
+     var tableH = Math.max(document.documentElement.scrollHeight,document.body.scrollHeight)-($('#dg').offset().top+20);
+     $('#dg').datagrid({
+        iconCls: 'icon-save',
+        width: "100%",
+        height: tableH,
+        nowrap: true,
+        fitColumns:true,
+    	autoRowHeight: false,
+    	singleSelect: true,
+    	striped: true,
+    	collapsible: true,
+    	remoteSort: false,
+    	rownumbers:true,
+    	checkOnSelect: true,
+    	singleSelect: true,
+    	frozenColumns: [[
+             { field: 'ck', checkbox: true },
+         ]],
+        url: 'warehouse/search',
+        idField: 'warehouseId',
+        columns: [[
+            { field: 'warehouseId', title: '仓库id',hidden:true },
+            { field: 'mapX', title: '仓库X', hidden:true },
+            { field: 'mapY', title: '仓库Y',hidden:true },
+            /* { field: 'operate', title: '操作', 
+            	formatter: function (value, row, index) {
+            		return "&nbsp;&nbsp;&nbsp;<a href=\"javascript:del("+index+");\">启用</a>"+"  "+"<a href=\"javascript:del("+index+");\">禁用</a>";
+            	}	
+            }, */
+            { field: 'warehouseNo', title: '编号',align:'left' },
+            { field: 'wareTypeName', title: '仓库类型',align:'left' },
+            { field: 'wareType', title: '类型id',hidden:true },
+            { field: 'warehouseName', title: '仓库名',align:'left' },
+            { field: 'ownerType', title: '产权类型id',hidden:true },
+            { field: 'ownerTypeName', title: '产权类型',align:'left' },
+			{ field: 'image', title: '照片',
+				formatter:function(value, row, index){
+					if(value==null){
+						return value;
+					}
+					return "<img onclick=\"javascript:img1('"+value+"');\" src=\"../../images/Image_Ok.png\">";
+				}
+			},
+	        { field: 'areaId', title: '区域id',hidden:true },
+            { field: 'addressId', title: '地址id',hidden:true },
+            { field: 'state', title: '地址id',hidden:true },
+            { field: 'queryAddress', title: '地址',hidden:true },
+            { field: 'addressName', title: '地址',align:'left' },
+            { field: 'employee', title: '负责人id',hidden:true },
+            { field: 'wareContact', title: '负责人',align:'left' },
+            { field: 'phone', title: '联系方式',align:'left' },
+            { field: 'area', title: '面积',align:'right' },
+            { field: 'volume', title: '容量/Kg',align:'right' },
+            { field: 'totalWeight', title: '已使用/Kg',align:'right' },
+            { field: 'utilization', title: '利用率',align:'right' },
+            { field: 'totalQuantity', title: '数量',align:'right' },
+            { field: 'totalCost', title: '总成本',align:'right' },
+            { field: 'createBy', title: '创建人',align:'left' },
+            { field: 'createTime', title: '创建时间',align:'center' }
+        ]],
+        onDblClickRow :  function(index, row){
+        	updat(row.warehouseNo);
+        },
+        pagination: true,
+    	pageSize : 40, 
+    	pageList : [ 40, 80, 120 ]
+    	/* onLoadSuccess : function(data) {
+      	  	$(this).datagrid('clearChecked');
+    		document.getElementById("totalCost").value = data.totalCost;
+    		document.getElementById("totalCost").style.display= "";
+    		document.getElementById("totalWeight").value = data.totalWeight;
+    		document.getElementById("totalWeight").style.display= "";
+		} , */
+    	/* toolbar: [
+	    			 {
+	        			id: 'sum1',
+	       				text: '<div>总成本(元)：<input  style="display:none;border:0px;" readonly="readonly" id="totalCost"></div>',
+	    			},
+	    			{
+	        			id: 'sum2',
+	       				text: '<div>总重量(kg)：<input  style="display:none;border:0px;" readonly="readonly" id="totalWeight"></div>',
+	    			} 
+	       ]  */
+    });
+	    if(verification("warehouse","add")){
+			 $("#add1").css("display","");
+		}
+		if(verification("warehouse","undo")){
+			 $("#undo").css("display","");
+		}
+		 if(verification("warehouse","disable")){
+			 $("#disable").css("display","");
+		}
+});
+
+function img1(src) {
+	$('#img').attr("src",src);
+	$('#imgWin').dialog('open');
+}
+function add(){
+	url2 = 'warehouse/add';
+	var areaId = $('#wareAreaId').val();
+	var warehouseNo = $('#warehouseNo2').textbox('getValue');
+	var wareType = $('#wareType').combobox('getValue');	
+	
+    $('#employee').combobox({
+	 	url:'warehouse/searchAllLogin',
+ 		queryParams: {
+ 			wareType : wareType,
+ 			warehouseNo : warehouseNo
+ 		},
+ 		valueField:'userId',
+ 		textField:'contact',  
+ 		width:'150',
+        value:'--请先选择类型--'
+	}); 
+
+	$.ajax({
+        url: 'warehouse/getToken',
+        type: "post",
+        success: function (text) {
+        	wareToken = text.wareToken;
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+        	$.messager.show({
+				title: 'Error',
+				msg: jqXHR.responseText
+			});
+        }
+    });
+    $("#theMap").linkbutton("enable");
+	$('#areaName').textbox('enable'); 
+	$('#wareType').combobox('enable');
+	$('#warehouseAdd').textbox('enable');
+	$('#recevingImg').textbox('enable');
+	$('#ownerType').combobox('enable');
+	$('#acreage').textbox('enable');
+	$('#Image').show();
+	$('#upda').dialog('open');
+}
+function updat(warehouseNo){
+	url2 = 'warehouse/update';
+	getWareInfo(warehouseNo);
+
+	$.ajax({
+        url: 'warehouse/getToken',
+        type: "post",
+        success: function (text) {
+        	wareToken = text.wareToken;
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+        	$.messager.show({
+				title: 'Error',
+				msg: jqXHR.responseText
+			});
+        }
+    });
+	$('#upda').dialog('open');
+}
+
+function getWareInfo(warehouseNo) {
+	$.ajax({
+		async: false,
+		url : 'warehouse/getWareWarehouseInfoByNo',
+		type : "post",
+		data : {
+			warehouseNo : warehouseNo
+		},
+		dataType : "json",
+		success : function(data) {
+			url2 = 'warehouse/update';
+			var warehouseInfo = data.warehouseInfo;
+			var wareType = warehouseInfo.wareType;
+			var volume = warehouseInfo.volume;
+			var acreage = warehouseInfo.area;
+			var warehouseAdd = warehouseInfo.queryAddress;
+			var ownerType = warehouseInfo.ownerType;
+			var warehouseType = warehouseInfo.warehouseType;
+			var recevingImg = warehouseInfo.image;
+			var warehouseNo = warehouseInfo.warehouseNo;
+			var warehouseName = warehouseInfo.warehouseName;
+			var wareId = warehouseInfo.warehouseId;
+			var areaId = warehouseInfo.areaId;
+			var employee = warehouseInfo.employee;
+			var wareAreaId = warehouseInfo.areaId;
+			var warehouseX = warehouseInfo.mapX;
+			var warehouseY = warehouseInfo.mapY;
+			var areaName = warehouseInfo.addressName;
+			var createBy = warehouseInfo.createBy;
+			$('#createByName').textbox('setValue',createBy);
+			$('#addWarehouseX').val(warehouseX);
+			$('#addWarehouseY').val(warehouseY);
+			$('#wareId').val(wareId);
+			$('#wareAreaId').val(areaId);
+			$('#warehouseNo2').textbox('setValue',warehouseNo);
+			$('#warehouseName').textbox('setValue',warehouseName);
+			$('#areaName').textbox('setValue',areaName);
+			$('#wareType').combobox('setValue',wareType);
+			$('#wType').combobox('setValue',warehouseType);
+			$('#wareType').combobox('disable');
+			$('#volume').textbox('setValue',volume);
+			if(wareType==1){
+				$("#theMap").linkbutton("disable");
+				$('#areaName').textbox('setValue','');
+				$('#areaName').textbox('disable'); 
+				$('#warehouseAdd').textbox('setValue','');
+				$('#warehouseAdd').textbox('disable');
+				$('#recevingImg').textbox('setValue','');
+				$('#recevingImg').textbox('disable');
+				$('#ownerType').combobox('setValue','');
+				$('#ownerType').combobox('disable');
+				$('#wType').combobox('setValue','');
+				$('#wType').combobox('disable');
+				$('#acreage').textbox('setValue','');
+				$('#acreage').textbox('disable');
+				$('#Image').hide();
+				
+			}else{
+				$('#warehouseAdd').textbox('enable');
+				$('#warehouseAdd').textbox('setValue',warehouseAdd);
+				$('#recevingImg').textbox('enable');
+				$('#ownerType').combobox('enable');
+				$('#acreage').textbox('enable');
+				$('#recevingImg').textbox('setValue',recevingImg);
+				$('#ownerType').combobox('setValue',ownerType);
+				$('#acreage').textbox('setValue',acreage);
+				$('#Image').show();
+			    creatImg(warehouseInfo.image); 
+			}
+		    $('#employee').combobox({
+			 	url:'warehouse/searchAllLogin',
+		 		queryParams: {
+		 			areaId : areaId,
+		 			wareType : wareType,
+		 			warehouseNo : warehouseNo
+		 		},
+		 		valueField:'userId',
+		 		textField:'contact', 
+		 		width:'150',
+		        value:employee, 
+		        filter: function(q, row){
+		         	var opts = $(this).combobox('options');
+			             //只要航悠输入的内容，即可匹配
+						return row[opts.textField].indexOf(q) >-1;
+		        }
+			});
+		    
+		    $('#warehouseNo2').textbox('disable');
+			$.ajax({
+				async: false,
+				url : 'warehouse/getTransferPath',
+				type : "post",
+				data : {
+					warehouseNo : warehouseNo
+				},
+				dataType : "json",
+				success : function(data) {
+					wareIde = data;
+				}
+			});
+		}
+	});  
+}
+
+function updaDiTu(){
+	var script = document.createElement("script");
+	script.type = "text/javascript";
+	script.src = "http://api.map.baidu.com/api?v=2.0&ak=5cQtB2yX6GvpDqfpsVE27e2B&callback=init2";
+	document.body.appendChild(script);
+}
+function init2() {
+	map2 = new BMap.Map("allmap2");   // 创建Map实例
+	var size = new BMap.Size(10, 20);
+	map2.addControl(new BMap.CityListControl({
+	    anchor: BMAP_ANCHOR_TOP_LEFT,
+	    offset: size
+	}));
+	var x = $('#addWarehouseX').val();
+	var y = $('#addWarehouseY').val();
+	if(x!=""&&y!=""){
+		var point = new BMap.Point(x, y);
+		map2.centerAndZoom(point, 15);
+		var marker = new BMap.Marker(point);  // 创建标注
+		map2.addOverlay(marker);               // 将标注添加到地图中
+		marker.setAnimation(BMAP_ANIMATION_BOUNCE); 
+	}else{
+		var point = new BMap.Point(116.404, 39.915); // 创建点坐标
+		map2.centerAndZoom(point,15);  
+	}
+	map2.enableScrollWheelZoom();
+	map2.addEventListener("click", showInfo2);
+	$('#p2').dialog('open');//启用滚轮放大缩小
+}
+function showInfo2(e){
+	var geoc = new BMap.Geocoder();
+	var pt = e.point;
+	var add="";
+	var add2="";
+	geoc.getLocation(pt, function(rs){
+		var addComp = rs.addressComponents;
+		add=addComp.province + " " + addComp.city + " " + addComp.district + " " + addComp.street + " " + addComp.streetNumber;
+		add2=addComp.street+addComp.streetNumber;
+		$.messager.confirm('确认','您的地址是：<br>'+add+'？',
+		    function(r){    
+		    if (r){ 
+
+		    	var wareType = $('#wareType').combobox('getValue');
+				var warehouseNo =  $('#warehouseNo2').textbox('getValue');
+		    	if (wareType!=1) {
+			    	$('#warehouseAdd').textbox('setValue',add2);
+				}
+		    	$('#addWarehouseX').val(pt.lng);
+		    	$('#addWarehouseY').val(pt.lat);
+		    	$('#areaName').textbox('setValue',addComp.province+addComp.city+addComp.district);
+				$.ajax({
+					async: false,
+					url : 'warehouse/getAreaIdByAreaName',
+					type : "post",
+					data : {
+						provinceName : addComp.province,
+						cityName : addComp.city,
+						areaName : addComp.district
+					},
+					dataType : "json",
+					success : function(data) {
+						var areaId = data.areaId;
+						$('#wareAreaId').val(areaId);
+						var wareId = $('#wareId').val();
+					/* 	if (wareId == '') {
+						    $('#').combobox({
+							 	url:'warehouse/searchAllLogin',
+				 		 		queryParams: {
+				 		 			areaId : areaId,
+				 		 			wareType : wareType,
+				 		 			warehouseNo : warehouseNo
+				 	    		},
+				 	    		valueField:'userId',
+						 		textField:'contact', 
+						 		width:'150',
+						        value:'--请选择--',
+						        filter: function(q, row){
+						         	var opts = $(this).combobox('options');
+					 	             //只要航悠输入的内容，即可匹配
+					 				return row[opts.textField].indexOf(q) >-1;
+						        }
+							});
+						} */
+					}
+				}); 
+		    	$('#p2').dialog('close');
+		    }    
+		}); 
+	}); 
+}
+function searchAdd2(){
+	var mapApp =  $('#mapAdd2').textbox('getValue');
+	var myGeo = new BMap.Geocoder();
+	// 将地址解析结果显示在地图上,并调整地图视野
+	myGeo.getPoint(mapApp, function(point){
+		if (point) {
+			map2.centerAndZoom(point, 16);
+			map2.addOverlay(new BMap.Marker(point));
+		}else{
+			alert("您选择地址没有解析到结果!");
+		}
+	}, "北京市");
+}
+
+function addToWare(){
+	var employee = $('#employee').combobox('getValue');
+	if(employee==null || employee=='' || employee=='--请先标注地图位置--' || employee=='--请选择--'){
+		$.messager.alert('提示','请先选择仓库负责人','info');
+		return ;
+	}
+	$('#wareTodo').dialog('open');
+	var wareIdss = '';
+	var wareId = $('#wareId').val();
+     $('#dgWareses').datagrid({
+         iconCls: 'icon-save',
+     	 width:"100%",
+     	 height:265,
+     	 data: wareIde,
+    	 nowrap: true,
+         fitColumns:true,
+     	 autoRowHeight: false,
+     	 singleSelect: false,
+     	 striped: true,
+     	 collapsible: true,
+     	 remoteSort: false,
+     	 rownumbers:true,
+     	 checkOnSelect: true,
+         idField: 'warehouseId',
+         frozenColumns: [[
+             { field: 'ck', checkbox: true },
+         ]],
+         columns: [[
+             { field: 'warehouseId', title: '仓库id',hidden:true, width: 100 },
+             { field: 'warehouseNo', title: '调拨仓库编号', width: 100 },
+             { field: 'warehouseName', title: '调拨仓库名', width: 140 },
+             { field: 'warehouseAdd', title: '调拨仓库地址', width: 140 },
+             { field: 'employee', title: '负责人id',hidden:true, width: 100 },
+             { field: 'contact', title: '负责人', width: 140 }
+         ]],
+         onLoadSuccess: function (data) {
+        	$(this).datagrid('clearChecked');
+			var rows = $('#dgWareses').datagrid('getRows');
+			for (var i = 0; i < rows.length; i++) {
+				if (i==0) {
+					wareIdss = wareIdss+rows[i].warehouseId;
+				}else{
+					wareIdss = wareIdss+','+rows[i].warehouseId;
+				}
+			}
+         }, 
+        /*  onBeforeDrop :  function (target, source, point){
+        	 	var fag = 0;
+				var rows = $('#dgWareses').datagrid('getRows');
+				for (var i = 0; i < rows.length; i++) {
+					if (rows[i].warehouseId == source.warehouseId) {
+						fag++;
+					}
+				}
+				if (fag > 0) {
+	                return false;
+				}
+         }, */
+         toolbar: [     
+             {
+                 id: 'btnadd',
+                 text: '确认选择',
+                 iconCls: 'icon-ok',
+                 handler: function () {
+ 					var arr = [];
+ 					var rows = $('#dgWareses').datagrid('getRows');
+ 	            	if (rows.length < 1) {
+ 	            		$.messager.alert('提示',"请至少选中一项",'info');
+ 	            		return;
+ 					}
+ 					$('#wareTodo').dialog('close');
+                 }
+             }
+         ]
+     });
+     $('#dgWares').datagrid({
+         iconCls: 'icon-save',
+         url : 'warehouse/getAllWare',
+     	 width:"100%",
+     	 height:265,
+		 queryParams: {
+			wareIds : wareIdss,
+			wareId : wareId,
+			employee : $('#employee').combobox('getValue')
+		 },
+         nowrap: true,
+         fitColumns:true,
+     	 autoRowHeight: false,
+     	 singleSelect: false,
+     	 striped: true,
+     	 collapsible: true,
+     	 remoteSort: false,
+     	 rownumbers:true,
+     	 checkOnSelect: true,
+         idField: 'warehouseId',
+         frozenColumns: [[
+             { field: 'ck', checkbox: true },
+         ]],
+         columns: [[
+             { field: 'warehouseId', title: '仓库id',hidden:true, width: 100 },
+             { field: 'warehouseNo', title: '调拨仓库编号', width: 100 },
+             { field: 'warehouseName', title: '调拨仓库仓库名', width: 140 },
+             { field: 'warehouseAdd', title: '仓库地址', width: 140 },
+             { field: 'employee', title: '负责人id',hidden:true, width: 100 },
+             { field: 'contact', title: '负责人', width: 140 }
+         ]],
+         onLoadSuccess: function (data) {
+        	  $(this).datagrid('clearChecked');
+         }
+     });
+}
+function addW(){
+	var w = $('#dgWares').datagrid('getChecked');
+	var leb = w.length;
+	for (var i = 0; i < w.length; i++) {
+	 	var fag = 0;
+	   	if (wareIde.length >0) {
+			for (var j = 0; j < wareIde.length; j++) {
+				if (wareIde[j].warehouseId == w[i].warehouseId) {
+					fag++;
+				}
+			}
+		}  
+	 	if (fag==0) {
+			wareIde.push(w[i]);
+		}
+	}
+	$('#dgWareses').datagrid('loadData',wareIde);
+}
+function deleW(){
+	var w = $('#dgWareses').datagrid('getChecked');
+	var newArr = [];
+	for (var i = 0; i < wareIde.length; i++) {
+	 	var fag = 0;
+		for (var j = 0; j < w.length; j++) {
+			if (wareIde[i].warehouseId == w[j].warehouseId) {
+				fag++;
+			}
+		}
+	 	if (fag==0) {
+	 		newArr.push(wareIde[i]);
+		}
+	}
+	wareIde=newArr;
+	$('#dgWareses').datagrid('loadData',wareIde);
+}
+function searchWareTodo(){
+	var province = $('#province2').combobox('getValue');
+	var city = $('#city2').combobox('getValue');
+	var area = $('#area2').combobox('getValue');
+	var areaNo = "";
+	var rows = $('#dgWareses').datagrid('getRows');
+	var wareId = $('#wareId').val();
+	var wareIdss = '';
+	for (var i = 0; i < rows.length; i++) {
+		if (i==0) {
+			wareIdss = wareIdss+rows[i].warehouseId;
+		}else{
+			wareIdss = wareIdss+','+rows[i].warehouseId;
+		}
+	}
+	if (province != "" && province!='--请选择--') {
+		areaNo=province;
+	}
+	if (city != "" && city != "请先选择省份" && city!='--请选择--') {
+		areaNo=city;
+	}
+	if (area != "" && area != "请先选择城市" && area!='--请选择--') {
+		areaNo=area;
+	}
+	$('#dgWares').datagrid({
+		queryParams: {
+			areaId : areaNo,
+			wareIds : wareIdss,
+			wareId : wareId
+		}
+	});
+}
+function closeWin(){
+	$.messager.confirm('提示','是否关闭窗口？',function (r) {
+		if (r){
+			return true;
+		}else {
+			return false;
+		}
+	});
+}
+function clearWareTodo(){
+	$('#wareTodoform2').form('clear');
+}
+function clearWareTodoForm2(){
+	$('#form2').form('clear');
+}
+
+function submitAddWarehouse(){
+	var addWarehouseX = $('#addWarehouseX').val();
+	var addWarehouseY = $('#addWarehouseY').val();
+	var employeeId = $('#employee').combobox('getValue');
+	var wareId = $('#wareId').val();
+	var wareAreaId = $('#wareAreaId').val();
+	var toWareId = JSON.stringify(wareIde);
+	var warehouseNo = $('#warehouseNo2').textbox('getValue');
+	var warehouseName = $('#warehouseName').textbox('getValue');
+	var wareType = $('#wareType').combobox('getValue');
+	var volume = $('#volume').textbox('getValue');
+	var acreage = $('#acreage').textbox('getValue');
+	var warehouseAdd = $('#warehouseAdd').textbox('getValue');
+	var ownerType = $('#ownerType').combobox('getValue');
+	var warehouseType = $('#wType').combobox('getValue');
+	var recevingImg = $('#recevingImg').textbox('getValue');
+	if(warehouseName == ''){
+ 		$.messager.alert('提示',"请输入仓库名称！",'info');
+ 		return;
+	}
+	if(wareType == ''){
+ 		$.messager.alert('提示',"请选择仓库类型！",'info');
+ 		return;
+	}
+	
+	if(employeeId == '' || employeeId == '--请选择--' || employeeId == '--请先标注地图位置--'){
+ 		$.messager.alert('提示',"请选择仓库负责人！",'info');
+ 		return;
+	}
+	if (volume == '') {
+ 		$.messager.alert('提示',"请输入仓库容量！",'info');
+ 		return;
+	}
+	
+	if(wareType!=1){
+		if (wareAreaId == '') {
+		 	$.messager.alert('提示',"请标注仓库位置！",'info');
+		 	return;
+		} 
+		
+		if (ownerType == '') {
+	 		$.messager.alert('提示',"请选择[产权类型]！",'info');
+	 		return;
+		}
+		if (acreage == '') {
+	 		$.messager.alert('提示',"请输入仓库面积！",'info');
+	 		return;
+		}
+	
+		if (warehouseAdd == '') {
+	 		$.messager.alert('提示',"请输入仓库地址！",'info');
+	 		return;
+		}
+		if (recevingImg=='') {
+	 		$.messager.alert('提示',"请上传仓库照片！",'info');
+	 		return;
+		}
+		if (warehouseType == '') {
+	 		$.messager.alert('提示',"请选择[仓库类型]！",'info');
+	 		return;
+		}
+	}
+	$.messager.confirm('提示','是否提交？',function (r) {
+		if (r){
+			$.ajax({
+				async: false,
+				url : url2,
+				type : "post",
+				data : {
+					wareToken : wareToken,
+					addWarehouseX : addWarehouseX,
+					addWarehouseY : addWarehouseY,
+					employeeId : employeeId,
+					wareId : wareId,
+					wareAreaId : wareAreaId,
+					toWareId : toWareId,
+					warehouseNo : warehouseNo,
+					warehouseName : warehouseName,
+					wareType : wareType,
+					volume : volume,
+					warehouseAdd : warehouseAdd,
+					ownerType : ownerType,
+					recevingImg : recevingImg,
+					acreage : acreage,
+					warehouseType:warehouseType
+				},
+				dataType : "json",
+				success : function(data) {
+					if (data.code == 1) {
+		        		$.messager.alert('提示',data.msg,'info',function () {		
+		        		//getWareInfo(warehouseNo);
+		        		if(warehouseNo!=''){
+		        			getWareInfo(warehouseNo);
+							$.ajax({
+						        url: 'warehouse/getToken',
+						        type: "post",
+						        success: function (text) {
+						        	wareToken = text.wareToken;
+						        },
+						        error: function (jqXHR, textStatus, errorThrown) {
+						        	$.messager.show({
+										title: 'Error',
+										msg: jqXHR.responseText
+									});
+						        }
+						    });
+		        		}else{
+		        			$('#upda').dialog('close');
+		        		}
+		        		$('#dg').datagrid('reload'); 
+		        	    $('#wareTodo').dialog('close');
+				        });
+					}else{
+				 		$.messager.alert('提示',data.msg,'info');
+				 		return;
+					}
+				}
+			});
+		}else {
+			return;
+		}
+	});
+	
+}
+function search1(){
+	var warehouseType = $('#warehouseType').combobox('getValue');
+	var warehouseState = $('#warehouseState').combobox('getValue');
+	if (warehouseState == "0") {
+		$('#undo').hide();//启用按钮
+		$('#disable').show();//禁用按钮
+	}else if(warehouseState == "9"){
+		$('#disable').hide();
+		$('#undo').show();
+	}
+	var province = $('#province').combobox('getValue');
+	var city = $('#city').combobox('getValue');
+	var area = $('#area').combobox('getValue');
+	var warehouseNo = $('#warehouseNo').textbox('getValue');
+	var queryPrincipalNo = $('#queryPrincipalNo').textbox('getValue');
+	var warehouseState = $('#warehouseState').combobox('getValue');
+	var queryPrincipalText = $('#queryPrincipalNo').combobox('getText');
+	var areaNo = "";
+	var employee = "";
+	if (province != "" && province!='--请选择--') {
+		areaNo=province;
+	}
+	if (city != "" && city != "请先选择省份" && city!='--请选择--') {
+		areaNo=city;
+	}
+	if (area != "" && area != "请先选择城市" && area!='--请选择--') {
+		areaNo=area;
+	}
+	if (queryPrincipalNo != "" ) {
+		employee=queryPrincipalNo;
+	}
+	$('#dg').datagrid({
+		queryParams: {
+			wareType : warehouseType,
+			warehouseNo : warehouseNo,
+			userPhone : employee,
+			state : warehouseState,
+			areaId : areaNo
+		}
+	});
+}
+function getPhoto(node) { 
+    var name=node.value;
+    var fileName = name.substring(name.lastIndexOf(".")+1).toLowerCase();
+    if(fileName !="jpg" && fileName !="jpeg" && fileName !="pdf" && fileName !="png" && fileName !="dwg" && fileName !="gif"){
+ 		$.messager.alert('提示',"请选择图片格式文件上传(jpg,png,gif,dwg,pdf,gif等)！",'info');
+        node.value="";
+        return
+    }
+	$.messager.confirm('提示','是否上传此图片',function (r) {	
+		if (r){
+			var formData = new FormData();
+			formData.append('orderImage', $('#orderImage')[0].files[0]);
+			$.ajax({
+  				url : "warehouse/fileUpload",
+  				type : "post",
+  				data : formData,
+  				dataType : "json",
+  				success: function (data, status){
+	  				if (data.error == '图片上传成功！'){
+	  				    var imgURL = "";  
+	  				    try{  
+	  				        var file = null;  
+	  				        if(node.files && node.files[0] ){  
+	  				            file = node.files[0];  
+	  				        }else if(node.files && node.files.item(0)) {  
+	  				            file = node.files.item(0);  
+	  				        }  
+	  				        //Firefox 因安全性问题已无法直接通过input[file].value 获取完整的文件路径  
+	  				        try{  
+	  				            imgURL =  file.getAsDataURL();  
+	  				        }catch(e){  
+	  				            imgRUL = window.URL.createObjectURL(file);  
+	  				        }  
+	  				    }catch(e){  
+	  				        if (node.files && node.files[0]) {  
+	  				            var reader = new FileReader();  
+	  				            reader.onload = function (e) {  
+	  				                imgURL = e.target.result;  
+	  				            };  
+	  				            reader.readAsDataURL(node.files[0]);  
+	  				        }  
+	  				    }  
+	  				    creatImg(imgRUL); 
+	  				    $("#recevingImg").textbox('setValue',data.path);
+					}else{
+						$("#recevingImg").textbox('setValue',"");
+					}
+	  					
+	            }
+  			});
+			/* 
+			$.ajaxFileUpload({
+		           url: 'warehouse/fileUpload', //用于文件上传的服务器端请求地址
+		           secureuri: false, //是否需要安全协议，一般设置为false
+		           fileElementId: 'orderImage', //文件上传域的ID
+		           dataType: 'json', //返回值类型 一般设置为json
+		            success: function (data, status){
+		  				if (data.error == '图片上传成功！'){
+		  				    var imgURL = "";  
+		  				    try{  
+		  				        var file = null;  
+		  				        if(node.files && node.files[0] ){  
+		  				            file = node.files[0];  
+		  				        }else if(node.files && node.files.item(0)) {  
+		  				            file = node.files.item(0);  
+		  				        }  
+		  				        //Firefox 因安全性问题已无法直接通过input[file].value 获取完整的文件路径  
+		  				        try{  
+		  				            imgURL =  file.getAsDataURL();  
+		  				        }catch(e){  
+		  				            imgRUL = window.URL.createObjectURL(file);  
+		  				        }  
+		  				    }catch(e){  
+		  				        if (node.files && node.files[0]) {  
+		  				            var reader = new FileReader();  
+		  				            reader.onload = function (e) {  
+		  				                imgURL = e.target.result;  
+		  				            };  
+		  				            reader.readAsDataURL(node.files[0]);  
+		  				        }  
+		  				    }  
+		  				    creatImg(imgRUL); 
+		  				    $("#recevingImg").textbox('setValue',data.path);
+						}else{
+							$("#recevingImg").textbox('setValue',"");
+						}
+		  					
+		            },
+		  	        error: function (jqXHR, textStatus, errorThrown) {
+		  	        	
+		  	        	$.messager.show({
+		  					title: 'Error',
+		  					msg: jqXHR.responseText
+		  				});
+		  	        }
+		    });
+		 */}else {
+	        node.value="";
+			return;
+		}
+	});
+} 
+function creatImg(imgRUL){  
+    var textHtml = "<img src='"+imgRUL+"'width='100%' height='100%'/>";  
+    $("#imgs").html(textHtml);  
+}
+function winClose(){
+	$('#upda').dialog('close');
+} 
+
+//禁用
+function disable(){
+	var rows = $('#dg').datagrid('getSelected');
+	if (rows == "") {
+    	$.messager.alert('提示','请至少选择一项！','info');
+        return;
+    }
+	var warehouseId = rows.warehouseId;
+	var totalWeight = rows.totalWeight; 
+	var state = rows.state;
+	if (state != 9 && totalWeight != 0) {
+ 		$.messager.alert('提示',"库存未清空,不可禁用！",'info');
+ 		return;
+	}
+	if (state == 9) {
+		$.messager.alert('提示',"此仓库已禁用！",'info');
+ 		return;
+	}
+	$.messager.confirm('确认','是否确认禁用此仓库？',	function(r){    
+	    if (r){
+	    	$.ajax({
+	    		async: false,
+	    		url : 'warehouse/disableWarehouse',
+	    		type : "post",
+	    		data : {
+	    			warehouseId : warehouseId,
+	    			state : state
+	    		},
+	    		dataType : "json",
+	    		success : function(data) {
+            		$.messager.alert('提示',data.msg,'info',function () {		
+            			$('#dg').datagrid('load');
+    		        });
+	    		}
+	    	});
+	    }else{
+	    	return;
+	    }
+	});
+}
+
+//启用
+function undo(){
+	var rows = $('#dg').datagrid('getSelected');
+	if (rows == "") {
+    	$.messager.alert('提示','请至少选择一项！','info');
+        return;
+    }
+	var warehouseId = rows.warehouseId;
+	var totalWeight = rows.totalWeight; 
+	var state = rows.state;
+	if (state == 0) {
+		$.messager.alert('提示',"此仓库已启用！",'info');
+ 		return;
+	}
+	$.messager.confirm('确认','是否确认启用此仓库？',	function(r){    
+	    if (r){
+	    	$.ajax({
+	    		async: false,
+	    		url : 'warehouse/undoWarehouse',
+	    		type : "post",
+	    		data : {
+	    			warehouseId : warehouseId,
+	    			state : state
+	    		},
+	    		dataType : "json",
+	    		success : function(data) {
+            		$.messager.alert('提示',data.msg,'info',function () {		
+            			$('#dg').datagrid('load');
+    		        });
+	    		}
+	    	});
+	    }else{
+	    	return;
+	    }
+	});
+}
+</script>
+</head>
+<body>
+<div style="margin-left:auto; margin-right:auto;">
+		  <div class="inputArea1">
+		  	<label>仓库状态</label>：<select id="warehouseState" name="warehouseState" class="easyui-combobox" data-options="width:'130',editable:false,panelHeight:'auto',value: ''">
+				<option value=''></option>
+				<option value='0'>启用</option>
+				<option value='9'>禁用</option>
+			</select>
+		  	<label>省份</label>：<input id="province" />
+		  	<label>城市</label>：<input id="city" />
+		  	<label>区域</label>：<input id="area" /> 
+		  </div>
+	  	  
+	  <div class="inputArea1">
+		   	<label>仓库编号</label>：<input id="warehouseNo"  class="easyui-textbox" data-options="prompt:'请输入要仓库编号'"> 
+			<label>仓库负责人</label>：<input id="queryPrincipalNo"  class="easyui-textbox" data-options="prompt:'手机号'">
+			
+		 	 <label>仓库类型</label>：<select id="warehouseType" name="warehouseType" class="easyui-combobox" data-options="width:'130',editable:false,panelHeight:'auto',value: ''">
+				<option value=''></option>
+				<option value='1'>车辆</option>
+				<option value='2'>物流中心</option>
+			</select>
+	  </div>
+	  <div class="inputArea1" style="margin:10px 0;">
+		  <a id="add1" class="easyui-linkbutton" data-options="iconCls:'icon-add'" style="display:none" onclick="add()">新增</a>
+		  <a id="undo" class="easyui-linkbutton" data-options="iconCls:'icon-undo'" style="display:none" onClick="undo();">启用</a>
+  		  <a id="disable"  class="easyui-linkbutton" data-options="iconCls:'icon-redo'" style="display:none" onClick="disable();">禁用</a>
+	  	  
+	  	  <a id="btn" class="easyui-linkbutton" data-options="iconCls:'icon-search'" onClick="search1();">查看</a>
+	  	  <a href="./warehouseMg.html"  class="easyui-linkbutton" data-options="iconCls:'icon-clear'"  >清空</a>
+	  </div>
+	  <table id="dg" style="align:center"></table>
+		
+	   <div id="tt" class="easyui-panel" style="margin-top: 10px"closed='true'> 
+		    <div title="仓库库存">  
+		    	<table id="dg1" style="align:center"></table>
+		    </div>  
+		    <div title="入库单">  
+		    	<table id="poDge" style="align:center"></table>
+		    </div>  
+		    <div title="出库单">  
+		    	<table id="drDge" style="align:center"></table>
+		    </div>
+		</div>
+	</div>
+	<div id="upda">
+		<form action="warehouseMg/add" method="post" id="form2">
+			<input type="hidden" name="warehouseIndex" value="" id="warehouseIndex">
+			<input type="hidden" name="warehouseX" value="" id="addWarehouseX">
+			<input type="hidden" name="warehouseY" value="" id="addWarehouseY">
+			<input type="hidden" name="wareId" value="" id="wareId">
+			<input type="hidden" name="wareAreaId" value="" id="wareAreaId" >
+			<div style="margin: 0px auto;width:90%;" align="center">
+				<div style="text-align:justify;text-justify:distribute-all-lines;text-align-last:justify;width:210px">
+					  <h3 class="report-title">仓库基础信息</h3>
+				</div>
+			</div>
+  
+			<fieldset style="margin:0 auto;width:740px;">
+				<legend>仓库基础信息</legend>
+				<div style="margin:0 auto;width:740px;line-height: 40px;">
+				  <div class="inputArea1">
+				    <label>编号</label>：<input class="easyui-textbox" id="warehouseNo2" name="warehouseNo2" data-options="readonly:true,disabled:true"><font color="red">*</font>
+				  	<label style="margin-left:10px;">名称</label>：<input class="easyui-textbox" id="warehouseName" name="warehouseName"><font color="red">*</font>
+				  	<label style="margin-left:10px;">创建人</label>：<input id="createByName" name="createByName" class="easyui-textbox" data-options="readonly:true,disabled:true">
+				  </div>
+				  <div class="inputArea1">
+				    <label>类型</label>：<select id="wareType" name="wareType" class="easyui-combobox" style="width: 150px">
+									<option value=''></option>
+									<option value='1'>车辆</option>
+									<option value='2'>物流中心</option>
+								</select><font color="red">*</font>
+					<label style="margin-left:10px;">负责人</label>：<input id="employee" name="employee"><font color="red">*</font>
+				  	<label style="margin-left:10px;">容量</label>：<input class="easyui-textbox" id="volume" name="volume"><font color="red">*</font>(Kg)
+				  </div>	
+				</div>
+				<fieldset style="margin:0 auto;width:740px;">
+					<legend>地址</legend>
+					<div style="margin:0 auto;width:100%;line-height: 40px;" id="wMg0">
+					  <div class="inputArea1">
+					    <label>地图位置</label>：<a id="theMap" class="easyui-linkbutton" data-options="iconCls:'icon-search'" onClick="updaDiTu();">地图位置标注</a>
+					  	<label style="margin-left:25px;">区域名称</label>：<input id="areaName" name="areaName" class="easyui-textbox" data-options="readonly:true">
+					  	<label style="margin-left:17px;">详细地址</label>：<input id="warehouseAdd" name="warehouseAdd" class="easyui-textbox">
+					  </div>
+					</div>
+				</fieldset>
+				<div style="margin:10px auto;width:740px;">
+				
+				  <div class="inputArea1">
+				  	<div style="float:left;">
+				  	  <p><label>仓库类型</label>：<select id="wType" name="wType" class="easyui-combobox" data-options="editable:false,width:'150',panelHeight:'auto',value: ''">
+									<option value=''></option>
+									<option value='1'>暂存点</option>
+									<option value='2'>环评仓</option>
+								</select><font color="red">*</font></p>
+					   <p><label>产权类型</label>：<select id="ownerType" name="ownerType" class="easyui-combobox" data-options="editable:false,width:'150',panelHeight:'auto',value: ''">
+									<option value=''></option>
+									<option value='1'>加盟商提供</option>
+									<option value='2'>租用</option>
+									<option value='3'>自有</option>
+								</select><font color="red">*</font></p>
+					  	<p><label>面积</label>：<input id="acreage" name="acreage" class="easyui-textbox"><font color="red">*</font>m&sup2;</p>
+				  		<p><label>仓库照片</label>：<input id="recevingImg" class="easyui-textbox"style="width: 350px" type="text" data-options="readonly:true"/>
+							<input type="file" id="orderImage" name="vehicleLicense" style="display: none;" onchange="getPhoto(this)"accept="image/jpeg,image/gif,image/dwg,image/png,image/jpg,image/pdf"/>
+			    			<a id="Image" onclick="javascript:{$('#orderImage').trigger('click');}" class="easyui-linkbutton" style="padding-left: 6px;padding-right: 6px">选择图片</a><font style="margin-left:10px;" color="red">*</font></p>
+				  	</div>
+				  	<div id="imgs" style="width: 200px;height: 130px;float:right;margin-top:25px;"></div>
+				  </div>
+
+				</div>
+				<div style="margin:0 auto;width:100%;">
+					<table id="wareToWares" style="align:center"></table>
+				</div>
+				<div style="margin:0 auto;width:100%;text-align:center;padding:10px 0;">
+				    <a id="clanelButt" onclick="winClose()" class="easyui-linkbutton window-submitBtn">取消</a>
+					<a id="btn1" class="easyui-linkbutton window-submitBtn" onclick="submitAddWarehouse();" >提交</a>
+				</div>
+			</fieldset>
+		</form>
+	</div> 
+	<div id="wareTodo">
+		<div style="padding:10px;">
+			<form id="wareTodoform2">
+			  <div class="inputArea">
+			    <label>省</label>：<input id="province2" >
+			  	<label>市</label>：<input id="city2">
+			  	<label>区</label>：<input id="area2">
+			  	<a class="easyui-linkbutton" data-options="iconCls:'icon-search'" onClick="searchWareTodo();">查看</a>
+  				<a class="easyui-linkbutton" data-options="iconCls:'icon-clear'" onClick="clearWareTodo();">清空</a>
+			  </div>
+			</form>
+			<table id="dgWares" style="align:center"></table>
+			<div style="text-align: center;margin-top: 5px;margin-bottom: 5px;">
+				<a id="addW" class="easyui-linkbutton" style="padding-left: 10px;padding-right: 10px" onClick="deleW();">↑</a>
+				<a id="deleW" class="easyui-linkbutton" style="padding-left: 10px;padding-right: 10px"onClick="addW();">↓</a>
+			</div>
+			<table id="dgWareses" style="align:center"></table>
+		</div>
+	</div>
+	<div id="p2" style="position:relative;">
+	    <div class="inputArea" style="padding:10px 0 10px 10px;">
+	       <input class="easyui-textbox" id="mapAdd2" name="mapAdd2"><a id="btn" class="easyui-linkbutton" data-options="iconCls:'icon-search'" onClick="searchAdd2();">搜索</a>
+	    </div>
+		<div id="allmap2">
+		</div> 
+	</div>
+  	<div id="imgWin"> <img id="img" src="" width="100%" height="99%"> </div>
+</body>
+</html>

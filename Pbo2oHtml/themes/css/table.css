@@ -1,0 +1,119 @@
+body,table {
+	font-size: 12px;
+}
+
+td {
+	height: 20px;
+}
+
+//
+样式一
+	table.tab_css_1 {
+	table-layout: fixed;
+	empty-cells: show;
+	border-collapse: collapse;
+	margin: 0 auto;
+	border-collapse: collapse;
+	border: 1px solid #cad9ea;
+	color: #666;
+}
+
+table.tab_css_1 th {
+	background-image: url(th_bg1.gif);
+	background-repeat: :repeat-x;
+	height: 30px;
+}
+
+table.tab_css_1 td,table.tab_css_1 th {
+	border: 1px solid #cad9ea;
+	/* padding: 0 1em 0; */
+}
+
+table.tab_css_1 tr.tr_css {
+	background-color: #f5fafe;
+}
+
+//
+样式二
+	table.tab_css_2 {
+	border: 1px solid #9db3c5;
+	color: #666;
+}
+
+table.tab_css_2 th {
+	background-image: url(th_bg2.gif);
+	background-repeat: :repeat-x;
+	height: 30px;
+	color: #fff;
+}
+
+table.tab_css_2 td {
+	border: 1px dotted #cad9ea;
+	padding: 0 2px 0;
+}
+
+table.tab_css_2 th {
+	border: 1px solid #a7d1fd;
+	padding: 0 2px 0;
+}
+
+table.tab_css_2 tr.tr_css {
+	background-color: #e8f3fd;
+}
+
+//
+样式三
+	table.tab_css_3 {
+	border: 1px solid #fc58a6;
+	color: #720337;
+}
+
+table.tab_css_3 th {
+	background-image: url(th_bg3.gif);
+	background-repeat: :repeat-x;
+	height: 30px;
+	color: #35031b;
+}
+
+table.tab_css_3 td {
+	border: 1px dashed #feb8d9;
+	padding: 0 1.5em 0;
+}
+
+table.tab_css_3 th {
+	border: 1px solid #b9f9dc;
+	padding: 0 2px 0;
+}
+
+table.tab_css_3 tr.tr_css {
+	background-color: #fbd8e8;
+}
+
+
+table.hovertable {
+	font-family: verdana, arial, sans-serif;
+	font-size: 11px;
+	color: #333333;
+	border-width: 1px;
+	border-color: #999999;
+	border-collapse: collapse;
+}
+
+table.hovertable th {
+	background-color: #c3dde0;
+	border-width: 1px;
+	padding: 8px;
+	border-style: solid;
+	border-color: #a9c6c9;
+}
+
+table.hovertable tr {
+	background-color: #d4e3e5;
+}
+
+table.hovertable td {
+	border-width: 1px;
+	padding: 8px;
+	border-style: solid;
+	border-color: #a9c6c9;
+}

@@ -1,0 +1,1223 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<link rel="stylesheet" type="text/css" href="../../themes/default/easyui.css">
+<link rel="stylesheet" type="text/css" href="../../themes/icon.css">
+<link rel="stylesheet" type="text/css" href="../../themes/demo.css">
+<link rel="stylesheet" type="text/css" href="../../css/timeline.css">
+<script type="text/javascript" src="../../js/jquery.min.js"></script>
+<script type="text/javascript" src="../../js/jquery.easyui.min.js"></script>
+<script type="text/javascript" src="../../js/locale/easyui-lang-zh_CN.js"></script>
+<script type="text/javascript" src="../../js/ajaxfileupload.js"></script>
+<script type="text/javascript" src="../../js/timeline.js"></script>
+<script type="text/javascript" src="../global.js"></script>
+<style type="text/css">
+	.report-title {
+	    color: #00A8BD;
+	    font: bold 34px "黑体";
+	    margin: 0.5em 0;
+	    text-align: center;
+	}
+	#tOrder .textbox{
+		width:140px !important;
+	}
+	#tOrder3 .textbox{
+		width:93px !important;
+	}
+	#freightOrder1 .textbox{
+		width:130px !important;
+	}
+	#freightOrder1 .textbox{
+		width:130px !important;
+	}
+</style>
+<script type="text/javascript">
+
+var url;
+function domark(er,index){
+	$('#mark').dialog('open');
+	var markId = $("input[type=radio][name=markId]");
+	for (var i = 0; i < markId.length; i++) {
+		if (markId[i].value == er) {
+			markId[i].checked = true;
+		}else {
+			markId[i].checked = false;
+		}
+	}
+	var freightNoMk = $('#dg').datagrid("getRows")[index].logisticsNoteNo;
+	var orderMemo = $('#dg').datagrid("getRows")[index].orderMemo;
+	$("input[name='freightNoMk").val(freightNoMk);
+	$("textarea[name='orderMemo']").val(orderMemo);
+}
+$(function () {
+	//var orderId = $('#orderId').val();
+	$('#queryStatus').combobox({
+		width:'80', 
+    	panelHeight: '80',
+        valueField:'value', //值字段
+        textField:'label', //显示的字段
+        editable:false,//不可编辑，只能选择
+        value:'--请选择--',
+        data: [{
+			label: '已制单',
+			value: '1'
+		}, {
+			label: '已付款',
+			value: '2'
+		}, {
+			label: '已作废',
+			value: '9'
+		}]
+    });
+    $('#queryNoType').combobox({
+    	width:'80', 
+    	panelHeight: '60',
+        valueField:'value', //值字段
+        textField:'label', //显示的字段
+        editable:false,//不可编辑，只能选择
+        value:'--请选择--',
+        data: [{
+			label: '送货单',
+			value: '1'
+		}, {
+			label: '调拨单',
+			value: '2'
+		}]
+    });
+	$('#start').datebox({
+		editable:false,
+	    width:'100px',
+	    onSelect:function(start){
+	    	var now = new Date();
+	    	if(start > now){
+	    		$.messager.alert('提示','操作失败!日期不能超过当前时间','error');
+	    		$('#start').datebox('setValue','');
+	    	}
+	    	
+ 		}
+	});
+	$('#end').datebox({
+		editable:false,
+	    width:'100px',
+	    onSelect:function(date){
+	    	var now = new Date();
+	    	if(date > now){
+	    		$.messager.alert('提示','操作失败!日期不能超过当前时间','error');
+	    		$('#end').datebox('setValue','');
+	    	}
+	    	var start = new Date($('#start').datebox('getValue'));
+	    	var end = new Date($('#end').datebox('getValue'));
+	    	if(start>end){
+	    		$.messager.alert('提示','操作失败!起始时间不能晚于结束时间','error');
+	    		$('#end').datebox('setValue','');
+	    	}
+ 		}
+	});
+	$('#mark').window({
+    	title: '修改标识',
+    	width:600,
+    	height:405,
+    	resizable:false, 
+    	closed:true,
+        minimizable: false,
+        maximizable: false,
+        collapsible: false
+	});
+	$('#queryCompanyName').combobox({
+		url:'freight/queryCompanyName',
+ 		valueField:'companyName',
+ 		textField:'companyName',
+ 		width:'100',
+ 		panelHeight: '120',
+ 		editable:true,
+        value:'--请选择--'
+    }); 
+	$('#logisticsType').combobox({
+ 		width:'auto', 
+        valueField:'value', //值字段
+        textField:'label', //显示的字段
+        editable:false,//不可编辑，只能选择
+        value:'--请选择--',
+        data: [{
+			label: '送货单',
+			value: '1'
+		}, {
+			label: '调拨单',
+			value: '2'
+		}]
+     });  
+	$('#queryLogisticsInfo').combobox({
+		url:'freight/searchLogistics',
+ 		valueField:'logisticsId',
+ 		textField:'name',
+ 		width:'150',
+ 		panelHeight: '100',
+ 		editable:false,
+        value:''
+     });
+	$('#settleType').combobox({
+ 		width:'auto', 
+        valueField:'value', //值字段
+        textField:'label', //显示的字段
+        editable:false,//不可编辑，只能选择
+        value:'--请选择--',
+        data: [{
+			label: '现付(转账)',
+			value: '1'
+		},{
+			label: '月结(转账)',
+			value: '2'
+		}]
+     });  
+	$('#orderList').dialog({
+    	title: '运输信息',
+    	width:'700',
+    	height:'600',
+    	resizable:false, 
+    	closed:true,
+        minimizable: false,
+        maximizable: false,
+        collapsible: false,
+        maximized:true,
+        onOpen:function(){
+			$.ajax({
+		        url: 'freight/getToken',
+		        type: "post",
+		        success: function (text) {
+		        	$('#trafficToken').val(text.trafficToken);
+		        },
+		        error: function (jqXHR, textStatus, errorThrown) {
+		        	$.messager.show({
+						title: 'Error',
+						msg: jqXHR.responseText
+					});
+		        }
+		    });
+        },
+    	onBeforeClose:function(){
+		},
+        onClose: function () {  
+				//$('#form1').form('clear'); 
+				$('#dg').datagrid('load');
+				$("#imgs2 img").remove(); 
+        }
+	});
+	var tableH = Math.max(document.documentElement.scrollHeight,document.body.scrollHeight)-($('#dg').offset().top+10);
+	
+	var toolbar = [];
+	if(verification("freight","add")){
+		toolbar.push({
+            id: 'btnadd',
+            text: '新增运单 ',
+            iconCls: 'icon-add',
+            handler: function () {
+		    	$('#orderList').dialog('open');
+				
+		    	//doDivCss('0');
+				$("#imgs2 img").remove();
+				$('#payButt').linkbutton('disable');
+				$('#logisticsType').combobox('enable');
+				addTrafficInfo();
+				$('#form1').form('clear'); 
+            }
+		});
+	}
+    $('#dg').datagrid({
+        iconCls: 'icon-save',
+        width: "100%",
+    	height: tableH,
+    	url: 'freight/search',
+    	queryParams:{
+        	queryStatus : "isEmpt",
+        	queryCompanyName : "isEmpt"
+    	},
+        nowrap: true,
+    	singleSelect: true,
+        autoRowHeight: false,
+    	multiSort : true,
+        striped: true,
+        collapsible: true,
+        remoteSort: true,
+        rownumbers:true,
+        idField: "logisticsNoteId",
+        columns: [[
+        	{ field: 'markId', title: '标识',
+            	formatter:function(value, row, index){
+					return '<img onclick="javascript:domark('+value+','+index+');" src="../../images/'+value+'.png">';
+			}},
+        	{field:'logisticsNoteId', title: '运单ID',hidden:true },
+            {field:'logisticsNoteNo',title:'运单编号',width:150,align:'center'},
+            {field:'logisticsId',title:'物流公司Id',hidden:true },
+            {field:'companyName',title:'物流公司',width:120,align:'center'},
+            {field:'freight',title:'物流费(元)',width:100,align:'center'},
+            {field:'handlingCharges',title:'装卸费(元)',width:100,align:'center'},
+            {field:'weighingFee',title:'过磅费(元)',width:100,align:'center'},
+            {field:'noType',title:'运单类型',width:60,align:'center'},
+            {field:'no',title:'调拨/送货单号',width:150,align:'center'},
+            {field:'settleType',title:'结算类型',width:100,align:'center'},
+            {field:'freightStatus',title:'状态',width:60,align:'center'},
+            {field:'startAddressName',title:'起点',width:150,align:'center'},
+            {field:'passbyAddressName1',title:'途径点1',width:120,hidden:true,align:'center'},
+            {field:'passbyAddressName2',title:'途径点2',width:120,hidden:true,align:'center'},
+            {field:'endAddressName',title:'终点',width:150,align:'center'},
+            {field:'shipper',title:'运承人',width:100,align:'center'},
+            {field:'tel',title:'联系电话',width:100},
+            {field:'plateNo',title:'车牌号',width:100},
+            {field:'remark',title:'备注',hidden:true },
+            {field:'logisticsImg',title:'运输图片',hidden:true },
+            {field:'createTime',title:'创建时间',width:150},
+            {field:'createUserName',title:'创建人',hidden:true},
+            {field:'updateTime',title:'修改时间',hidden:true},
+            {field:'updateUserName',title:'修改人',hidden:true}
+        ]],
+        onLoadSuccess:function(){
+        	  $(this).datagrid('clearChecked');
+       	},
+        onDblClickRow :  function(index, row){
+	    	$('#orderList').dialog('open');
+			$.ajax({
+		        url: 'freight/searchTrafficQuery',
+		        data: { 
+		        	logisticsNoteNo : $('#dg').datagrid("getRows")[index].logisticsNoteNo
+		        },
+		        type: "post",
+		        success: function (text) {
+		        	orderRef(text,'');
+		        },
+		        error: function (jqXHR, textStatus, errorThrown) {
+		        	$.messager.show({
+						title: 'Error',
+						msg: jqXHR.responseText
+					});
+		        }
+		    });
+        },
+        pagination: true,
+        pageSize : 40, 
+        pageList : [ 40, 80, 120,160 ], 
+        toolbar: toolbar
+    }); 
+    
+	if(verification("freight","pay")){
+		 $("#payButt").css("display","");
+	}
+})
+
+function doDivCss(statusId){
+	$('#status').textbox('disable');
+	if (statusId == '0') {
+    	url='freight/add';
+    	var role = verification("freight","add");
+    	var payRole = verification("freight","pay");
+    	var logisticsType=$('#logisticsType').combobox('getValue');
+    	if(logisticsType!=null && logisticsType=="1"){
+    		$('#startAddressId').combobox('enable');
+    		$('#passbyAddressId1').combobox('enable');
+        	$('#passbyAddressId2').combobox('enable');
+        	$('#endAddressId').combobox('enable');
+        	$('#weighingFee').textbox('disable');
+        	$('#logisticsImg').textbox('enable');
+        	$('#logistics').linkbutton('enable');
+        	$(".showImg").show();
+    	}else if(logisticsType!=null && logisticsType=="2"){
+    		$('#startAddressId').combobox('disable');
+    		$('#passbyAddressId1').combobox('disable');
+        	$('#passbyAddressId2').combobox('disable');
+        	$('#endAddressId').combobox('disable');
+        	$('#weighingFee').textbox('enable');
+        	$('#logisticsImg').textbox('disable');
+        	$('#logistics').linkbutton('disable');
+        	$(".showImg").hide();
+    	}
+    	//$('#saveButt').linkbutton('enable');
+    	$('#logisticsType').combobox('enable');
+    	$('#No').combogrid('enable');
+    	$('#logisticsNoteNo').textbox('disable');
+    	$('#logisticsInfo').combobox('enable');
+    	$('#settleType').combobox('enable');
+    	$('#freight').textbox('enable');
+    	$('#handlingCharges').textbox('enable');
+    	$('#shipper').textbox('enable');
+    	$('#tel').textbox('enable');
+    	$('#plateNo').textbox('enable');
+    	$('#remark').textbox('enable');
+    	//新增按钮控制
+    	$('#payButt').linkbutton('disable');
+    	$('#payButt').hide();
+    	if (role == false) {
+        	$('#saveButt').linkbutton('disable');
+        	$('#saveButt').hide();
+		}else{
+			$('#saveButt').linkbutton('enable');
+	    	$('#saveButt').show();
+		}
+    	/* if (payRole == false) {
+        	$('#payButt').hide();
+		}else{
+        	$('#payButt').show();
+		} */
+	}else if(statusId == "1" ){//查看与编辑
+		url='freight/add';
+		var role = verification("freight","update");
+    	var payRole = verification("freight","pay");
+		$('#logisticsType').combobox('disable');
+    	$('#No').combogrid('disable');
+    	$('#logisticsNoteNo').textbox('disable');
+    	var logisticsType=$('#logisticsType').combobox('getValue');
+    	if(logisticsType!=null && logisticsType=="1"){
+    		$('#startAddressId').combobox('enable');
+    		$('#passbyAddressId1').combobox('enable');
+        	$('#passbyAddressId2').combobox('enable');
+        	$('#endAddressId').combobox('enable');
+        	$('#weighingFee').textbox('disable');
+        	$('#logisticsImg').textbox('enable');
+        	$('#logistics').linkbutton('enable');
+        	$(".showImg").show();
+    	}else if(logisticsType!=null && logisticsType=="2"){
+    		$('#startAddressId').combobox('disable');
+    		$('#passbyAddressId1').combobox('disable');
+        	$('#passbyAddressId2').combobox('disable');
+        	$('#endAddressId').combobox('disable');
+        	$('#weighingFee').textbox('enable');
+        	$('#logisticsImg').textbox('disable');
+        	$('#logistics').linkbutton('disable');
+        	$(".showImg").hide();
+    	}
+    	//$('#payButt').linkbutton('disable');
+    	if (role == false) {
+    		$('#saveButt').linkbutton('disable');
+        	$('#saveButt').hide();
+		}else{
+	    	$('#saveButt').show();
+	    	$('#saveButt').linkbutton('enable');
+		}
+    	if (payRole == false) {
+    		$('#payButt').linkbutton('disable');
+        	$('#payButt').hide();
+		}else{
+			$('#payButt').linkbutton('enable');
+			$('#payButt').show();
+		}
+	}else if(statusId == "2" ){
+		url='freight/pay';
+		var role = verification("freight","update");
+    	var payRole = verification("freight","pay");
+    	if (role == false) {
+    		$('#saveButt').linkbutton('disable');
+        	$('#saveButt').hide();
+		}else{
+	    	$('#saveButt').show();
+	    	$('#saveButt').linkbutton('enable');
+		}
+    	if (payRole == false) {
+    		$('#payButt').linkbutton('disable');
+        	$('#payButt').hide();
+		}else{
+			$('#payButt').linkbutton('enable');
+        	$('#payButt').show();
+		}
+	}
+}
+
+function addTrafficInfo(){
+	var datas=[
+        {
+            time:"",//对应的时间
+            text:"已制单",//对应的文字内容
+            state:1//当前状态，配1为亮色，0为暗色
+        },{
+            time:"",
+            text:"已付款",
+            state:0
+        },{
+            time:"",
+            text:"已作废",
+            state:0 
+        }];
+    var conf={
+    	      textAlign:'left',//设置文字位置,left在点上方,center在线上方
+    	      // timefontColor:"blue",//设置上方文字颜色
+    	      // textfontColor:"green",//设置下方文字颜色
+    	      lineWidth:200//设置线条长度
+    	    };
+    $(".pro").empty().timeLines(datas,conf);
+	$('#No').combogrid({readonly:true,prompt:"请先选择运单来源"});
+	$('#logisticsInfo').combogrid({readonly:true,prompt:"请先选择运单来源"});
+	$('#logisticsType').combobox({
+		onSelect:function(){
+			var logisticsType = $(this).combobox('getValue');
+			$('#form1').find("input").val(""); 
+			$('#form1').find("textarea").val("");
+			$("#imgs2 img").remove();
+			$.ajax({
+		        url: 'freight/getToken',
+		        type: "post",
+		        success: function (text) {
+		        	$('#trafficToken').val(text.trafficToken);
+		        },
+		        error: function (jqXHR, textStatus, errorThrown) {
+		        	$.messager.show({
+						title: 'Error',
+						msg: jqXHR.responseText
+					});
+		        }
+		    });
+			$('#logisticsType').combobox({
+				data: [{
+					label: '送货单',
+					value: '1'
+				}, {
+					label: '调拨单',
+					value: '2'
+				}],
+			});
+			$(this).combobox('setValue',logisticsType);
+        	$('#logisticsInfo').combogrid({readonly:false,prompt:""});
+        	$('#No').combogrid({readonly:false,prompt:""});
+        	doDivCss('0');
+        	if(logisticsType!=null && logisticsType=="1"){//送货
+	    		 $('#logisticsInfo').combobox({
+	    			url:'freight/searchLogistics',
+	    	 		valueField:'logisticsId',
+	    	 		textField:'name',
+	    	 		width:'150',
+	    	 		panelHeight: '100',
+	    	 		editable:false,
+	    	        value:''
+	    	     }); 
+	    		 $('#No').combogrid({    
+            		panelWidth:480,
+            		idField:'transferNoteNo',    
+    			    textField:'transferNoteNo',    
+    			    url:'freight/getTrafficInfoByNoType?noType='+logisticsType, 
+    			    editable:false,
+    			    columns:[[    
+    			    	{field:'deliveryId', title: '送货单ID', hidden:true},
+    		            {field:'deliveryNo',title:'送货单号' ,width:160},
+    		            {field:'companyId',title:'收货公司ID',hidden:true},
+    		            {field:'companyName',title:'收货公司',width:150},
+    		            {field:'warehouseId',title:'仓库ID', hidden:true},
+    		            {field:'warehouseNo',title:'仓库编号',width:150},
+    		            {field:'warehouseName',title:'仓库名',width:120},
+    		            {field:'logisticsNoteNo',title:'运单编号',width:155}
+    			    ]],
+    			    onClickRow:function(index,row){ 
+				    	getAddressByLogNo(row.warehouseId,row.companyId,row.logisticsNoteNo);
+		        	}
+                }); 
+	    	}else if(logisticsType!=null && logisticsType=="2"){//调拨
+	    		$('#logisticsInfo').combobox({  
+	    		 	editable:true,
+	    		    url:'transferNote/getFreightCompany',  
+	    		    valueField:'freightCompany',  //LOGISTICS_NOTE_ID 
+	    		    textField:'freightCompany',
+	    		    value:''    
+	    		});
+	    		$('#No').combogrid({    
+	        		panelWidth:480,
+	        		idField:'transferNoteNo',    
+				    textField:'transferNoteNo',   
+				    url:'freight/getTrafficInfoByNoType?noType='+logisticsType, 
+				    editable:false,
+				    columns:[[    
+			            {field:'transferNoteId', title: '调拨单ID', hidden:true},
+    		            {field:'transferNoteNo',title:'调拨单号',width:160},
+    		            {field:'fromWsNo',title:'调出仓库编号',width:100},
+    		            {field:'fromWsNoName',title:'调出仓库',width:100},
+    		            {field:'toWsNo',title:'调入仓库编号',width:150},
+    		            {field:'toWsNoName',title:'调入仓库',width:100},
+    		            {field:'logisticsNoteNo',title:'运单编号',width:160}
+				    ]],
+				    onClickRow:function(index,row){ 
+				    	getAddressByLogNo(row.fromWsNo,row.toWsNo,row.logisticsNoteNo);
+		        	}
+	           }); 
+	    	}
+        	$(".textbox").click(function(){
+        		$(".combo-panel").each(function(){
+        			if($(this).find(".datagrid-htable")){
+        				$(this).css("overflow","hidden");
+        			};
+        		});
+        	});
+        },
+     });  
+}
+function getAddressByLogNo(fromWsNo,toWsNo,logisticsNoteNo){
+	if(logisticsNoteNo!=null && logisticsNoteNo!=""){
+		$.ajax({
+	        url: 'freight/searchTrafficQuery',
+	        data: { 
+	        	logisticsNoteNo : logisticsNoteNo
+	        },
+	        type: "post",
+	        success: function (text) {
+	        	orderRef(text,'updt');
+	        },
+	        error: function (jqXHR, textStatus, errorThrown) {
+	        	$.messager.show({
+					title: 'Error',
+					msg: jqXHR.responseText
+				});
+	        }
+	    });
+	}else{
+		$('#startAddressId').combobox({      
+	    	url: 'freight/getWareAddress?fromWsNo='+fromWsNo+'&warehouseId='+fromWsNo,
+	    	valueField:'addressId',    
+		    textField:'address',
+		    panelHeight:'auto',
+	 		editable:false,
+	 		onLoadSuccess:function(text){
+	 			$('#startAddressId').combobox('setValue',text[0].addressId);
+	    	}
+		});
+		/* $('#passbyAddressId1,#passbyAddressId2').combobox({    
+	    	url: 'freight/getWareAddress?fromWsNo='+fromWsNo+'&toWsNo='+toWsNo+'&warehouseId='+fromWsNo,
+	    	valueField:'addressId',    
+		    textField:'address',
+		    panelHeight:'auto',    
+	 		editable:false,  
+		}); */
+		$('#endAddressId').combobox({
+	 		url:'freight/getWareAddress?toWsNo='+toWsNo+'&saleCustId='+toWsNo,
+	 		valueField:'addressId',    
+		    textField:'address',
+	 		panelHeight:'auto',
+	 		editable:false,
+	 		onLoadSuccess:function(text){
+	       		$('#endAddressId').combobox('setValue',text[0].addressId);
+	    	}
+		}); 
+		doDivCss('0');
+	}
+}
+
+function creatImg2(imgRUL){  
+    var textHtml = "<img src='"+imgRUL+"'width='90%' height='100%'/>";  
+    $("#imgs2").html(textHtml);  
+}
+
+function submitAdd(){
+	var trafficToken = $('#trafficToken').val();
+	var logisticsType = $('#logisticsType').combobox('getValue');
+	var No = $('#No').combogrid('getValue');
+	var logisticsNoteNo = $('#logisticsNoteNo').textbox('getValue');
+	var companyId = $('#logisticsInfo').combobox('getValue');
+	var freightCompany = $('#logisticsInfo').combobox('getValue');
+	var settleType = $('#settleType').combobox('getValue');
+	var freight = $('#freight').textbox('getValue');
+	var handlingCharges = $('#handlingCharges').textbox('getValue');
+	var weighingFee = $('#weighingFee').textbox('getValue');//过磅费
+	var startAddressId = $('#startAddressId').combobox('getValue');
+	var passbyAddressId1 = $('#passbyAddressId1').combobox('getValue');
+	var passbyAddressId2 = $('#passbyAddressId2').combobox('getValue');
+	var endAddressId = $('#endAddressId').combobox('getValue');
+	var shipper = $('#shipper').textbox('getValue');
+	var tel = $('#tel').textbox('getValue');
+	var plateNo = $('#plateNo').textbox('getValue');
+	var remark = $('#remark').textbox('getValue');
+	var logisticsImg = $('#logisticsImg').textbox('getValue');	
+	if(logisticsType!=null && logisticsType == ''){
+		$.messager.alert('提示','请选择运单来源！','info');
+		return;
+	}
+	if(No!=null && No == ''){
+		$.messager.alert('提示','请选择送货或调拨单号！','info');
+		return;
+	}
+	if(companyId!=null && companyId == ''){
+		$.messager.alert('提示','请选择运输公司！','info');
+		return;
+	}
+	if(settleType!=null && settleType == ''){
+		$.messager.alert('提示','请选择结算方式！','info');
+		return;
+	}
+	if(freight!=null &&  freight == ''){
+		$.messager.alert('提示','请输入运费！','info');
+		return;
+	}
+	if(handlingCharges!=null &&  handlingCharges == ''){
+		$.messager.alert('提示','请输入装卸费！','info');
+		return;
+	}
+	if(logisticsType == '2'){
+		if(weighingFee!=null &&  weighingFee == ''){
+			$.messager.alert('提示','请输入过磅费！','info');
+			return;
+		}
+	}
+	if(startAddressId!=null && startAddressId == ''){
+		$.messager.alert('提示','请选择起点！','info');
+		return;
+	}
+	if(endAddressId!=null && endAddressId == '' || endAddressId=='--请选择--'){
+		$.messager.alert('提示','请选择终点！','info');
+		return;
+	}
+	if(shipper!=null && shipper == ''){
+		$.messager.alert('提示','请输入承运人！','info');
+		return;
+	}
+	if(tel!=null && tel == ''){
+		$.messager.alert('提示','请输入联系电话！','info');
+		return;
+	}
+	if(plateNo!=null && plateNo == ''){
+		$.messager.alert('提示','请输入车牌号！','info');
+		return;
+	}else{
+		if (IdentityCarNoCodeValid(plateNo)==false) {
+			$.messager.alert('提示','车牌号格式错误！','info');
+			return;
+		}
+	}
+	$.messager.confirm('提示','是否提交？',function (r) {	
+		if (r){
+			$.ajax({
+		        url: url,
+		        data: { 
+		        	trafficToken : trafficToken,
+		        	logisticsType : logisticsType,
+		        	No : No,
+		        	logisticsNoteNo : logisticsNoteNo ,
+		        	companyId : companyId,
+		        	freightCompany : freightCompany,
+		        	settleType : settleType,
+		        	freight : freight,
+		        	handlingCharges : handlingCharges,
+		        	weighingFee : weighingFee,
+		        	startAddressId : startAddressId,
+		        	passbyAddressId1 : passbyAddressId1,
+		        	passbyAddressId2 : passbyAddressId2,
+		        	endAddressId : endAddressId,
+		        	shipper : shipper,
+		        	tel : tel,
+		        	plateNo : plateNo,
+		        	remark : remark,
+		        	logisticsImg : logisticsImg
+		        },
+		        type: "post",
+		        success: function (text) {
+		        	if (text.msgCode == "Y") {
+		        		$.messager.alert('提示','操作成功','info',function () {		// close the dialog
+		        			$('#orderList').dialog('close');
+				        });
+					}else{
+						$.messager.alert('提示',text.msg,'error');
+					}
+		        },
+		        error: function (jqXHR, textStatus, errorThrown) {
+		        	$.messager.show({
+						title: 'Error',
+						msg: jqXHR.responseText
+					});
+		        }
+		    });
+		}else {
+			return;
+		}
+	});
+}
+
+function IdentityCarNoCodeValid(code) { 
+	var reg = /^[\u4e00-\u9fa5]{1}[A-Z]{1}[A-Z_0-9]{5}$/; 
+	return reg.test(code);
+}
+function orderRef(date,op){
+	var text=date.trafficDtile;
+	var stateTimes = date.stateTimes;
+	var startAddressId = text.startAddressId; 
+	var passbyAddressId1 = text.passbyAddressId1; 
+	var passbyAddressId2 = text.passbyAddressId2; 
+	var endAddressId = text.endAddressId; 
+	$('#status').textbox('setValue', text.status);
+	$('#logisticsNoteNo').textbox('setValue', text.logisticsNoteNo);
+	var transferNoteNo = text.transferNoteNo ; 
+	var deliveryNo = text.deliveryNo ; 
+	var freightCompany=text.freightCompany;
+	var companyId=text.companyId;
+	if(transferNoteNo!=null && transferNoteNo !="" ){
+	    $('#logisticsType').combobox('setValue','2');
+	    $('#No').combogrid('setValue', transferNoteNo);	
+	    $('#startAddressId').combobox({      
+	    	url:'freight/getWareAddress?addressId='+startAddressId,
+	    	valueField:'addressId',    
+		    textField:'address',
+		    panelHeight:'auto',
+	 		editable:false
+		});
+	    $('#endAddressId').combobox({      
+	    	url:'freight/getWareAddress?addressId='+endAddressId,
+	    	valueField:'addressId',    
+		    textField:'address',
+		    panelHeight:'auto',
+	 		editable:false
+		});
+	    $('#logisticsInfo').combobox({  
+		 	editable:true,
+		    url:'freight/getFreightCompany',  
+		    valueField:'freightCompany',    //LOGISTICS_NOTE_ID
+		    textField:'freightCompany',
+		    value:''    
+		});		
+		$('#logisticsInfo').combobox('setValue',freightCompany );//text.LOGISTICS_NOTE_ID
+	}else if(deliveryNo!=null && deliveryNo !="" ){
+		$('#logisticsType').combobox('setValue','1');
+		$('#No').combogrid('setValue', deliveryNo);
+		$('#startAddressId,#passbyAddressId1,#passbyAddressId2').combobox({      
+	    	url:'freight/getDeliverNoAddress?deliveryNo='+deliveryNo,
+	    	valueField:'addressId',    
+		    textField:'address',
+		    panelHeight:'auto',
+	 		editable:false,
+	 		onSelect:function(){
+	        	var sss = $(this).combobox('getValue');
+	        	console.log(sss);
+	        }
+		});
+		$('#endAddressId').combobox({      
+	    	url:'freight/getEndAddressId?deliveryNo='+deliveryNo,
+	    	valueField:'addressId',    
+		    textField:'address',
+		    panelHeight:'auto',
+	 		editable:false
+		});
+		if (passbyAddressId1 != null && passbyAddressId1 !="") {
+			$('#passbyAddressId1').combobox('setValue',passbyAddressId1);
+		}  
+		if (passbyAddressId2 != null  && passbyAddressId1 !="") {
+			$('#passbyAddressId2').combobox('setValue',passbyAddressId2);
+		} 
+		$('#logisticsInfo').combobox({
+			url:'freight/searchLogistics',
+			valueField:'logisticsId',
+	 		textField:'name',
+	 		editable:false,
+	        value:''
+	     });
+		$('#logisticsInfo').combobox('setValue',companyId );/* text.LOGISTICS_NOTE_ID */
+	}
+	if (startAddressId != null) {
+		$('#startAddressId').combobox('setValue',startAddressId);
+	} 
+	if (endAddressId != null) {
+		$('#endAddressId').combobox('setValue',endAddressId);
+	} 
+	$('#freight').textbox('setValue', text.freight);
+	$('#handlingCharges').textbox('setValue', text.handlingCharges);
+	$('#weighingFee').textbox('setValue', text.weighingFee);
+	$('#settleType').combobox('setValue', text.settleType);
+	$('#shipper').textbox('setValue', text.shipper);
+	$('#tel').textbox('setValue', text.tel);
+	$('#plateNo').textbox('setValue', text.plateNo);
+	$('#remark').textbox('setValue', text.remark);
+	if (text.logisticsImg != null) {
+    	$('#logisticsImg').textbox('setValue', text.logisticsImg);
+	    var textHtml = "<img src='"+text.logisticsImg+"'width='100%' height='100%'/>";  
+	    $("#imgs2").html(textHtml);  
+	}
+	var conf={
+			textAlign:'left',//设置文字位置,left在点上方,center在线上方
+			lineWidth:200//设置线条长度
+   	    };
+    $(".pro").empty().timeLines(stateTimes,conf);
+	if(op=='updt'){
+		doDivCss('0');
+	}else{
+		doDivCss('1');
+	}
+}
+function doSearch(){
+	var queryStatus = $("#queryStatus").combobox('getValue');
+	var queryCompanyName = $('#queryCompanyName').combobox('getValue');
+	var queryLogisticsNoteNo = $('#queryLogisticsNoteNo').textbox('getValue');
+	var queryNoType = $('#queryNoType').combobox('getValue');
+	var queryNo = $('#queryNo').textbox('getValue');
+	var queryShipper = $('#queryShipper').textbox('getValue');
+	var start = $('#start').combo('getValue');
+	var end = $('#end').combo('getValue');
+	if(queryStatus==null || queryStatus=="--请选择--" || queryStatus==""){
+		queryStatus="isEmpt";
+	}else{
+		queryStatus=queryStatus;
+	}
+	if(queryCompanyName==null || queryCompanyName=="--请选择--" || queryCompanyName==""){
+		queryCompanyName="isEmpt";
+	}else{
+		queryCompanyName=queryCompanyName;
+	}
+	$('#dg').datagrid('clearSelections');
+    $('#dg').datagrid('load',{
+    	queryStatus : queryStatus,
+    	queryCompanyName: queryCompanyName,
+    	queryLogisticsNoteNo : queryLogisticsNoteNo,
+    	queryNoType : queryNoType,
+    	queryNo : queryNo,
+    	queryShipper : queryShipper,
+		start : start,
+		end : end
+    });
+}
+function winClose(){
+	$('#orderList').dialog('close');
+}
+
+function submitPay(){
+	doDivCss('2');
+	var trafficToken = $('#trafficToken').val();
+	var logisticsNoteNo = $('#logisticsNoteNo').textbox('getValue');
+	var companyId = $('#logisticsInfo').combobox('getValue');
+	var settleType = $('#settleType').combobox('getValue');
+	var freight = $('#freight').textbox('getValue');
+	var weighingFee = $('#weighingFee').textbox('getValue');//过磅费
+	var startAddressId = $('#startAddressId').combobox('getValue');
+	var endAddressId = $('#endAddressId').combobox('getValue');
+	var shipper = $('#shipper').textbox('getValue');
+	var tel = $('#tel').textbox('getValue');
+	var plateNo = $('#plateNo').textbox('getValue');
+	var status= $('#status').textbox('getValue');
+	if(status == null || status=='' ){
+		$.messager.alert('提示','该运单状态信息不全！','info');
+		return;
+	}
+	if(status=='已作废' ){
+		$.messager.alert('提示','该运单已作废不能付款！','info');
+		return;
+	}
+	if(companyId!=null && companyId == ''){
+		$.messager.alert('提示','运输公司信息不全！','info');
+		return;
+	}
+	if(settleType!=null && settleType == ''){
+		$.messager.alert('提示','结算方式信息不全！','info');
+		return;
+	}
+	if(freight!=null &&  freight == ''){
+		$.messager.alert('提示','运费信息不全！','info');
+		return;
+	}
+	if(logisticsType == '2'){
+		if(weighingFee!=null &&  weighingFee == ''){
+			$.messager.alert('提示','过磅费信息不全！','info');
+			return;
+		}
+	}
+	if(startAddressId!=null && startAddressId == ''){
+		$.messager.alert('提示','起点信息不全！','info');
+		return;
+	}
+	if(endAddressId!=null && endAddressId == '' || endAddressId=='--请选择--'){
+		$.messager.alert('提示','终点信息不全！','info');
+		return;
+	}
+	if(shipper!=null && shipper == ''){
+		$.messager.alert('提示','请输入承运人！','info');
+		return;
+	}
+	if(tel!=null && tel == ''){
+		$.messager.alert('提示','联系电话信息不全！','info');
+		return;
+	}
+	if(plateNo!=null && plateNo == ''){
+		$.messager.alert('提示','车牌号信息不全！','info');
+		return;
+	}else{
+		if (IdentityCarNoCodeValid(plateNo)==false) {
+			$.messager.alert('提示','车牌号格式错误！','info');
+			return;
+		}
+	}
+	$.messager.confirm('提示','是否确认付款？',function (r) {	
+		if (r){
+			$.ajax({
+		        url: url,
+		        data: { 
+		        	trafficToken : trafficToken,		       
+		        	logisticsNoteNo : logisticsNoteNo,
+		        },
+		        type: "post",
+		        success: function (text) {
+		        	if (text.msgCode == "Y") {
+		        		$.messager.alert('提示','操作成功','info',function () {		// close the dialog
+		        			$('#orderList').dialog('close');
+				        });
+					}else{
+						$.messager.alert('提示',text.msg,'info');
+					}
+		        },
+		        error: function (jqXHR, textStatus, errorThrown) {
+		        	$.messager.show({
+						title: 'Error',
+						msg: jqXHR.responseText
+					});
+		        }
+		    });
+		}else {
+			return;
+		}
+	});
+}
+
+function getPhoto2(node) {  
+	$.messager.confirm('提示','是否上传此图片',function (r) {	
+		if (r){
+			var formData = new FormData();
+			formData.append('logisticsImage', $('#logisticsImage')[0].files[0]); 
+			var deliveryNo = $('#No').textbox('getValue');
+			formData.append('deliveryNo', deliveryNo); 
+			$.ajax({
+  				url : "TransportOrder/DnFreightFileUpload",
+  				type : "post",
+  				data : formData,
+  				dataType : "json",
+  				success: function (data, status){
+	  				if (data.error == '图片上传成功！'){
+	  				    var imgURL = "";  
+	  				    try{  
+	  				        var file = null;  
+	  				        if(node.files && node.files[0] ){  
+	  				            file = node.files[0];  
+	  				        }else if(node.files && node.files.item(0)) {  
+	  				            file = node.files.item(0);  
+	  				        }  
+	  				        //Firefox 因安全性问题已无法直接通过input[file].value 获取完整的文件路径  
+	  				        try{  
+	  				            imgURL =  file.getAsDataURL();  
+	  				        }catch(e){  
+	  				            imgRUL = window.URL.createObjectURL(file);  
+	  				        }  
+	  				    }catch(e){  
+	  				        if (node.files && node.files[0]) {  
+	  				            var reader = new FileReader();  
+	  				            reader.onload = function (e) {  
+	  				                imgURL = e.target.result;  
+	  				            };  
+	  				            reader.readAsDataURL(node.files[0]);  
+	  				        }  
+	  				    }  
+	  				    creatImg2(imgRUL);  
+	  				    $("#logisticsImg").textbox('setValue',data.path);
+					}else{
+	  				    $("#logisticsImg").textbox('setValue',"");
+					}
+	            }
+  			});
+			
+			/* var deliveryNo = $('#No').textbox('getValue');
+			$.ajaxFileUpload({
+		           url: 'TransportOrder/DnFreightFileUpload', //用于文件上传的服务器端请求地址
+		           secureuri: false, //是否需要安全协议，一般设置为false
+		           fileElementId: 'logisticsImage', //文件上传域的ID
+		           dataType: 'json', //返回值类型 一般设置为json
+		  	         data: {
+		  	        	deliveryNo : deliveryNo
+		  	         },
+		            success: function (data, status){
+		  				if (data.error == '图片上传成功！'){
+		  				    var imgURL = "";  
+		  				    try{  
+		  				        var file = null;  
+		  				        if(node.files && node.files[0] ){  
+		  				            file = node.files[0];  
+		  				        }else if(node.files && node.files.item(0)) {  
+		  				            file = node.files.item(0);  
+		  				        }  
+		  				        //Firefox 因安全性问题已无法直接通过input[file].value 获取完整的文件路径  
+		  				        try{  
+		  				            imgURL =  file.getAsDataURL();  
+		  				        }catch(e){  
+		  				            imgRUL = window.URL.createObjectURL(file);  
+		  				        }  
+		  				    }catch(e){  
+		  				        if (node.files && node.files[0]) {  
+		  				            var reader = new FileReader();  
+		  				            reader.onload = function (e) {  
+		  				                imgURL = e.target.result;  
+		  				            };  
+		  				            reader.readAsDataURL(node.files[0]);  
+		  				        }  
+		  				    }  
+		  				    creatImg2(imgRUL);  
+		  				    $("#logisticsImg").textbox('setValue',data.path);
+						}else{
+		  				    $("#logisticsImg").textbox('setValue',"");
+						}
+		  					
+		            },
+		  	        error: function (jqXHR, textStatus, errorThrown) {
+		  	        	
+		  	        	$.messager.show({
+		  					title: 'Error',
+		  					msg: jqXHR.responseText
+		  				});
+		  	        }
+		    }); */
+		}else {
+			return;
+		}
+	});
+} 
+function saveMark(){
+	var markId = $('input:radio[name="markId"]:checked').val();
+	var freightNoMk = $('#freightNoMk').val();
+	var orderMemo = $('#orderMemo').val();
+	$.ajax({ 
+		async: false,
+        type:'post',
+        url:'freight/updateOrderMemo',  
+        data:{
+        	markId : markId,
+        	freightNoMk : freightNoMk,
+        	orderMemo : orderMemo
+        },
+        dataType:'json',  
+        success:function(data){
+        	if(data.msgCode == "Y"){
+	       		 $.messager.alert('提示','操作成功!','info');
+	       		 $('#mark').dialog('close');
+	       		 $('#dg').datagrid('reload');
+	       	}else{
+	       		$.messager.alert('提示',data.msg,'error');
+	       	}
+        },
+        error : function() {  
+       		$.messager.alert('提示','操作失败!','error'); 
+   	    }
+    });
+}
+</script>
+</head>
+<body>
+<input type="hidden" name="orderNo" id="orderNo" value="${orderNo}">
+	<div style="margin-left:auto; margin-right:auto;">
+	    <div id="tb" style="margin-bottom:10px;">   	    
+	    	<form id="searchform">
+	    	  <span id=freightOrder1>
+	    	  <div class="inputArea1">
+			  	<label>状态</label>：<input type="text" id="queryStatus" /> 
+			  	<label>运单编号</label>：<input type="text" class="easyui-textbox" id="queryLogisticsNoteNo" />
+			  	<label>运单类型</label>：<input type="text" id="queryNoType" />
+			  	<label class="trafficOrder">送货(/调拨)单号 </label>：<input type="text" class="easyui-textbox" id="queryNo" />
+			  </div>
+			  <div class="inputArea1">
+			    <label>物流公司</label>：<input type="text" id="queryCompanyName" />
+			  	<label>运承人 </label>：<input type="text" class="easyui-textbox" id="queryShipper" />
+			  	<label>创建时间</label>：<input id="start" type="text"></input>
+			  	<label style="width:30px;text-align:left;text-align-last:left;">至</label><input id="end" type="text"></input>
+			  	<span class="inputArea_btn"><a onclick="doSearch()" class="easyui-linkbutton" data-options="iconCls:'icon-search'" style="padding-left: 5px;padding-right: 5px">查询</a>
+				<a class="easyui-linkbutton" data-options="iconCls:'icon-clear'" style="padding-left: 5px;padding-right: 5px" onclick="$('#searchform').form('clear');">清空</a></span>
+			  </div></span> 
+			</form>
+		</div>
+		<table id="dg" style="align:center"> 
+		</table> 
+	</div>
+	<div id="mark">
+  		<form id = "markfrom" action="" method="get" style="padding: 50px"> 
+  			<input type="hidden" name="freightNoMk" id="freightNoMk">
+  			<table>
+  				<tr>
+					<td align="right" width="100px;">
+						<font color="red">*</font>
+						 <span style="font-weight: 600;">标记:</span>
+					</td>
+					<td align="left" width="300px;">
+						<label><input name="markId" type="radio" value="1" /><img src="../../images/1.png"> </label> 
+						<label><input name="markId" type="radio" value="2" /><img src="../../images/2.png"> </label> 
+						<label><input name="markId" type="radio" value="3" /><img src="../../images/3.png"> </label> 
+						<label><input name="markId" type="radio" value="4" /><img src="../../images/4.png"> </label> 
+						<label><input name="markId" type="radio" value="5" /><img src="../../images/5.png"> </label> 
+						<label><input name="markId" type="radio" value="6" /><img src="../../images/6.png"> </label> 
+					</td>
+				</tr>
+				<tr>
+					<td align="right" width="100px;">
+						<font color="red">*</font>
+						 <span style="font-weight: 600;">标记信息:</span>
+					</td>
+					<td align="left" width="300px;">
+						<textarea id='orderMemo'name="orderMemo" style="width: 300px;height: 200px;max-width: 300px;max-height: 200px;"></textarea>
+					</td>
+				</tr>
+  				<tr>
+					<td>&nbsp;</td>
+					<td align="center">
+						<div>
+							<a class="easyui-linkbutton" data-options="iconCls:'icon-save'" onclick="saveMark()">提交</a>
+						</div>
+					</td>
+				</tr>
+  			</table>
+		</form> 
+  	</div>
+  	<div id="orderList" style="margin:0 auto;">
+	    <div style="width: 100%;position:relative;">
+			<div class="pro"></div>
+		</div>
+	  	<form id="form1" class="trafficOrder1">
+	  		  <input type="hidden" id="trafficToken" >
+	  		  <div style="margin: 0px auto;width:90%;" align="center" >
+		  		  <div style="text-align:justify;text-justify:distribute-all-lines;text-align-last:justify;width:200px">
+		  		  		<h3 class="report-title">运单</h3>
+		  		  </div>
+	  		  </div>
+			  <fieldset style="margin-left: auto;margin-right:auto;margin-top: 20px;border: 1px solid;width:870px;" id="tOrder0">
+			    <legend>运输信息</legend>  
+			    <span id="tOrder"> 
+				  <div class="inputArea2">
+				  	<label>运单来源</label>：<input id="logisticsType" class="easyui-combobox" type="text"/><font color="red">*</font> 
+				  	<label style="width:120px;">(送货/调拨)单号</label>：<input id="No" class="easyui-combogrid" type="text"/><font color="red">*</font> 
+				  	<label>运单当前状态</label>：<input id="status" class="easyui-textbox" type="text" readonly="readonly"/><font color="red">*</font>
+				  </div>
+				  <div class="inputArea2">
+				  	<label>运单编号</label>：<input id="logisticsNoteNo" class="easyui-textbox" type="text"/><font color="red">*</font>
+				  	<label style="width:120px;">运输公司名称</label>：<input id="logisticsInfo" class="easyui-combobox" type="text" /><font color="red">*</font>
+				  	<label>运费结算方式</label>：<input id="settleType" name="settleType" class="easyui-combobox" type="text" /><font color="red">*</font>
+				  </div>
+				  <div class="inputArea2 trafficOrder2">
+				  	<span id="tOrder3"> <label>运费</label>：<input id="freight" class="easyui-textbox" type="text"/><font color="red">*</font>（元）
+				  	<label>装卸费</label>：<input id="handlingCharges" class="easyui-textbox" type="text"/><font color="red">*</font>（元）
+				  	<label style="margin-left:12px;">过磅费</label>：<input id="weighingFee" class="easyui-textbox" type="text"/><font color="red">*</font>（元）
+				  	</span>
+				  </div>
+				  </span>
+				  <div class="inputArea2 inputArea_points">
+				  	<label>起点</label>：<input id="startAddressId" class="easyui-combobox" type="text" style="width: 705px"/><font color="red">*</font>
+				  </div>
+				  <div class="inputArea2 inputArea_points">
+				  	<label>途经点1</label>：<input id="passbyAddressId1" class="easyui-combobox" type="text" style="width: 705px"/>
+				  </div>
+				  <div class="inputArea2 inputArea_points">
+				  	<label>途经点2</label>：<input id="passbyAddressId2" class="easyui-combobox" type="text" style="width: 705px"/>
+				  </div>
+				  <div class="inputArea2 inputArea_points">
+				  	<label>终点</label>：<input id="endAddressId" class="easyui-combobox" type="text" style="width: 705px"/><font color="red">*</font>
+				  </div>
+				  <div class="inputArea2">
+				  	<label>承运人</label>：<input id="shipper" class="easyui-textbox" type="text"/><font color="red">*</font>
+				  	<label style="margin-left:12px;">联系电话</label>：<input id="tel" class="easyui-textbox" type="text"/><font color="red">*</font>
+				  	<label>车牌号</label>：<input id="plateNo" class="easyui-textbox" type="text"/><font color="red">*</font>
+				  </div>
+				  <div class="inputArea2 inputArea_note">
+				  	<label>备注</label>：<input id="remark" class="easyui-textbox" data-options="multiline:true" style="width:100%;height:100px">
+				  </div>
+				  <div class="inputArea2">
+				  	<label>照片</label>：<input id="logisticsImg" class="easyui-textbox" type="text" data-options="readonly:true"/>
+					<input type="file" id="logisticsImage" name="logisticsImage" style="display: none;" onchange="getPhoto2(this)" accept="image/jpeg,image/gif,image/dwg,image/png,image/jpg,image/pdf"/>
+				    <a id="logistics" onclick="javascript:{$('#logisticsImage').trigger('click');}" class="easyui-linkbutton" style="padding-left: 6px;padding-right: 6px">选择图片</a>
+				  </div>
+				  <div id="imgs2" style="border:1px solid #CCC;height:400px;width: 100%;margin:10px auto;"></div>
+			  </fieldset>
+			  <div style="width:100%;margin:0 auto;padding:10px 0;text-align:center;">
+	   				<a id="clanelButt" onclick="winClose()" class="easyui-linkbutton" style="padding-left: 10px;padding-right: 10px">关闭</a>
+   					<a id="saveButt" onclick="submitAdd()" class="easyui-linkbutton" style="padding-left: 10px;padding-right: 10px">提交</a>
+					<a id="payButt" onclick="submitPay()" class="easyui-linkbutton" style="padding-left: 10px;padding-right: 10px;display:none">付款</a>
+			  </div>
+		</form>
+	 </div>
+</body>
+</html>

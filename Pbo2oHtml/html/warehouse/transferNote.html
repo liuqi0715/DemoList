@@ -1,0 +1,2287 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<link rel="stylesheet" type="text/css" href="../../themes/default/easyui.css">
+<link rel="stylesheet" type="text/css" href="../../themes/icon.css">
+<link rel="stylesheet" type="text/css" href="../../themes/demo.css">
+<link rel="stylesheet" type="text/css" href="../../css/timeline.css">
+<script type="text/javascript" src="../../js/jquery.min.js"></script>
+<script type="text/javascript" src="../../js/jquery.easyui.min.js"></script>
+<script type="text/javascript" src="../../js/locale/easyui-lang-zh_CN.js"></script>
+<script type="text/javascript" src="../../js/timeline.js"></script>
+<script type="text/javascript" src="../global.js"></script>
+<style type="text/css">
+	.report-title {
+	    color: #00A8BD;
+	    font: bold 34px "黑体";
+	    margin: 0.5em 0;
+	    text-align: center;
+	}
+	.window-body table td {
+        text-align: left;
+       }
+</style>
+<script type="text/javascript">
+var hig=0;
+var allWeight =0;
+var allQuanlity =0;
+var reWeight= 0;
+var reQuanlity=0;
+var flag;
+var owner;
+var volume;
+$(function () {
+	$("#createUser").textbox('setValue',getLogin().contact);
+	 $("#nowUserId").html(getLogin().id); 
+	/* 
+	var orderNo = $('#orderNo').val();
+	if(orderNo !=""){
+		editRow(orderNo);
+	} */
+	
+	$('#confirmButton').linkbutton('disable');
+	
+	$('#province').combobox({
+		valueField:'provinceId', //值字段
+        textField:'provinceName', //显示的字段
+        url:'areaController/getAllProvince',
+        editable:false,//不可编辑，只能选择
+        width:'100',
+        value:'--请选择--',
+        onSelect:function(){
+        	var province = $(this).combobox('getValue');
+            $('#city').combobox({
+            valueField:'cityId', 
+            textField:'cityName',
+            url:'areaController/getCityByProvinceId?provinceId='+province,
+            required:true,
+            editable:false,//不可编辑，只能选择
+            value:'--请选择--' 
+          }); 
+        },
+     });
+	$('#city').combobox({
+        editable:false,
+        width:'100',
+        value:'请先选择省份',
+       	onSelect:function(){
+        	var city = $(this).combobox('getValue');
+            $('#area').combobox({
+            valueField:'areaId', 
+            textField:'areaName',
+            url:'areaController/getAreaByCityId?cityId='+city,
+            required:true,
+            editable:false,//不可编辑，只能选择
+            value:'--请选择--'
+           });
+       	},
+     	onLoadSuccess:function(){
+       		$('#area').combobox({
+		 		width:'100',
+		 		editable:false,
+       			value:'请先选择城市',
+       			
+			});
+    	}
+     });
+	$('#area').combobox({
+	 		width:'100',
+	 		editable:false,
+	 		value:'请先选择城市',
+        	onSelect:function(){
+        	var areaId = $(this).combobox('getValue');
+            $('#street').combobox({
+                valueField:'ST_ID', 
+                textField:'ST_NAME',
+                url:'getStreetByArea?areaId='+areaId,
+                required:true,
+                editable:false,//不可编辑，只能选择
+                value:'--请选择--' 
+          }); 
+        },
+     	onLoadSuccess:function(){
+       		$('#street').combobox({
+		 		width:'100',
+		 		editable:false,
+       			value:'请先选择区/县',
+       			
+			});
+    	}
+		});
+	
+	$('#mark').window({
+    	title: '修改标识',
+    	width:600,
+    	height:405,
+    	resizable:false, 
+    	closed:true,
+        minimizable: false,
+        maximizable: false,
+        collapsible: false
+		});
+	
+	$('#start').datebox({    
+	    width:'130px',
+	    onSelect:function(start){
+	    	var now = new Date();
+	    	if(start > now){
+	    		$.messager.alert('提示','操作失败!日期不能超过当前时间','error');
+	    		$('#start').datebox('setValue','');
+	    	}
+	    	
+ 		}
+	});
+	
+    var today =getNowFormatDate();
+    $('#transferDate').datebox({
+    	required:true,
+ 	    editable:false,
+  	    onSelect:function(start){
+  	    	var now = new Date();
+  	    	if( start < now){
+  	    		$.messager.alert('提示','操作失败!日期不能小于当前时间','error');
+  	    		$('#transferDate').datebox('setValue','');
+  	    	}
+  	    	
+   		}
+  	}); 
+  	$('#transferDate').datebox('setValue', today);	
+     $('#outDate').datebox({
+     	required:true,
+  	    editable:false,
+   	    onSelect:function(start){
+   	    	var now = new Date();
+   	    	var transferDate = $('#transferDate').datebox('getValue');//制单日期
+   	    	var startTime = new Date(Date.parse(transferDate));
+   	    	startTime.setDate(startTime.getDate()-1);
+   	    	if(start > now){
+   	    		$.messager.alert('提示','操作失败!日期不能大于当前时间','error');
+   	    		$('#outDate').datebox('setValue','');
+   	    	}
+   	    	/* if(start < startTime){
+   	    		$.messager.alert('提示','操作失败!日期不能小于制单时间','error');
+   	    		$('#outDate').datebox('setValue','');
+   	    	} */
+    		}
+   	}); 
+   	$('#outDate').datebox('setValue', today);
+   	
+    $('#instockDate').datebox({
+     	required:true,
+  	    editable:false,
+   	    onSelect:function(start){
+   	    	var now = new Date();
+   	    	var outDate = $('#outDate').datebox('getValue');//出库日期
+   	    	var startTime = new Date(Date.parse(outDate));
+   	    	startTime.setDate(startTime.getDate()-1);
+   	    	if(start > now){
+   	    		$.messager.alert('提示','操作失败!日期不能大于当前时间','error');
+   	    		$('#instockDate').datebox('setValue','');
+   	    	}
+   	    	if(start < startTime){
+   	    		$.messager.alert('提示','操作失败!日期不能小于出库时间','error');
+   	    		$('#outDate').datebox('setValue','');
+   	    	}
+   	    	
+    		}
+   	}); 
+   	$('#instockDate').datebox('setValue', today);
+   	
+	$('#end').datebox({    
+	    width:'130px',
+	    onSelect:function(date){
+	    	var start = $('#start').datebox('getValue');
+	    	var end = $('#end').datebox('getValue');
+	    	if(start>end){
+	    		$.messager.alert('提示','操作失败!起始时间不能晚于结束时间','error');
+	    		$('#end').datebox('setValue','');
+	    	}
+ 		}
+	});
+
+	$('#transferState').combobox({
+ 		width:'140',
+        valueField:'value', //值字段
+        textField:'label', //显示的字段
+        editable:false,//不可编辑，只能选择
+        value:'--请选择--',
+        data: [{
+			label: '已制单',
+			value: '1'
+		},{
+			label: '已出库',
+			value: '2'
+		},{
+			label: '已入库',
+			value: '3'
+		},{
+			label: '已作废',
+			value: '9'
+		}]
+     });
+	
+	$('#catId').combobox({
+		width:'140',
+		editable:false,
+	    url:'salesList/getSalesCategory',  
+	    valueField:'catId',    
+	    textField:'catName',
+	    value:'--请选择品类--' 
+	});
+	
+	$('#transferType').combobox({
+ 		width:'140',
+        valueField:'value', //值字段
+        textField:'label', //显示的字段
+        editable:false,//不可编辑，只能选择
+        value:'--请选择--',
+        data: [/* {
+			label: '交单',
+			value: '1'
+		}, */{
+			label: '调拨',
+			value: '2'
+		}]
+     });
+	
+	$('#transferNoteCategory').combobox({  
+		required: true,
+		editable:true,
+		url:'salesList/getSalesCategory',  
+		valueField:'catId',    
+		textField:'catName',
+	    value:'--请选择品类--' 
+	}); 
+	
+ 	$('#freightCompany').combobox({ 
+	 	editable:true,
+	    url:'transferNote/getFreightCompany',  
+	    valueField:'logisticsNoteId',    
+	    textField:'freightCompany',
+	    value:'--请编辑或选择--'    
+	});
+	
+	 $('#fromWsNo').combogrid({
+		value:'--请选择--',
+		required:true,
+		fit: true, //自动大小 
+		fitColumns: true,
+		idField:'warehouseNo', //值字段
+        textField:'warehouseName', //显示的字段
+        url:'transferNote/getWarehouseName?type=2',
+        editable:false,//不可编辑，只能选择
+        panelWidth:500,
+        columns: [[
+            { field: 'warehouseId', title: 'id',hidden:true, width: 40 },
+            { field: 'type', title: '仓库类型', width: 40,align:'center',hidden:true},
+            { field: 'warehouseNo', title: '仓库编号', width: 80,align:'center'},
+            { field: 'warehouseName', title: '仓库名称', width: 150,align:'center'},
+            { field: 'contact', title: '负责人', width: 150,align:'center'},
+            { field: 'totalWeight', title: '库存', width: 100,align:'center'}
+           /*  { field: 'areaName', title: '区域', width: 200,align:'center'} */
+        ]], 
+        onSelect:function(){
+        	var g = $('#fromWsNo').combogrid('grid');	// 获取数据表格对象
+        	var r = g.datagrid('getSelected');	// 获取选择的行
+        	if(r.type==1){//如果仓库为车辆，就隐藏运单div
+        		  $("#freightDiv").hide();
+        	}else if(r.type==2){
+        		  $("#freightDiv").show();
+        	}
+        	if(r.areaName!=null){
+        		$('#startAddress').textbox('setValue', r.areaName);
+        	}
+        	$('#startAddressId').val(r.addressId); 
+        	$('#warehouseType').val(r.type);
+        	var warehouseNo =r.warehouseNo;
+       	
+        	$('#toWsNo').combogrid({
+        		value:'--请选择--',
+        		required:true,
+        		fit: true, //自动大小 
+        		fitColumns: true,
+        		idField:'warehouseNo', //值字段
+                textField:'warehouseName', //显示的字段
+                url:'transferNote/getWarehouseNameTo?warehouseNo='+warehouseNo, 
+                editable:false,//不可编辑，只能选择
+                panelWidth:600,
+                columns: [[
+                    { field: 'warehouseId', title: 'id',hidden:true, width: 40 },
+                    { field: 'warehouseNo', title: '仓库编号', width: 80,align:'center'},
+                    { field: 'warehouseName', title: '仓库名称', width: 150,align:'center'},
+                    { field: 'volume', title: '仓库容量', width: 100,align:'center'},
+                    { field: 'contact', title: '负责人', width: 150,align:'center'},
+                    { field: 'totalWeight', title: '库存', width: 100,align:'center'}
+                    /* { field: 'areaName', title: '区域', width: 200,align:'center'} */
+                ]], 
+                onSelect:function(){
+                	var gt = $('#toWsNo').combogrid('grid');	// 获取数据表格对象
+                	var rt = gt.datagrid('getSelected');	// 获取选择的行
+                	volume=rt.balance;
+                	if(rt.addressName!=null){
+                	$('#endAddress').textbox('setValue', rt.areaName);
+                	}
+                	$('#endAddressId').val(rt.addressId);
+                },
+             });
+
+            $('#owner').combogrid({    
+        	    panelWidth:430,  
+        	    fit: true, //自动大小 
+        		fitColumns: true,
+        	    value:'--请选择--',    
+        	    idField:'saCustId',    
+        	    textField:'companyName',    
+        	    url:'transferNote/getOwner?warehouseNo='+warehouseNo, 
+        	    editable:false,
+        	    columns:[[    
+        	    	{field:'saCustId',title:'客户id',hidden:true},   
+        	        {field:'companyName',title:'客户公司',width:180,align:'center'},  
+        	        {field:'contact',title:'客户',width:100,align:'center'}, 
+        	        {field:'tel',title:'电话',width:150,align:'center'}
+        	    ]]    
+        	});   
+        },
+     });
+	
+	$('#owner').combogrid({
+        editable:false,
+        value:'请先选择调出仓库',
+     });
+	
+	$('#toWsNo').combogrid({
+        editable:false,
+        value:'请先选择调出仓库',
+     });
+	
+	
+ 	$('#settleType').combobox({
+ 		width:'160', 
+        valueField:'value', //值字段
+        textField:'label', //显示的字段
+        editable:false,//不可编辑，只能选择
+        value:'--请选择--',
+        data: [{
+			label: '现付(转账)',
+			value: '1'
+		},{
+			label: '月结(转账)',
+			value: '2'
+		}]
+     });  
+	
+	$('#orderList').dialog({
+    	title: '调拨单信息',
+    	width:'700',
+    	height:'600',
+    	resizable:false, 
+    	closed:true,
+        minimizable: false,
+        maximizable: false,
+        collapsible: false,
+        maximized:true,
+        onOpen:function(){
+			$.ajax({
+		        url: 'transferNote/getToken',
+		        type: "post",
+		        success: function (text) {
+		        	 $('#transferNoteToken').val(text.transferNoteToken); 
+		        },
+		        error: function (jqXHR, textStatus, errorThrown) {
+		        	$.messager.show({
+						title: 'Error',
+						msg: jqXHR.responseText
+					});
+		        } 
+		    });
+        }/* ,
+        onClose: function () {  
+			$('#itemsdg').datagrid('loadData', { total: 0, rows: [] });
+            $('#itemsdg1').datagrid('loadData', { total: 0, rows: [] }); 
+            $('#itemsdgShow').datagrid('loadData', { total: 0, rows: [] }); 
+            $('#itemsdgDiv').hide();
+            $('#itemsdgDiv1').hide();
+            $('#form1').form('clear');
+            $('#selectLotNo').dialog('close');
+        } */
+	});
+
+	weightDialog = $('#weightDialog').dialog({
+        title: '重量调拨',
+        width:400,
+        height:190,
+        closed:true
+    });
+	
+	
+	 $('#selectLotNo').dialog({
+	    	title: '按批次出库',
+	    	width:'700',
+	    	height:'600',
+	       	closed:true,
+	       	resizable:false, 
+	        minimizable: false,
+	        maximizable: false,
+	        collapsible: false,
+	        maximized:true,
+	        onClose: function () {  
+	        	$('#stockTotalInfo').datagrid('loadData', { total: 0, rows: [] });
+		      	$('#stockTotalDetilInfo').datagrid('loadData', { total: 0, rows: [] }); 
+	        }
+	   	});
+	 var tableH = Math.max(document.documentElement.scrollHeight,document.body.scrollHeight)-($('#dg').offset().top+30);
+	 var toolbar=[];
+	 if(verification("transferNote","add")){
+		 toolbar.push({
+
+             id: 'btnadd',
+             text: '新增调拨单',
+             iconCls: 'icon-add',
+             handler: function () {
+			    	$('#orderList').dialog('open');
+			    	$('#itemsdgDiv').hide();
+			    	$('#itemsdgDivShow').hide();
+			    	$('#itemsdgDiv1').hide();
+			    	
+			    	$(".catId").show();
+			    	$(".trans").show();
+			    	$("#freightDiv").show();
+			    	$('#allTransfers').show();
+	        		$('#outStockByLotNo').show();
+			    	$('#deleteButton').hide();
+			    	$('#confirmButton').hide();
+			    	$('#putInStorageButton').hide();//入库按钮
+			    	$("#outDate").datebox("disable");
+			    	$("#instockDate").datebox("disable");
+			    	$('#fromWsNo').combogrid('enable');
+			    	$('#toWsNo').combogrid('enable');
+			    	$('#transferNoteCategory').combogrid('enable');			    	
+			    	
+			    	 var today =getNowFormatDate();
+			    	    $('#transferDate').datebox({
+			    	  	    onSelect:function(start){
+			    	  	    	var now = new Date();
+			    	  	    	if(start < now){
+			    	  	    		$.messager.alert('提示','操作失败!日期不能小于当前时间','error');
+			    	  	    		$('#transferDate').datebox('setValue','');
+			    	  	    	}
+			    	  	    	
+			    	   		}
+			    	  	}); 
+			    	 $('#transferDate').datebox('setValue', today);	
+			    	 
+			     	  $('#transferNoteCategory').combobox({  
+			    		editable:true,
+			    	    url:'salesList/getSalesCategory',  
+			    	    valueField:'catId',    
+			    	    textField:'catName',
+			    	    value:'--请选择品类--' 
+			    	}); 
+			    	 
+			    	 $('#fromWsNo').combogrid({
+			    			value:'--请选择--',
+			    			required:true,
+			    			fit: true, //自动大小  
+			    			/* fitColumns: true, */
+			    			idField:'warehouseNo', //值字段
+			    	        textField:'warehouseName', //显示的字段
+			    	        url:'transferNote/getWarehouseName?type=2',
+			    	        editable:false,//不可编辑，只能选择
+			    	        panelWidth:500,
+			    	        columns: [[
+			    	        	{ field: 'warehouseId', title: 'id',hidden:true, width: 40 },
+			    	            { field: 'type', title: '仓库类型', width: 40,align:'center',hidden:true},
+			    	            { field: 'warehouseNo', title: '仓库编号', width: 80,align:'center'},
+			    	            { field: 'warehouseName', title: '仓库名称', width: 150,align:'center'},
+			    	            { field: 'contact', title: '负责人', width: 165,align:'center'},
+			    	            { field: 'totalWeight', title: '库存', width: 100,align:'center'}
+			    	            /* { field: 'areaName', title: '区域', width: 230,align:'center'} */
+			    	        ]], 
+			    	        onSelect:function(){
+			    	        	var g = $('#fromWsNo').combogrid('grid');	// 获取数据表格对象
+			    	        	var r = g.datagrid('getSelected');	// 获取选择的行
+			    	        	if(r.type==1){//如果仓库为车辆，就隐藏运单div
+			    	        		  $("#freightDiv").hide();
+			    	        	} else if(r.type==2){
+			    	        		  $("#freightDiv").show();
+			    	        	}
+			    	        	if(r.areaName!=null){
+			    	        		$('#startAddress').textbox('setValue', r.areaName);
+			    	        	}
+			    	        	$('#startAddressId').val(r.addressId); 
+			    	        	$('#warehouseType').val(r.type);
+			    	        	var warehouseNo =r.warehouseNo;
+			    	        	
+			    	        	$('#toWsNo').combogrid({
+			    	        		value:'--请选择--',
+			    	        		required:true,
+			    	        		fit: true, //自动大小  
+			    	        		/* fitColumns: true, */
+			    	        		idField:'warehouseNo', //值字段
+			    	                textField:'warehouseName', //显示的字段
+			    	                url:'transferNote/getWarehouseNameTo?warehouseNo='+warehouseNo, 
+			    	                editable:false,//不可编辑，只能选择
+			    	                panelWidth:600,
+			    	                columns: [[
+			    	                	{ field: 'warehouseId', title: 'id',hidden:true, width: 40 },
+			    	                    { field: 'warehouseNo', title: '仓库编号', width: 80,align:'center'},
+			    	                    { field: 'warehouseName', title: '仓库名称', width: 150,align:'center'},
+			    	                    { field: 'volume', title: '仓库容量', width: 100,align:'center'},
+			    	                    { field: 'contact', title: '负责人', width: 165,align:'center'},
+			    	                    { field: 'totalWeight', title: '库存', width: 100,align:'center'}
+			    	                   /*  { field: 'areaName', title: '区域', width: 220,align:'center'} */
+			    	                ]], 
+			    	                onSelect:function(){
+			    	                	var gt = $('#toWsNo').combogrid('grid');	// 获取数据表格对象
+			    	                	var rt = gt.datagrid('getSelected');	// 获取选择的行
+			    	                	volume=rt.BALANCE;
+			    	                	if(rt.areaName!=null){
+			    	                	$('#endAddress').textbox('setValue', rt.areaName);
+			    	                	}
+			    	                	$('#endAddressId').val(rt.addressId);
+			    	                },
+			    	             });
+
+			    	            $('#owner').combogrid({    
+			    	        	    panelWidth:430,  
+			    	        	    fit: true, //自动大小 
+			    	        		fitColumns: true,
+			    	        	    value:'--请选择--',    
+			    	        	    idField:'saCustId',    
+			    	        	    textField:'companyName',    
+			    	        	    url:'transferNote/getOwner?warehouseNo='+warehouseNo, 
+			    	        	    editable:false,
+			    	        	    columns:[[    
+			    	        	    	{field:'saCustId',title:'客户id',hidden:true},   
+			    	        	        {field:'companyName',title:'客户公司',width:180},  
+			    	        	        {field:'contact',title:'客户',width:100}, 
+			    	        	        {field:'tel',title:'电话',width:150}
+			    	        	    ]]    
+			    	        	});   
+			    	        },
+			    	     });
+			    		
+			    		$('#owner').combogrid({
+			    	        editable:false,
+			    	        value:'请先选择调出仓库',
+			    	     });
+			    		
+			    		$('#toWsNo').combogrid({
+			    	        editable:false,
+			    	        value:'请先选择调出仓库',
+			    	     });
+			    		
+			    		
+			    		$('#settleType').combobox({
+			    	 		/* width:'160', */
+			    	        valueField:'value', //值字段
+			    	        textField:'label', //显示的字段
+			    	        editable:false,//不可编辑，只能选择
+			    	        value:'--请选择--',
+			    	        data: [{
+			    				label: '现付(转账)',
+			    				value: '1'
+			    			},{
+			    				label: '月结(转账)',
+			    				value: '2'
+			    			}]
+			    	     });
+			    		
+			    		
+			    		 var datas=[
+			    		        {
+			    		            time:"",
+			    		            text:"已制单",
+			    		            state:1 
+			    		        },{
+			    		            time:"",
+			    		            text:"已出库",
+			    		            state:0
+			    		        },{
+			    		            time:"",
+			    		            text:"已入库",
+			    		            state:0
+			    		        },{
+			    		            time:"",
+			    		            text:"已作废",
+			    		            state:0 
+			    		        }];
+			    		    var conf={
+			    		    	      textAlign:'left',//设置文字位置,left在点上方,center在线上方
+			    		    	      lineWidth:200//设置线条长度
+			    		    	    };
+			    		    $(".pro").empty().timeLines(datas,conf);
+			    		    
+			    	$('#outstockWeighing').textbox('textbox').css('background','#EBEBE4');
+			        $('#instockWeighing').textbox('textbox').css('background','#EBEBE4');
+			        
+			        $('#outDate').combobox('textbox').css('background','#EBEBE4');
+			        $('#instockDate').combobox('textbox').css('background','#EBEBE4');
+			        $('#outstockWeighing').textbox('textbox').attr('readonly',true);  //设置输入框为禁用
+			        $('#instockWeighing').textbox('textbox').attr('readonly',true);  //设置输入框为禁用
+			        
+			        $('#transferNoteNo').textbox('textbox').css('background','#EBEBE4'); 
+			        $('#createUser').textbox('textbox').css('background','#EBEBE4');
+			        $('#confirmUser').textbox('textbox').css('background','#EBEBE4');
+			        $('#status').textbox('textbox').css('background','#EBEBE4');
+			        $('#startAddress').textbox('textbox').css('background','#EBEBE4');
+			        $('#endAddress').textbox('textbox').css('background','#EBEBE4');
+			        $('#transferWeight').textbox('textbox').css('background','#EBEBE4');
+			        $('#transferQuanlity').textbox('textbox').css('background','#EBEBE4');
+			        $('#residueWeight').textbox('textbox').css('background','#EBEBE4');
+			        $('#residueQuanlity').textbox('textbox').css('background','#EBEBE4');
+             }
+         
+			 });
+	 }
+     $('#dg').datagrid({
+        width: "100%",
+    	height: tableH,
+    	/* onClickCell: function(index,field,value){
+    		if(0==hig){
+        		hig=document.body.scrollHeight*0.88/2
+        	} 
+    		check(index);
+    	}, */
+    	onDblClickRow:function(index,row){ 
+        	editRow(row.transferNoteNo);
+  		},
+        nowrap: true,
+        autoRowHeight: false,
+        striped: true,
+        collapsible: true,
+        url: 'transferNote/searchTransferNote?transferType=2', 	    
+        remoteSort: false,
+        rownumbers:true,
+    	singleSelect:true,
+    	idField: "transferNoteId",
+        columns: [[
+        	{ field: 'orderMemo', hidden:true,title: '备注', width: 100 },
+       	    { field: 'markId', title: '标识', width: 40,
+	            	formatter:function(value, row, index){//使用formatter格式化刷子
+						return '<img onclick="javascript:domark('+value+','+index+');" src="../../images/'+value+'.png">';
+					}},
+			{field:'Status',title:'状态',hidden:true,width:100},
+			{field:'statusName',title:'状态',width:60,align:'center'},		
+            { field:'transferNoteId', title: '调拨单ID', hidden:true,width: 40 },
+            {field:'transferNoteNo',title:'调拨单号',width:180,align:'center'},
+            {field:'transferNoteCategory',title:'调拨品类',width:140,align:'center'},
+            {field:'fromWsNo',title:'调出仓库No',hidden:true,width:100},
+            {field:'fromWsNoName',title:'调出仓库',width:120,align:'center'},
+            {field:'Type',title:'调出仓库类型',hidden:true,width:80,align:'center'},
+            {field:'toWsNo',title:'调入仓库No',hidden:true,width:100},
+            {field:'toWsNoName',title:'调入仓库',width:120,align:'center'},
+            {field:'transferWeight',title:'调拨总重量',width:100,align:'center'},
+            {field:'transferQuanlity',title:'调拨总数量',width:100,align:'center'},
+            { field:'outstockWeighing', title: '出库过磅重量', width: 100,align:'center'},
+            { field:'instockWeighing', title: '入库过磅重量', width: 100,align:'center'},
+            {field:'transferDate',title:'制单日期',width:150,align:'center'},
+            {field:'outDate',title:'出库日期',width:100,align:'center'},
+            {field:'instockDate',title:'入库日期',width:100,align:'center'},
+            {field:'logisticsNoteNo',title:'运单编号',width:180,align:'center'},
+            {field:'Owner',title:'货主ID',width:120,align:'center',hidden:true},
+            {field:'ownerName',title:'货主',width:120,align:'center',hidden:true},
+            {field:'createTime',title:'创建时间',width:145,align:'center'},
+            {field:'createUser',title:'创建人ID',width:100,hidden:true,align:'center'},
+            {field:'createUserName',title:'创建人',width:100,align:'center'},
+            {field:'updateTime',title:'更改时间',width:145,align:'center'},
+            {field:'updateUser',title:'修改人ID',width:100,hidden:true,align:'center'},
+            {field:'updateUserName',title:'修改人',width:100,align:'center'}
+        ]],
+        onLoadSuccess:function(){
+        	   $('.editcls').linkbutton({text:'编辑',plain:true,iconCls:'icon-edit'}); 
+       	}, 
+        pagination: true,
+        pageSize : 40, 
+        pageList : [ 40, 80, 120,160 ], 
+        toolbar: toolbar
+    });
+	    if(verification("transferNote","add")){
+			 $("#salesButton").css("display","");
+		}
+	    if(verification("transferNote","confirm")){
+			 $("#confirmButton").css("display","");
+		}
+	    if(verification("transferNote","putInStorage")){
+			 $("#putInStorageButton").css("display","");
+		}
+	    if(verification("transferNote","delete")){
+			 $("#deleteButton").css("display","");
+		}
+})
+function check(index){
+	$('#dg').datagrid('resize',{
+        height: hig,
+	});
+	$('#tt').panel('open');
+	$('#tt').tabs({
+        width: "100%",
+		height:hig,
+	    border:false,   
+	    onSelect:function(title){     
+	    }   
+	});
+   $('#transferNoteItems').datagrid({
+	    width: "100%",
+		height: hig*0.9,
+		fitColumns:false,
+	    url: 'transferNote/searchTransferNoteItems?transferNoteId='+$('#dg').datagrid("getRows")[index].transferNoteId,
+	    nowrap: true,
+	    autoRowHeight: false,
+	    striped: true,
+	    collapsible: true,
+	    remoteSort: false,
+	    rownumbers:true,
+	    checkOnSelect: true,
+	    idField: "workOrderDetailId",
+	    columns: [[
+	              {field:'transferNoteId',title:'调拨单号ID',align:'center',hidden:true},
+	              {field:'transferNoteNo',title:'调拨单号',width:200,align:'center',hidden:true},
+	              {field:'lotNo',title:'批次号',width:180,align:'center'},
+	              {field:'boxCode',title:'箱号',width:180,align:'center'},
+	              {field:'productId',title:'产品ID',width:150,align:'center',hidden:true},
+	              {field:'brandName',title:'产品名',width:80,align:'center'},
+	              {field:'commWeight',title:'产品重量(kg)',width:80,align:'center'},
+	              {field:'modelName',title:'产品型号',width:80,align:'center'},
+	              {field:'weight',title:'调拨重量(kg)',width:80,align:'center'},
+	              {field:'quanlity',title:'调拨数量',width:80,align:'center'},
+	              {field:'cost',title:'调拨成本',width:80,align:'center'},
+	              {field:'unit',title:'调拨单位',width:80,align:'center'},
+	              {field:'unitWeight',title:'单位重量(kg)',width:80,align:'center'},
+	              {field:'owner',title:'货主',width:50,align:'center',hidden:true},
+	              {field:'contact',title:'货主',width:50,align:'center'},
+	              {field:'createTime',title:'创建时间',width:150,align:'center'},
+	              {field:'createUser',title:'创建人ID',width:100,hidden:true},
+	              {field:'createUserName',title:'创建人',width:100,align:'center'},
+	              {field:'updateTime',title:'更改时间',width:150,align:'center'},
+	              {field:'updateUser',title:'修改人ID',width:100,hidden:true},
+	              {field:'updateUserName',title:'修改人',width:100,align:'center'}
+	             
+	    ]],
+	    pagination: false
+	});
+}
+
+function getNowFormatDate() {
+    var date = new Date();
+    var seperator1 = "-";
+    var seperator2 = ":";
+    var month = date.getMonth() + 1;
+    var strDate = date.getDate();
+    if (month >= 1 && month <= 9) {
+        month = "0" + month;
+    }
+    if (strDate >= 0 && strDate <= 9) {
+        strDate = "0" + strDate;
+    }
+    var currentdate = date.getFullYear() + seperator1 + month + seperator1 + strDate
+            + " " + date.getHours() + seperator2 + date.getMinutes()
+            + seperator2 + date.getSeconds(); 
+    return currentdate;
+}
+
+function editRow(transferNoteNo){
+	$('#salesButton').hide();//提交按钮
+	$('#confirmButton').hide();//出库按钮
+	$('#putInStorageButton').hide();//入库按钮 
+	$('#deleteButton').hide(); 
+	$('#allTransfers').hide();
+	$('#outStockByLotNo').hide();
+	$(".out").hide();
+	$(".int").hide();
+	$(".trans").hide();//调拨按钮
+	$('#itemsdgDiv').hide();
+	$('#itemsdgDiv1').show();
+	$('#itemsdgDivShow').show();
+
+    $.ajax({
+        url: 'transferNote/getAllTransferNoteNo',
+        data: { 
+        	transferNoteNo:transferNoteNo
+        },
+        type: "post",
+        success: function (result) {
+        	var stateTimes = result.stateTimes;
+     	    var datas=[
+		        {
+		            time:"",
+		            text:"已制单",
+		            state:1 
+		        },{
+		            time:"",
+		            text:"已出库",
+		            state:0
+		        },{
+		            time:"",
+		            text:"已入库",
+		            state:0
+		        },{
+		            time:"",
+		            text:"已作废",
+		            state:0 
+		        }];
+		    var conf={
+		    	      textAlign:'left',//设置文字位置,left在点上方,center在线上方
+		    	      lineWidth:200//设置线条长度
+		    	    };
+	        $(".pro").empty().timeLines(stateTimes,conf); 
+
+	        var warehouseType=result.text.type;
+	        if(warehouseType=="1"){
+	        	 $("#freightDiv").hide();
+	        }else if(warehouseType=="2"){
+	        	 $("#freightDiv").show();
+	        }
+            $("#fromWsNo").combogrid('setValue',result.text.fromWsNoName)//调出仓库
+        	$('#fromWsNo').combogrid('disable');
+            $('#transferNoteCategory').combogrid('disable');
+            
+            $("#startAddress").textbox('setValue',result.text.startAddressName)//起点
+        	$("#endAddress").textbox('setValue',result.text.endAddressName)//终点    
+        	$('#startAddressId').val(result.text.startAddressId);
+        	$('#endAddressId').val(result.text.endAddressId);
+            
+            var warehouseNo =result.text.fromWsNo;
+            $('#toWsNo').combogrid({
+        		value:'--请选择--',
+        		required:true,
+        		idField:'warehouseNo', //值字段
+                textField:'warehouseName', //显示的字段
+                url:'transferNote/getWarehouseName?warehouseNo='+warehouseNo, 
+                editable:false,//不可编辑，只能选择
+                panelWidth:605,
+                columns: [[
+                    { field: 'warehouseId', title: 'id',hidden:true, width: 40 },
+                    { field: 'warehouseNo', title: '仓库编号', width: 100 },
+                    { field: 'warehouseName', title: '仓库名称', width: 150 },
+                    { field: 'volume', title: '仓库容量', width: 100 },
+                    { field: 'contact', title: '负责人', width: 100 },
+                    { field: 'totalWeight', title: '库存', width: 100 },
+                    { field: 'areaname', title: '区域', width: 150 }
+                ]], 
+                onSelect:function(){
+                	var gt = $('#toWsNo').combogrid('grid');	// 获取数据表格对象
+                	var rt = gt.datagrid('getSelected');	// 获取选择的行
+                	if(rt.ADDRESSNAME!=null){
+                	$('#endAddress').textbox('setValue', rt.addressName);
+                	}
+                	$('#endAddressId').val(rt.addressId);
+                },
+             });
+      
+            $("#toWsNo").combogrid('setValue',result.text.toWsNoName)//调入仓库
+            $('#toWsNo').combogrid('disable');
+        	var transferNoteNo =result.text.transferNoteNo;
+        	$("#transferNoteNo").textbox('setValue',transferNoteNo)//单号
+        	$("#createUser").textbox('setValue',result.text.createUserName)//制单人
+        	$('#transferDate').datebox('setValue',result.text.transferDate);//制单日期
+        	
+        	$('#outDate').datebox('setValue',result.text.outDate);//出库时间
+        	$('#instockDate').datebox('setValue',result.text.instockDate);//制单日期
+        	       	
+        	$("#confirmUser").textbox('setValue',result.text.updateUserName)//确认人
+        	$("#status").textbox('setValue',result.text.statusName)//状态        
+        	$('#residueWeight').numberbox('setValue', result.text.residueWeight);
+         	$('#residueQuanlity').numberbox('setValue', result.text.residueQuanlity);  
+        	$("#settleType").combobox('setValue',result.text.settleType)//结算方式
+        	var transferNoteCategory =result.text.transferNoteCategory;
+        	if(transferNoteCategory!=null){
+        	$("#transferNoteCategory").combobox('setValue',transferNoteCategory)//调拨品类
+        	}else{
+        		$(".catId").hide();
+        	}
+         	$("#outstockWeighing").textbox('setValue',result.text.outstockWeighing)//出库过磅重量
+        	$("#instockWeighing").textbox('setValue',result.text.instockWeighing)//入库过磅重量
+        	$("#transferWeight").numberbox('setValue',result.text.transferWeight)//调拨总重量
+        	$("#transferQuanlity").numberbox('setValue',result.text.transferQuanlity)//调拨总数量
+        	
+        	$("#freightCompany").combobox('setValue',result.text.freightCompany)//运输公司
+        	$("#freightPrice").textbox('setValue',result.text.freight)//运费
+        	$("#shipper").textbox('setValue',result.text.shipper)//赋值
+        	$("#tel").textbox('setValue',result.text.tel)//联系电话
+        	$("#plateNo").textbox('setValue',result.text.plateNo)//车牌号
+        	$("#remark").textbox('setValue',result.text.remark)//备注 
+         	$('#handlingCharges').textbox('setValue', result.text.handlingCharges);
+         	$('#weighingFee').textbox('setValue',  result.text.weighingFee);  
+         	$('#logisticsNoteNo').val(result.text.logisticsNoteNo);
+         	$('#transferNoteId').val( result.text.transferNoteId);
+         	
+         	$('#settleType').textbox('textbox').css('background','#EBEBE4');
+        	$('#settleType').textbox('textbox').attr('readonly',true);  //设置输入框为禁用
+         	$('#freightCompany').textbox('textbox').css('background','#EBEBE4');
+        	$('#freightCompany').textbox('textbox').attr('readonly',true);  //设置输入框为禁用
+        	$('#freightPrice').textbox('textbox').css('background','#EBEBE4');
+        	$('#freightPrice').textbox('textbox').attr('readonly',true);  //设置输入框为禁用
+        	$('#shipper').textbox('textbox').css('background','#EBEBE4');
+        	$('#shipper').textbox('textbox').attr('readonly',true);  //设置输入框为禁用
+        	$('#tel').textbox('textbox').css('background','#EBEBE4');
+        	$('#tel').textbox('textbox').attr('readonly',true);  //设置输入框为禁用
+        	$('#plateNo').textbox('textbox').css('background','#EBEBE4');
+        	$('#plateNo').textbox('textbox').attr('readonly',true);  //设置输入框为禁用
+        	$('#remark').textbox('textbox').css('background','#EBEBE4');
+        	$('#remark').textbox('textbox').attr('readonly',true);  //设置输入框为禁用
+        	$('#handlingCharges').textbox('textbox').css('background','#EBEBE4');
+        	$('#handlingCharges').textbox('textbox').attr('readonly',true);  //设置输入框为禁用
+        	$('#weighingFee').textbox('textbox').css('background','#EBEBE4');
+        	$('#weighingFee').textbox('textbox').attr('readonly',true);  //设置输入框为禁用
+        	
+        	
+      	
+             //按钮控制   	
+        	var status=result.text.statusName;        	
+        	var wafEmployee =result.text.wafEmployee//调出仓库负责人
+        	var watEmployee =result.text.watEmployee;//调入仓库负责人
+        	var loginId =result.loginId;
+        	var createUser=result.text.createUser;
+        	$('#transferDate').datebox('textbox').css('background','#EBEBE4');
+        	$("#transferDate").datebox("disable");
+        	$('#instockWeighing').textbox('textbox').css('background','#EBEBE4');
+        	$('#instockWeighing').textbox('textbox').attr('readonly',true);  //设置输入框为禁用
+        	$('#outstockWeighing').textbox('textbox').css('background','#EBEBE4');
+        	$('#outstockWeighing').textbox('textbox').attr('readonly',true);  //设置输入框为禁用
+	    	$('#outDate').datebox('textbox').css('background','#EBEBE4');
+	    	$('#instockDate').datebox('textbox').css('background','#EBEBE4');
+	    	$("#outDate").datebox("disable");
+	    	$("#instockDate").datebox("disable");
+	    	
+	    	if(status=='已入库'){//只有调出仓库负责人才能出库
+            	$('#deleteButton').show();
+            	$('#deleteButton').linkbutton('enable');
+        	}else if(status=='已作废'){
+        	    $('#deleteButton').hide();
+        	}else if(status=='已制单'){
+        		if(loginId==wafEmployee){//只有调出仓库负责人才能出库
+        			$('#instockDate').datebox('textbox').css('background','#EBEBE4');
+        			$('#allTransfers').show();
+        			$('#outStockByLotNo').show();
+        			$('#deleteButton').show();
+            		$('#deleteButton').linkbutton('enable');
+        			$(".out").show();
+        		    $('#confirmButton').show();
+        		    $('#confirmButton').linkbutton('enable');
+        		    $('#outstockWeighing').textbox('textbox').css('background','#FFFFFF');
+                	$('#outstockWeighing').textbox('textbox').attr('readonly',false); 
+                	$('#outstockWeighing').textbox({required: true}); 
+                	
+                	$('#outDate').datebox('textbox').css('background','#FFFFFF');
+                	$("#outDate").datebox("enable");
+                	$('#outDate').datebox({required: true}); 
+                	
+        		 }
+        	}else if(status=='已出库'){
+        		if(loginId==wafEmployee){//只有调出仓库负责人才能出库
+        		$('#deleteButton').show();
+        		$('#deleteButton').linkbutton('enable');
+        		}
+        		if(loginId==watEmployee){//只有调入仓库负责人才能入库
+        			$(".int").show();
+        			$('#putInStorageButton').show();//入库按钮
+        			$('#outstockWeighing').textbox('textbox').css('background','#EBEBE4');
+                	$('#outstockWeighing').textbox('textbox').attr('readonly',true);  //设置输入框为禁用
+                	
+        			$('#instockWeighing').textbox('textbox').css('background','#FFFFFF');
+                	$('#instockWeighing').textbox('textbox').attr('readonly',false);   //设置输入框为可用
+                	$('#instockWeighing').textbox({  required: true  }); 
+                	
+                	$('#instockDate').datebox('textbox').css('background','#FFFFFF');
+                	$("#instockDate").datebox("enable");
+                	$('#instockDate').datebox({required: true}); 
+        		 }
+        	}
+        	
+        	$('#itemsdgShow').datagrid({
+        		title: '按批次显示',
+                width: "100%",
+            	height: 200,
+            	fitColumns:false,
+                nowrap: true,
+                autoRowHeight: false,
+                striped: true,
+                collapsible: true,
+            	singleSelect:true,
+                remoteSort: false,
+                rownumbers:true,
+                checkOnSelect: true,
+                url: 'transferNote/getTransferNoteItems?transferNoteNo='+transferNoteNo,
+                columns: [[
+                	 {field:'boxCode',title:'箱号',width:145},
+                     {field:'configName',title:'商品类型',width:145},
+                     {field:'totalQuanlity',title:'总数量',width:120},
+                     {field:'totalWeight',title:'总重量(kg)',width:120},
+                     {field:'totalCost',title:'总成本价格(元)',width:120},
+                     {field:'lotNo',title:'批次号',width:200}
+                    
+                ]],
+                pagination: false,
+                onLoadSuccess: function(text){
+        	}
+            });
+        	
+        	$("#itemsdgDiv1").show();
+    		$('#itemsdg1').datagrid({
+    		    title: '按商品显示',
+    	        width: "100%", 
+    	    	height: 200,
+    	        nowrap: true,
+    	        autoRowHeight: false,
+    	        striped: true,
+    	        collapsible: true,
+    	    	singleSelect:true,
+    	        remoteSort: false,
+    	        rownumbers:true,
+    	        checkOnSelect: true,
+    			url: 'transferNote/transferItemsProduct?transferNoteNo='+transferNoteNo+'&transferNoteCategory='+transferNoteCategory,
+    	        columns: [[
+    	        	  {field:'productId',title:'商品Id',width:60},
+    	              {field:'configName',title:'商品类型',width:125},
+    	              {field:'brandName',title:'品牌',width:80},
+    	              {field:'modelName',title:'型号',width:80},
+    	              {field:'unit',title:'单位',width:40},
+    	              {field:'commWeight',title:'单位重量(kg)',width:80},
+    	              {field:'totalQuanlity',title:'出库数量(kg)',width:80},
+    		          {field:'totalQuanlity',title:'总数量',width:100},
+    		          {field:'totalWeight',title:'总重量(kg)',width:100},
+    		          {field:'totalCost',title:'总成本(元)',width:105}
+    	        ]],
+    	        pagination: false
+    	   }); 
+        	
+        	$('#orderList').dialog('open');
+	        $('#transferNoteNo').textbox('textbox').css('background','#EBEBE4'); 
+	        $('#createUser').textbox('textbox').css('background','#EBEBE4');
+	        $('#confirmUser').textbox('textbox').css('background','#EBEBE4');
+	        $('#status').textbox('textbox').css('background','#EBEBE4');
+	        $('#startAddress').textbox('textbox').css('background','#EBEBE4');
+	        $('#endAddress').textbox('textbox').css('background','#EBEBE4');
+	        $('#transferWeight').textbox('textbox').css('background','#EBEBE4');
+	        $('#transferQuanlity').textbox('textbox').css('background','#EBEBE4');
+	        $('#residueWeight').textbox('textbox').css('background','#EBEBE4');
+	        $('#residueQuanlity').textbox('textbox').css('background','#EBEBE4');
+	       
+	       
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+        	$.messager.show({
+				title: 'Error',
+				msg: jqXHR.responseText
+			});
+        }
+    });
+}
+
+//构造json数据传送到服务器  
+function getJsonDate(){
+    var rowsData = $('#itemsdg').datagrid('getRows');  
+	var json = [];  
+	var loc;  	
+	 $.each(rowsData, function (i) {  
+	     loc= {  "inventoryItemId": rowsData[i].inventoryItemId,
+	    		 "quanlity": rowsData[i].quanlity,
+			     "boxCode": rowsData[i].boxCode
+	     };  	 
+	     json.push(loc);  
+	     });  
+	     json = JSON.stringify(json); //转换成json数据  
+	    return json;
+}
+//全部出库
+function allTransfers(){
+	var warehouseNo = $('#fromWsNo').combogrid('getValue');//调出仓库编号
+    if (warehouseNo == "" || warehouseNo == "--请选择--") {
+		$.messager.alert('提示','请选择调出仓库！','error');
+		return;
+	}
+    
+    var toWsNo = $('#toWsNo').combogrid('getValue');
+    if (toWsNo == "" || toWsNo == "--请选择--") {
+		$.messager.alert('提示','请选择调入仓库！','error');
+		return;
+	}
+    
+	var transferNoteCategory=$('#transferNoteCategory').combobox("getValue");
+	if(transferNoteCategory==null || transferNoteCategory==""||transferNoteCategory=="--请选择品类--"){
+	    $.messager.alert('提示','操作失败!调拨品类不能为空','error');
+		return;
+    }
+    
+	$("#itemsdgDiv1").hide();  
+	$('#itemsdgDiv').show();
+    $('#itemsdgDivShow').show();
+    
+    $('#itemsdgShow').datagrid({
+		title: '按批次显示',
+        width: "100%",
+    	height: 200,
+    	fitColumns:false,
+        nowrap: true,
+        autoRowHeight: false,
+        striped: true,
+        collapsible: true,
+    	singleSelect:true,
+        remoteSort: false,
+        rownumbers:true,
+        checkOnSelect: true,
+        url: 'transferNote/allTransfersBylotNo?warehouseNo='+warehouseNo+'&transferNoteCategory='+transferNoteCategory,
+        columns: [[
+        	 {field:'boxCode',title:'箱号',width:145},
+             {field:'configName',title:'商品类型',width:145},
+             {field:'totalQuanlity',title:'总数量',width:120},
+             {field:'totalWeight',title:'总重量(kg)',width:120},
+             {field:'totalCost',title:'总成本价格(元)',width:120},
+             {field:'lotNo',title:'批次号',width:200}
+        ]],
+        pagination: false
+    }); 
+    
+    
+	$('#itemsdg').datagrid({
+		title: '按详情显示',
+        width: "100%",
+    	height: 200,
+    	fitColumns:false,
+        nowrap: true,
+        autoRowHeight: false,
+        striped: true,
+        collapsible: true,
+    	singleSelect:true,
+        remoteSort: false,
+        rownumbers:true,
+        checkOnSelect: true,
+        url: 'transferNote/allTransfers?warehouseNo='+warehouseNo+'&transferNoteCategory='+transferNoteCategory+'&toWsNo='+toWsNo,
+        columns: [[
+        	  {field:'inventoryItemId',title:'批次ID',width:120,hidden:true},
+              {field:'configName',title:'商品类型',width:120},
+              {field:'brandName',title:'品牌',width:80},
+              {field:'modelName',title:'型号',width:80},
+              {field:'unit',title:'单位',width:40},
+              {field:'unitWeight',title:'单位重量(kg)',width:80},
+              {field:'quanlity',title:'数量',width:62},
+              {field:'weight',title:'重量(kg)',width:62},
+              {field:'cost',title:'成本价格(元)',width:82},
+              {field:'owner',title:'货主',width:82,hidden:true},
+              {field:'lotNo',title:'批次号',width:178}
+        ]],
+        pagination: false,
+        onLoadSuccess: function(text){
+        	if(parseFloat(text.volume)<parseFloat(text.weight)){//调入仓库剩余容量 <总的调拨重量
+        		$.messager.alert('提示','调入仓库容量不足,不能调拨！','error');
+        		return;
+        	}
+        	flag=1;
+        	$('#transferWeight').textbox('setValue', text.weight);
+        	$('#transferQuanlity').textbox('setValue', text.hand);
+        	$('#residueWeight').textbox('setValue', "0.00");
+         	$('#residueQuanlity').textbox('setValue', "0.00"); 
+    	}
+    });
+	
+	$('#itemsdg1').datagrid({
+	    title: '按商品显示',
+        width: "100%", 
+    	height: 200,
+        nowrap: true,
+        autoRowHeight: false,
+        striped: true,
+        collapsible: true,
+    	singleSelect:true,
+        remoteSort: false,
+        rownumbers:true,
+        checkOnSelect: true,
+		url: 'transferNote/allTransfersProduct?warehouseNo='+warehouseNo+'&transferNoteCategory='+transferNoteCategory,
+        columns: [[
+        	  {field:'productId',title:'商品Id',width:60},
+              {field:'configName',title:'商品类型',width:125},
+              {field:'brandName',title:'品牌',width:80},
+              {field:'modelName',title:'型号',width:80},
+              {field:'unit',title:'单位',width:40},
+              {field:'commWeight',title:'单位重量(kg)',width:80},
+              {field:'totalQuanlity',title:'出库数量(kg)',width:80},
+	          {field:'totalQuanlity',title:'总数量',width:100},
+	          {field:'totalWeight',title:'总重量(kg)',width:100},
+	          {field:'totalCost',title:'总成本(元)',width:105},
+        ]],
+        pagination: false
+   }); 
+}
+
+//按重量调拨
+function weightTransfers(){
+	var fromWsNo = $('#fromWsNo').combogrid('getValue');
+    if (fromWsNo == "" || fromWsNo == "--请选择--") {
+		$.messager.alert('提示','请选择调出仓库！','error');
+		return;
+	}
+    
+    var toWsNo = $('#toWsNo').combogrid('getValue');
+    if (toWsNo == "" || toWsNo == "--请选择--") {
+		$.messager.alert('提示','请选择调入仓库！','error');
+		return;
+	}
+	$('#weightDialog').dialog('open');
+}
+
+function submitWeightForm(){
+	var warehouseId = $('#fromWsNo').combogrid('getValue');//调出仓库ID
+	$('#itemsdg').datagrid({
+        width: "100%",
+    	height: 200,
+    	fitColumns:false,
+        nowrap: true,
+        autoRowHeight: false,
+        striped: true,
+        collapsible: true,
+    	singleSelect:true,
+        remoteSort: false,
+        rownumbers:true,
+        checkOnSelect: true,
+        url: 'transferNote/allTransfers?warehouseId='+warehouseId,
+        columns: [[
+        	{field:'inventoryItemId',title:'批次ID',width:120,hidden:true},
+        	{field:'configName',title:'商品类型',width:120},
+            {field:'brandName',title:'品牌',width:40},
+            {field:'modelName',title:'型号',width:80},
+            {field:'unit',title:'单位',width:40},
+            {field:'unitWeight',title:'单位重量',width:60},
+            {field:'quanlity',title:'数量',width:60},
+            {field:'weight',title:'重量',width:60},
+            {field:'cost',title:'成本价格',width:80},
+            {field:'lotNo',title:'批次号',width:180}
+        ]],
+        pagination: true,
+        pageSize : 5, 
+        pageList : [ 5,10,20,40], 
+        onLoadSuccess: function(text){
+        	$('#transferWeight').textbox('setValue', text.weight);
+        	$('#transferQuanlity').textbox('setValue', text.hand);
+        	$('#residueWeight').textbox('setValue', "0");
+         	$('#residueQuanlity').textbox('setValue', "0"); 
+    
+    	}
+    });
+}
+
+//提交
+function submitTransferNote(){
+	var transferNoteCategory=$('#transferNoteCategory').combobox("getValue");
+	if(transferNoteCategory==null || transferNoteCategory==""||transferNoteCategory=="--请选择品类--"){
+	    $.messager.alert('提示','操作失败!调拨品类不能为空','error');
+		return;
+    }
+	
+	var transferWeight=$('#transferWeight').textbox("getValue");
+	if(transferWeight==null || transferWeight==""){
+		$.messager.alert('提示','操作失败!请选择调拨方式','error');
+		return;
+	}
+ 	var warehouseType =$('#warehouseType').val();
+	var freightCompany=$('#freightCompany').combobox("getValue");
+	var company=$('#freightCompany').combobox("getText");
+ 	if(warehouseType==2){//仓库类型为物流中心			
+	if(freightCompany != "--请编辑或选择--" && freightCompany != null && freightCompany != ""){
+		var freightPrice=$('#freightPrice').textbox("getValue");
+		if(freightPrice==null || freightPrice==""){
+			$.messager.alert('提示','操作失败!运费不能为空','error');
+			return;
+		}
+		var settleType=$('#settleType').combobox("getValue");
+		if(settleType==null || settleType==""|| settleType=="--请选择--"){
+			$.messager.alert('提示','操作失败!请选择运费结算方式','error');
+			return;
+		}
+		
+		var shipper=$('#shipper').textbox("getValue");
+		if(shipper=null || shipper==""){
+			$.messager.alert('提示','操作失败!承运人不能为空','error');
+			return;
+		}
+		
+		var tel=$('#tel').textbox("getValue");
+		if(tel==null || tel==""){
+			$.messager.alert('提示','操作失败!联系电话不能为空','error');
+			return;
+		}
+
+		var plateNo=$('#plateNo').textbox("getValue");
+		if(plateNo==null || plateNo==""){
+			$.messager.alert('提示','操作失败!车牌号不能为空','error');
+			return;
+		     }
+	  }else{
+		    freightCompany = "isEmpty";
+	  } 
+ 	}	
+
+	var json1=getJsonDate();
+	$('#jsonDate').val(json1);	
+	
+	$('#salesButton').linkbutton('disable');
+	/* $('#form1').form('submit',{
+			url:'transferNote/submitTransferNote' ,
+			onSubmit: function(){
+			},
+		    queryParams:{
+				flag:flag,
+				warehouseType:warehouseType,
+				freightCompany:freightCompany,
+				wOwner:owner,
+				company:company
+			}, 
+			success: function(result){
+				$('#salesButton').linkbutton('enable');
+				var result = eval('('+result+')'); 
+				if (result.msgCode =='Y'){
+					//$.messager.alert('提示','操作成功!','info');
+					$('#form1').form('clear');
+					editRow(result.msg);
+					$('#dg').datagrid('reload'); 
+					$('#salesButton').linkbutton('enable');
+				} else {
+					$.messager.alert('提示',result.msg,'error');
+				}
+			}
+		});   */
+	$.ajax({
+		url : 'transferNote/submitTransferNote',
+		type : "post",
+		data : new FormData(document.getElementById("form1")),
+		/* {
+			flag:flag,
+			warehouseType:warehouseType,
+			freightCompany:freightCompany,
+			wOwner:owner,
+			company:company,
+			
+		},
+ */		dataType : "json",
+		success: function(result){
+			$('#salesButton').linkbutton('enable');
+			if (result.msgCode =='Y'){
+				//$.messager.alert('提示','操作成功!','info');
+				$('#form1').form('clear');
+				editRow(result.msg);
+				$('#dg').datagrid('reload'); 
+				$('#salesButton').linkbutton('enable');
+			} else {
+				$.messager.alert('提示',result.msg,'error');
+			}
+		}
+	});
+		
+}
+
+//出库
+function confirmTransferNote(){
+	 var transferNoteNo = $('#transferNoteNo').textbox('getValue');
+	 var status = $('#status').textbox('getValue');//状态
+	 if(status=="已作废"){
+		 $.messager.alert('提示','操作失败!调拨单已作废不能出库','error');
+		 return; 
+	 }else if(status=="已入库"){
+		 $.messager.alert('提示','操作失败!调拨单已入库不能出库','error');
+		 return; 
+	 }
+	 var outstock=$('#outstockWeighing').textbox("getValue");//出库过磅重量
+	 if(outstock==null || outstock==""){
+			$.messager.alert('提示','操作失败!出库过磅重量不能为空','error');
+			return;
+	 }
+	 
+	 var outDate=$('#outDate').datebox("getValue");//出库时间
+	 if(outDate==null || outDate==""){
+			$.messager.alert('提示','操作失败!出库时间不能为空','error');
+			return;
+	 }
+	 
+	 var transferNoteToken = $('#transferNoteToken').val();	
+	 $('#confirmButton').linkbutton('disable');
+ 		$.ajax({
+		        url: "transferNote/confirmTransferNote",
+		        data: { 
+		        	outstock: outstock,
+		        	transferNoteNo : transferNoteNo,
+		        	transferNoteToken:transferNoteToken,
+		        	outDate:outDate
+		        },
+		        type: "post",
+		        success: function(result){
+					$('#confirmButton').linkbutton('enable');
+					if (result.msgCode=='Y'){
+						//$.messager.alert('提示','操作成功!','info');
+						$('#form1').form('clear');
+						editRow(transferNoteNo);
+						$('#dg').datagrid('reload');  
+						//$('#orderList').dialog('close');	
+					} else {
+						$.messager.alert('提示',result.msg,'error');
+					}
+				}
+		    }); 
+}
+
+
+//入库
+function putInStorageTransferNote(){
+	 var transferNoteNo = $('#transferNoteNo').textbox('getValue');
+	 var status = $('#status').textbox('getValue');//状态
+	 if(status=="已作废"){
+		 $.messager.alert('提示','操作失败!调拨单已作废不能入库','error');
+		 return; 
+	 }
+	 var instock=$('#instockWeighing').textbox("getValue");//入库过磅重量
+	 if(instock==null || instock==""){
+			$.messager.alert('提示','操作失败!入库过磅重量不能为空','error');
+			return;
+	 }
+	 
+	 var instockDate=$('#instockDate').datebox("getValue");//出库时间
+	 if(instockDate==null || instockDate==""){
+			$.messager.alert('提示','操作失败!入库时间不能为空','error');
+			return;
+	 }
+	 var transferNoteToken = $('#transferNoteToken').val();	
+	 $('#putInStorageButton').linkbutton('disable');
+ 		$.ajax({
+		        url: "transferNote/putInStorageTransferNote",
+		        data: { 
+		        	instock: instock,
+		        	transferNoteNo : transferNoteNo,
+		        	transferNoteToken:transferNoteToken,
+		        	instockDate:instockDate
+		        },
+		        type: "post",
+		        success: function(result){
+					$('#putInStorageButton').linkbutton('enable');
+					if (result.msgCode=='Y'){
+						$.messager.alert('提示','操作成功!','info');
+						$('#form1').form('clear');
+						//editRow(transferNoteNo);
+						$('#dg').datagrid('reload');  
+						$('#orderList').dialog('close');	
+					} else {
+						$.messager.alert('提示',result.msg,'error');
+					}
+				}
+		    }); 
+}
+
+//删除
+ function deleteTransferNote(){
+	 $.messager.confirm('提示','是否确认删除？',function (r) {
+	 if(r){
+		$('#deleteButton').linkbutton('disable');
+	    var transferNoteNo = $('#transferNoteNo').textbox('getValue');
+	    var transferNoteToken = $('#transferNoteToken').val();	
+		$.ajax({
+	        url: "transferNote/deleteTransferNote",
+	        data: { 
+	        	transferNoteNo : transferNoteNo,
+	        	transferNoteToken:transferNoteToken
+	        },
+	        type: "post",
+	        success: function(result){
+				$('#deleteButton').linkbutton('enable');
+				if (result.msgCode =='Y'){
+					$.messager.alert('提示','操作成功!','info');
+					$('#form1').form('clear');
+					$('#dg').datagrid('reload');  
+					$('#orderList').dialog('close');	
+				} else {
+					$.messager.alert('提示',result.msg,'error');
+				}
+			}
+	    }); 
+	}else{
+		return;
+	}
+ });
+}
+
+
+
+  //按批次调拨
+ function outStockByLotNo(){
+	var warehouseNo=$('#fromWsNo').combogrid("getValue");
+	if(warehouseNo==null || warehouseNo==""||warehouseNo=="--请选择--"){
+		$.messager.alert('提示','操作失败!请选择调出仓库','error');
+		return;
+	}
+	
+	var toWsNo=$('#toWsNo').combogrid("getValue");
+	if(toWsNo==null || toWsNo==""||toWsNo=="--请选择--"){
+		$.messager.alert('提示','操作失败!请选择调入仓库','error');
+		return;
+	}  
+	
+	var salesCategory=$('#transferNoteCategory').combobox("getValue");
+	if(salesCategory==null || salesCategory==""||salesCategory=="--请选择品类--"){
+	    $.messager.alert('提示','操作失败!调拨品类不能为空','error');
+		return;
+    }
+	 
+	 $('#selectLotNo').dialog('open');
+	 $('#wsOwner').combogrid({ 
+ 	    panelWidth:430,    
+ 	    fit: true, //自动大小 
+		fitColumns: true,
+ 	    value:'--请选择--',    
+ 	    idField:'saCustId',    
+ 	    textField:'companyName',    
+ 	    url:'transferNote/getOwner?warehouseNo='+warehouseNo,
+ 	    editable:false,
+ 	    multiple : true, 
+ 	    columns:[[    
+ 	    	{field:'saCustId',title:'客户id',hidden:true},   
+ 	        {field:'companyName',title:'客户公司',width:175},  
+ 	        {field:'contact',title:'客户',width:100}, 
+ 	        {field:'tel',title:'电话',width:130}
+ 	    ]], 
+        onSelect:function(){
+        	owner=$('#wsOwner').combogrid("getValues");
+       	    if(owner==null || owner==""||owner=="--请选择--"){
+       		    $.messager.alert('提示','操作失败!请选择货主','error');
+       		    return;
+       	     } 
+       	$('#lotNototalWeight').textbox('setValue',"0.00");
+       	$('#lotNototalQuanlity').textbox('setValue',"0.00");
+       	$('#remainQuanlity').textbox('setValue',"0.00");
+       	$('#remainWeight').textbox('setValue',"0.00"); 
+       	    
+        //批次库存
+       	$('#stockTotalInfo').datagrid({
+       		        top:'20px',
+       		        width: "100%",
+       		    	height: 200,
+       		    	fitColumns:true,
+       		    	rownumbers: true,
+       		    	singleSelect: false,
+       		    	url:'outstock/getStockTotalByLotNo?owner='+owner,
+       		    	queryParams: {
+       		       	  	 warehouseNo:warehouseNo,
+       		       		 salesCategory:salesCategory
+       		    	 },
+       		        idField: 'lotNo',
+       		        onCheck:function(index,row){
+       		        	check1(index,row);
+       		        },
+       		        onUncheck:function(index,row){
+       		        	check1(index,row);
+       		        },
+       		        onCheckAll:function(index,row){
+       		        	check1(index,row);
+                    },
+                    onUncheckAll:function(index,row){
+                    	check1(index,row);
+                    },
+       		        columns: [[
+       		             {field: 'ck', title:'选择', checkbox: true }, 
+       		             {field:'warehouseId', title: '仓库ID',hidden:true },
+       		             {field:'areaId',title:'区域Id',hidden:true},
+       		             {field:'commTypeId',title:'类型ID',hidden:true},
+       		             {field:'lotNo',title:'批次号',width:$("#dgid").width()/7},
+       		             {field:'warehouseName',title:'仓库',width:$("#dgid").width()/8},
+       		             {field:'commTypeName',title:'产品类型',width:$("#dgid").width()/11},
+       		             {field:'quanlity',title:'总数量(只)',width:$("#dgid").width()/11},
+       		             {field:'weight',title:'总重量(KG)',width:$("#dgid").width()/11},
+       		             {field:'cost',title:'总成本(元)',width:$("#dgid").width()/11},
+       		             {field:'stockDate',title:'入库日期',width:$("#dgid").width()/11},
+       		             {field:'inType',title:'入库类型',width:$("#dgid").width()/15},
+       		             {field:'source',title:'来源',width:$("#dgid").width()/15},
+       		             {field:'contact',title:'来源负责人',width:$("#dgid").width()/15}
+       		        ]],
+       		    });
+       		     //批次库存详情
+       		     $('#stockTotalDetilInfo').datagrid({
+       		        top:'20px',
+       		        width: "100%",
+       		        url:"",
+       		        height: 200,
+       		    	fitColumns:true,
+       		        rownumbers:true,//显示序列
+       		        idField: 'lotNo',
+       		        columns: [[
+       		        	{field:'boxCode',title:'箱号'},
+       		            {field:'configName',title:'商品类型'},
+       		            {field:'brandName',title:'品牌'},
+       		            {field:'modelName',title:'型号'},
+       		            {field:'unit',title:'单位'},
+       		            {field:'commWeight',title:'单位重量'},
+       		            {field:'quanlity',title:'数量'},
+       		            {field:'weight',title:'重量'},
+       		            {field:'cost',title:'成本价格'},
+       		            {field:'quanlity',title:'出库数量'},
+       		            {field:'lotNo',title:'批次号'}
+       		      ]],
+       		        pagination: false 
+       		    });  
+       		flag=2;
+        }
+     });  
+}
+  
+  
+ function check1(index,row){
+	var rows=$('#stockTotalInfo').datagrid("getChecked");
+	var json=getCheckData(rows);
+	var warehouseNo=$('#fromWsNo').combogrid("getValue");
+	var owner=$('#wsOwner').combogrid("getValues");
+	var salesCategory=$('#transferNoteCategory').combobox("getValue");
+	$('#stockTotalDetilInfo').datagrid({
+		top:'20px',
+		width: "100%",
+    	height: 200,
+    	fitColumns:false,
+        nowrap: true,
+        autoRowHeight: false,
+        striped: true,
+        collapsible: true,
+    	singleSelect:true,
+        remoteSort: false,
+        rownumbers:true,
+        checkOnSelect: true,
+        url:'outstock/outStockTotal?owner='+owner,
+        queryParams: {
+   	     json:json,
+   	  	 warehouseNo:warehouseNo,
+   		 salesCategory:salesCategory
+	   },	   
+       idField: 'lotNo',
+       columns: [[
+       	   {field:'boxCode',title:'箱号',width:100},
+           {field:'configName',title:'商品类型',width:130},
+           {field:'brandName',title:'品牌',width:40},
+           {field:'modelName',title:'型号',width:80},
+           {field:'unit',title:'单位',width:40},
+           {field:'commWeight',title:'单位重量',width:60},
+           {field:'quanlity',title:'数量',width:60},
+           {field:'weight',title:'重量',width:60},
+           {field:'cost',title:'成本价格',width:80},
+           {field:'lotNo',title:'批次号',width:180}
+     ]],
+	 pagination: false ,
+	 onLoadSuccess:function(date){ 
+		 allWeight =date.weight;
+		 allQuanlity =date.quanlity;
+		 reWeight= date.remainWeight;
+		 reQuanlity=date.remainQuanlity;
+		$('#lotNototalWeight').textbox('setValue',date.weight);
+     	$('#lotNototalQuanlity').textbox('setValue',date.quanlity);
+     	var remainQuanlity=date.remainQuanlity;
+     	if(remainQuanlity==null || remainQuanlity=='' || remainQuanlity=='0'){
+     		$('#remainQuanlity').textbox('setValue','0.00');
+     	}else{
+     		$('#remainQuanlity').textbox('setValue',remainQuanlity);
+     	}
+     	var remainWeight=date.remainWeight;
+     	if(remainWeight==null || remainWeight=='' || remainWeight=='0'){
+     		$('#remainWeight').textbox('setValue','0.00');
+     	}else{
+     		$('#remainWeight').textbox('setValue',remainWeight);
+     	}
+     	
+     	
+  	 },
+   });
+}
+ 
+
+ function goOutStock(){
+	var rows=$('#stockTotalInfo').datagrid("getChecked");
+	if(rows.length==0){
+		$.messager.alert('提示','请选择出库批次或点击返回','error');
+		return;
+	}
+	var lotNos="";
+	$.each(rows, function (i) {  
+		 lotNos+=rows[i].lotNo+",";
+	}); 
+	var salesCategory=$('#transferNoteCategory').combobox("getValue");
+	
+	 $('#itemsdgDivShow').show();
+	 $('#itemsdgShow').datagrid({
+			title: '按批次显示',
+	        width: "100%",
+	    	height: 200,
+	    	fitColumns:false,
+	        nowrap: true,
+	        autoRowHeight: false,
+	        striped: true,
+	        collapsible: true,
+	    	singleSelect:true,
+	        remoteSort: false,
+	        rownumbers:true,
+	        checkOnSelect: true,
+	        url: 'outstock/outStockShowGropyByLot?warehouseNo='+$('#fromWsNo').combogrid('getValue')+'&owner='+owner
+    		+'&lotNos='+lotNos+'&salesCategory='+salesCategory,
+	        columns: [[
+	        	  {field:'boxCode',title:'箱号',width:145},
+	              {field:'configName',title:'商品类型',width:150},
+	              {field:'totalQuanlity',title:'总数量',width:110},
+	              {field:'totalWeight',title:'总重量(kg)',width:125},
+	              {field:'totalCost',title:'总成本价格(元)',width:127},
+	              {field:'lotNo',title:'批次号',width:200},
+	        ]],
+	        pagination: false
+	    }); 
+	    
+	$('#itemsdgDiv').hide(); 
+	$('#itemsdg').datagrid({
+	    title: '按详情显示',
+        width: "100%",
+    	height: 200,
+    	//fitColumns:true,
+        nowrap: true,
+        autoRowHeight: false,
+        striped: true,
+        collapsible: true,
+    	singleSelect:true,
+        remoteSort: false,
+        rownumbers:true,
+        checkOnSelect: true,
+		url: 'outstock/outStockTotalByLotNo?warehouseNo='+$('#fromWsNo').combogrid('getValue')+'&owner='+owner
+        		+'&lotNos='+lotNos+'&salesCategory='+salesCategory,
+        onBeforeLoad: function(){
+        	$.ajax({
+                url: 'outstock/outStockTotalByLotNo?lotNos='+lotNos,
+                type: "post",
+                success: function (text) {
+                	if (text.error =='N'){
+                		$.messager.alert('提示',text.errorMsg,'error');
+                		return ;
+  					}else {
+  						return true;
+  					}
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                	$.messager.alert('提示','操作失败','error');
+                }
+        	});
+        },
+        columns: [[
+        	  {field:'inventoryItemId',title:'商品类型',width:120,hidden:true},
+        	  {field:'productId',title:'商品Id',width:50},
+              {field:'configName',title:'商品类型',width:120},
+              {field:'brandName',title:'品牌',width:50},
+              {field:'modelName',title:'型号',width:60},
+              {field:'unit',title:'单位',width:40},
+              {field:'commWeight',title:'单位重量',width:60},
+              {field:'quanlity',title:'数量',width:60},
+              {field:'weight',title:'重量',width:60},
+              {field:'cost',title:'成本价格',width:60},
+              {field:'owner',title:'货主',width:60,hidden:true}, 
+              {field:'lotNo',title:'批次号',width:170},
+        ]],
+        pagination: false,
+        onLoadSuccess: function(data){  
+        	$('#transferWeight').textbox('setValue',allWeight);
+        	if(parseFloat(volume)<parseFloat(allWeight)){//调入仓库剩余容量 <总的调拨重量
+        		$.messager.alert('提示','调入仓库容量不足,不能调拨！','info');
+        		return;
+        	}
+         	$('#transferQuanlity').textbox('setValue',allQuanlity);
+         	var remainQuanlity=reQuanlity;
+         	if(remainQuanlity==null || remainQuanlity=='' || remainQuanlity=='0'){
+         		$('#residueQuanlity').textbox('setValue','0.00');
+         	}else{
+         		$('#residueQuanlity').textbox('setValue',remainQuanlity);
+         	}
+         	var remainWeight=reWeight;
+         	if(remainWeight==null || remainWeight=='' || remainWeight=='0'){
+         		$('#residueWeight').textbox('setValue','0.00');
+         	}else{
+         		$('#residueWeight').textbox('setValue',remainWeight);
+         	}	
+         		       	
+         	$('#stockTotalInfo').datagrid('clearSelections');
+        	$('#stockTotalInfo').datagrid('clearChecked');
+    		$('#totalWeight').textbox('setValue',data.weight);
+    		$('#totalQuanlity').textbox('setValue',data.quanlity);
+    		/* $('#Cost').textbox('setValue',data.cost); */
+    		$('#selectLotNo').window('close');
+    		$('#stockTotalInfo').datagrid('loadData', { total: 0, rows: [] });
+	      	$('#stockTotalDetilInfo').datagrid('loadData', { total: 0, rows: [] });
+    		
+    	}
+    }); 
+
+	$("#itemsdgDiv1").show();
+	$('#itemsdg1').datagrid({
+	    title: '按商品显示',
+        width: "100%", 
+    	height: 200,
+        nowrap: true,
+        autoRowHeight: false,
+        striped: true,
+        collapsible: true,
+    	singleSelect:true,
+        remoteSort: false,
+        rownumbers:true,
+        checkOnSelect: true,
+		url: 'outstock/outStockTotalByLotGroupBy?warehouseNo='+$('#fromWsNo').combogrid('getValue')+'&owner='+owner
+        		+'&lotNos='+lotNos+'&salesCategory='+salesCategory,
+        columns: [[
+              {field:'configName',title:'商品类型',width:130},
+              {field:'brandName',title:'品牌',width:100},
+              {field:'modelName',title:'型号',width:100},
+              {field:'unit',title:'单位',width:60},
+              {field:'commWeight',title:'单位重量',width:80},
+              {field:'totQuanlity',title:'出库数量',width:90},
+	          {field:'totQuanlity',title:'总数量',width:90},
+	          {field:'totWeight',title:'总重量',width:100},
+	          {field:'totCost',title:'总成本',width:100},
+        ]],
+        pagination: false,
+        onLoadSuccess:function(){
+        	$("#totalWeighing").textbox({readonly:false,prompt:"请填写过磅重量"}); //关闭只读
+        	$('#stockTotalInfo').datagrid('clearSelections');
+        	$('#stockTotalInfo').datagrid('loadData', { total: 0, rows: [] });
+	      	$('#stockTotalDetilInfo').datagrid('loadData', { total: 0, rows: [] }); 
+        }
+   }); 
+}
+ 
+//构造json数据传送到服务器  
+ function getCheckData(rows){
+	var json = [];  
+	var loc; 
+	 $.each(rows, function (i) {  
+	     loc= {"lotNo": rows[i].lotNo};  
+	     json.push(loc);  
+	 });  
+	 
+	 json = JSON.stringify(json); //转换成json数据  
+	 return json;
+} 
+
+
+function cancel(){
+	 $('#orderList').dialog('close');	
+	 $('#form1').form('clear');
+  	 $('#itemsdg').datagrid('loadData', { total: 0, rows: [] });
+}
+
+function getBack(){
+	$('#selectLotNo').dialog('close');	
+}
+
+
+function doSearch(){
+	var province = $('#province').combobox('getValue');
+	var city = $('#city').combobox('getValue');
+	var area = $('#area').combobox('getValue');
+	var start = $('#start').datebox('getValue');
+	var end = $('#end').datebox('getValue');
+	var transferState = $('#transferState').combobox('getValue');
+	/* var transferType = $('#transferType').combobox('getValue'); */
+	var catId = $('#catId').combobox('getValue');
+	var transferNo= $('#transferNo').textbox('getValue');
+	var createUserName= $('#createUserName').textbox('getValue');
+	var toWsName = $('#toWsName').textbox('getValue');
+	var fromWsName= $('#fromWsName').textbox('getValue');
+	var transferNo= $('#transferNo').textbox('getValue');
+	var createUserName= $('#createUserName').textbox('getValue');
+	var areaId;
+	if (province == "--请选择--" || province == "") {
+		province = "";
+	} else {
+		areaId = province;
+	}
+	if (city != "--请选择--" && city != "请先选择省份" && city != "") {
+		areaId = city;
+	}
+	if (area != "--请选择--" && area != "请先选择城市" && area != "") {
+		areaId = area;
+	}	
+	if (transferState != "--请选择--" &&  transferState != "") {
+		transferState = transferState;
+	}else{
+		transferState ="";
+	}
+	var catId = $('#catId').combobox('getValue');
+	if (catId != "--请选择品类--" &&  catId != "") {
+		catId = catId;
+	}else{
+		catId ="";
+	}
+	
+/* 	if (transferType != "--请选择--" &&  transferType != "") {
+		transferType = transferType;
+	}else{
+		transferType ="";
+	} */
+	
+	/* var toWsName = $('#toWsName').textbox('getValue');
+	var fromWsName= $('#fromWsName').textbox('getValue');
+	
+	if (toWsName != "--请选择--" &&  toWsName != "") {
+		toWsName = toWsName
+	}else{
+		toWsName ="";
+	}
+	if (fromWsName != "--请选择--" &&  fromWsName != "") {
+		fromWsName = fromWsName;
+	}else{
+		fromWsName ="";
+	} */
+	
+
+
+	$('#dg').datagrid({
+		url: 'transferNote/searchTransferNote', 
+		queryParams : {
+			transferType:2,
+			areaId : areaId,
+			start : start,
+			end : end,
+			transferState:transferState,
+			transferNo:transferNo,
+			createUserName:createUserName,
+			toWsName:toWsName,
+			fromWsName:fromWsName,
+			/* transferType:transferType, */
+			catId:catId
+		}
+	});
+	
+}
+
+  $(function () {	
+		$('#orderList').dialog({  
+			onClose:function(){  
+	        	 $('#form1').form('clear');
+	        	 $('#itemsdgShow').datagrid('loadData', { total: 0, rows: [] });  
+	        	 $('#itemsdg').datagrid('loadData', { total: 0, rows: [] }); 
+	        	 $('#itemsdg1').datagrid('loadData', { total: 0, rows: [] }); 
+	        	 
+	         }  
+	     });  
+	});
+  
+	function domark(er,index){
+    	$('#mark').dialog('open');
+    	var markId = $("input[type=radio][name=markId]");
+    	for (var i = 0; i < markId.length; i++) {
+			if (markId[i].value == er) {
+				markId[i].checked = true;
+			}else {
+				markId[i].checked = false;
+			}
+		}
+		var orderHeadId = $('#dg').datagrid("getRows")[index].transferNoteId;
+		var orderMemo = $('#dg').datagrid("getRows")[index].orderMemo;
+		$("input[name='orderHeadId']").val(orderHeadId);
+		$("textarea[name='orderMemo']").val(orderMemo);
+	}
+    
+ 	function saveMark(){
+ 		var markId = $('input:radio[name="markId"]:checked').val();
+ 		var orderHeadId = $('#orderHeadId').val();
+ 		var orderMemo = $('#orderMemo').val();
+ 		$.ajax({ 
+ 			async: false,
+ 	        type:'post',
+ 	        url:'transferNote/updateOrderMemo',  
+ 	        data:{
+ 	        	markId : markId,
+ 	        	orderHeadId : orderHeadId,
+ 	        	orderMemo : orderMemo
+ 	        },
+ 	        dataType:'json', 
+	        success: function (text) {
+	        	if (text.msgCode == "Y") {
+					$.messager.alert('提示','操作成功!','info');
+	 	       		 $('#mark').dialog('close');
+	 	       		 $('#dg').datagrid('reload');
+				}else{
+					$.messager.alert('提示',text.errorMsg,'info');
+				}
+	        },
+	        error: function (jqXHR, textStatus, errorThrown) {
+	        	$.messager.show({
+					title: 'Error',
+					msg: result.errorMsg
+				});
+	        }
+	    }); 
+ 		
+ 	}
+
+</script>
+</head>
+<body>
+<div id="tb" style="padding: 3px; margin-left: auto; margin-right: auto">
+			<form method="post" id="form">
+			<!-- <input type="hidden" name="orderNo" id="orderNo" value="${orderNo}"> -->
+			  <div class="inputArea1">
+			  	<label>类型</label>：<input type="text" class="easyui-textbox" id="transferState"  name = "transferState" >
+			  	<label>省份</label>：<input id="province" />
+			  	<label>城市</label>：<input id="city" />
+			  	<label>区域 </label>：<input id="area" />
+			  </div>
+			  <div class="inputArea1">
+			  	<label>创建时间</label>：<input id="start" type="text"></input> 
+				<label style="margin-right:14px;text-align:center;text-align-last:center;">至 </label><input id="end" type="text"></input>
+				<label>调出仓库 </label>：<input type="text" class="easyui-textbox" id="fromWsName"  name = "fromWsName" />
+				<label>调入仓库</label>：<input type="text" class="easyui-textbox" id="toWsName"  name = "toWsName" />
+			  </div>	
+			  <div class="inputArea1">
+			 	<label>创建人 </label>：<input type="text" class="easyui-textbox" id="createUserName"  name = "createUserName" />
+				<label>调拨品类</label>：<input type="text" class="easyui-textbox" id="catId"  name = "catId" />
+				<label>调拨单号</label>：<input type="text" class="easyui-textbox" id="transferNo"  name = "transferNo" />
+				<span class="inputArea_btn">
+				   <a onclick="doSearch()" class="easyui-linkbutton" data-options="iconCls:'icon-search'" style="padding-left: 5px;padding-right: 5px">查询</a>
+			   	   <a class="easyui-linkbutton" data-options="iconCls:'icon-clear'" style="padding-left: 5px; padding-right: 5px" onclick="$('#form').form('clear');">清空</a> 
+				</span>
+			  </div>  	
+			</form>				
+		</div>
+  
+ 	<div style="margin-left:auto; margin-right:auto;">
+		<table id="dg" style="align:center"> 
+		</table> 
+	</div>
+	
+	<div id="tt" class="easyui-panel" style="margin-top:5px;margin-left:0px;"closed='true'>  
+		    <div title="调拨单详情页面">  
+		        <table id="transferNoteItems" ></table> 
+		    </div> 
+ 	</div>
+	
+  	<div id="orderList" style="margin:0 auto;width:915px">
+  	   <div style="width: 100%;position:relative;">
+  			<div class="pro"></div>
+  		</div>
+	  	<form id="form1"  method="post">
+			  <div style="margin: 0px auto;width:905px;" align="center">
+		  		  <div style="text-align:justify;text-justify:distribute-all-lines;text-align-last:justify;width:200px">
+		  		  		<h3 class="report-title">调拨单</h3>
+		  		  </div>
+	  		  </div> 
+			<fieldset style="margin:0 auto;width:905px">
+			<input type="hidden" name="jsonDate" id="jsonDate">
+			<input id="warehouseType" name="warehouseType" type="hidden"/>
+			    <legend >调拨信息</legend> 
+				   <div style="margin:0 auto;width:98%;" class="transferNote">
+					  <div class="inputArea3">
+					  	<label>单号</label>：<input id="transferNoteNo" name="transferNoteNo" class="easyui-textbox" type="text" data-options="readonly:true"/>
+						<input id="transferNoteId" name="transferNoteId" type="hidden" />
+					  	<label style="margin-left:16px;">制单人</label>：<input id="createUser" name="createUser" class="easyui-textbox" type="text"  value="" data-options="readonly:true"/>
+				   		<input id="nowUserId" name="nowUserId"  value=""  type="hidden"/>
+				   		<input id="transferNoteToken"  name="transferNoteToken" value="${transferNoteToken}" type="hidden" />
+					  	<label style="margin-left:42px;">修改人</label>：<input id="confirmUser" name="confirmUser" class="easyui-textbox" type="text" data-options="readonly:true"/>
+					   </div>
+					   <div class="inputArea3" style="margin-top:5px;">
+					  	<label>调拨品类</label>：<input id="transferNoteCategory" name="transferNoteCategory" class="easyui-combobox" type="text"/><font color="red" class="add">*</font> 
+						<label>状态 </label>：<input id="status" name="status" class="easyui-textbox"  value="已制单" type="text" data-options="readonly:true"/>
+						<label  style="margin-left:42px;">制单日期</label>：<input id="transferDate" name="transferDate"/>
+					   </div>
+					   <div class="inputArea3" style="margin-top:5px;">
+					 	<label>调出仓库 </label>：<input  id="fromWsNo" name="fromWsNo" class="easyui-combogrid" type="text" /><font color="red" >*</font>
+						<label>出库过磅重量</label>：<input id="outstockWeighing" name="outstockWeighing" class="easyui-textbox" type="text" />(KG)<font color="red">*</font>
+						<label>出库日期</label>：<input id="outDate" name="outDate" /><font color="red" >*</font>
+					   </div> 
+					   <div class="inputArea3" style="margin-top:5px;">
+					 	<label>调入仓库 </label>：<input id="toWsNo" name="toWsNo" class="easyui-combogrid" type="text" style="width: 148px"/><font color="red" >*</font>
+						<label>入库过磅重量</label>：<input id="instockWeighing" name="instockWeighing" class="easyui-textbox" type="text" />(KG)<font color="red" >*</font>
+						<label>入库日期</label>：<input id="instockDate" name="instockDate" /><font color="red" >*</font>
+					   </div>
+					   <div style="width:100%;height:114px;position:relative;">
+					   	   <div style="position:absolute;bottom:30px;left:10px;">	
+							   <a id="allTransfers" class="easyui-linkbutton" onclick="allTransfers();">全部调拨</a></td>
+							   <!-- <a  class="easyui-linkbutton" onclick="weightTransfers();" >按重量调拨</a> -->
+							   <a id="outStockByLotNo" class="easyui-linkbutton" onclick="outStockByLotNo();">按批次调拨</a>
+						   </div>
+		 					<fieldset style="float:right;margin:20px 10px 0 0;padding-right:20px;">
+		 						<legend>合计信息</legend>
+					 			 <div class="inputArea3">
+								 	<label>总重量 </label>：<input id="transferWeight" name="transferWeight" class="easyui-numberbox" type="text" data-options="readonly:true,min:0,precision:2"/>(KG)
+									<label>总数量</label>：<input id="transferQuanlity" name="transferQuanlity" class="easyui-numberbox" type="text" data-options="readonly:true,min:0,precision:2"/>
+								 </div>
+								 <div class="inputArea3">
+								 	<label>剩余重量 </label>：<input id="residueWeight" name="residueWeight" class="easyui-numberbox" type="text" data-options="readonly:true,min:0,precision:2"/>(KG)
+									<label>剩余数量</label>：<input id="residueQuanlity" name="residueQuanlity" class="easyui-numberbox" type="text" data-options="readonly:true,min:0,precision:2"/>
+								 </div>  
+		 					</fieldset>
+					   </div> 
+
+		    		    <div  id="itemsdgDivShow" style="margin-top: 10px" align="center">
+ 								<table id="itemsdgShow" align="center">
+ 								</table> 
+		    			</div>
+		    			<div  id="itemsdgDiv" style="margin-top: 10px" align="center">
+ 								<table id="itemsdg" align="center">
+ 								</table> 
+		    			</div>
+
+		    			<div  id="itemsdgDiv1" style="margin-top: 10px" align="center">
+ 								<table id="itemsdg1" align="center">
+ 								</table> 
+		    			</div>
+
+				    </div>
+			  </fieldset>
+			  
+			  <div id="freightDiv" class="transferNote">
+			  <fieldset style="margin-left: auto;margin-right:auto;margin-top: 20px;width:900px">
+			    <legend>运输信息</legend>
+				<div style="margin:0 auto;width:98%;">
+					  <div class="inputArea3">
+					 	<label>运输公司 </label>：<input id="freightCompany" name="freightCompany" class="easyui-combobox" type="text" />
+			    		<input id="logisticsNoteNo" name="logisticsNoteNo" type="hidden" />
+						<label>运费</label>：<input id="freightPrice" name="freightPrice" class="easyui-textbox" type="text" />
+						<label>运费结算方式</label>：<input id="settleType" name="settleType" class="easyui-combobox" type="text" />
+					  </div>
+					  <div class="inputArea3">
+					 	<label>装卸费 </label>：<input id="handlingCharges" name="handlingCharges" class="easyui-textbox" type="text" />
+						<label>过磅费</label>：<input id="weighingFee" name="weighingFee" class="easyui-textbox" type="text" />
+					  </div>
+					  <div class="inputArea3 inputArea_points">
+					 	<label>起点 </label>：<input  id="startAddress" name="startAddress" class="easyui-textbox" type="text"  value="无"  style="width: 700px" data-options="readonly:true"/>
+			    		    <input type ="hidden" id ="startAddressId" name="startAddressId"/>
+					  </div>
+					  <div class="inputArea3 inputArea_points">
+						<label>终点</label>：<input id="endAddress" name="endAddress" value="无" class="easyui-textbox" type="text" style="width: 700px" data-options="readonly:true"/>
+			    		    <input type ="hidden" id ="endAddressId" name="endAddressId"/>
+					  </div>
+					  <div class="inputArea3">
+					 	<label>承运人 </label>：<input id="shipper" name="shipper" class="easyui-textbox" type="text"/>
+						<label>联系电话</label>：<input id="tel" name="tel" class="easyui-textbox" type="text"/>
+						<label>车牌号</label>：<input id="plateNo" name="plateNo" class="easyui-textbox" type="text" />
+					  </div>
+					  <div class="inputArea3">
+					 	<span class="inputArea_note"><label>备注 </label>：<input id="remark" name="remark" class="easyui-textbox" data-options="multiline:true" style="width:100%;height:100px" class="freight"/></span>
+					  </div>
+				</div>
+			  </fieldset>
+			  </div>
+			  
+			  <div style="margin:0 auto;width:100%;text-align:center;padding:10px 0;">
+    			<a class="easyui-linkbutton window-submitBtn" style="padding-left: 10px;padding-right: 10px" onclick="cancel();">取消</a>
+                <a id ="salesButton"  class="easyui-linkbutton window-submitBtn" style="padding-left: 10px;padding-right: 10px;display:none" onclick="submitTransferNote();">提交</a>
+    			<a id="confirmButton" class="easyui-linkbutton window-submitBtn" style="padding-left: 10px;padding-right: 10px;display:none" onclick="confirmTransferNote();">出库</a>
+    			<a id="putInStorageButton" class="easyui-linkbutton window-submitBtn" style="padding-left: 10px;padding-right: 10px;display:none" onclick="putInStorageTransferNote();">入库</a>
+    			<a id="deleteButton" class="easyui-linkbutton window-submitBtn" style="padding-left: 10px;padding-right: 10px;display:none" onclick="deleteTransferNote();">删除</a>
+			    </c:if>
+			  </div>
+		</form>
+	 </div>
+	 
+	  	<div id="mark">
+  		<form id = "markfrom" action="" method="get" style="padding: 50px"> 
+  			<input type="hidden" name="orderHeadId" id="orderHeadId">
+  			<table>
+  				<tr>
+					<td align="right" width="100px;">
+						<font color="red">*</font>
+						 <span style="font-weight: 600;">标记:</span>
+					</td>
+					<td align="left" width="300px;">
+						<label><input name="markId" type="radio" value="1" /><img src="../../images/1.png"> </label> 
+						<label><input name="markId" type="radio" value="2" /><img src="../../images/2.png"> </label> 
+						<label><input name="markId" type="radio" value="3" /><img src="../../images/3.png"> </label> 
+						<label><input name="markId" type="radio" value="4" /><img src="../../images/4.png"> </label> 
+						<label><input name="markId" type="radio" value="5" /><img src="../../images/5.png"> </label> 
+						<label><input name="markId" type="radio" value="6" /><img src="../../images/6.png"> </label> 
+					</td>
+				</tr>
+				<tr>
+					<td align="right" width="100px;">
+						<font color="red">*</font>
+						 <span style="font-weight: 600;">标记信息:</span>
+					</td>
+					<td align="left" width="300px;">
+						<textarea id='orderMemo'name="orderMemo" style="width: 300px;height: 200px;max-width: 300px;max-height: 200px;"></textarea>
+					</td>
+				</tr>
+  				<tr>
+					<td>&nbsp;</td>
+					<td align="center">
+						<div align="center">
+							<a class="easyui-linkbutton" data-options="iconCls:'icon-save'" onclick="saveMark()">提交</a>
+						</div>
+					</td>
+				</tr>
+  			</table>
+		</form> 
+  	</div>
+	 
+	 
+	 	<div id="weightDialog">
+		<form action="" method="post" id="weightForm">
+			<div  style="margin-top: 20px;" align="center">
+				<span> 调拨重量：</span><input id="weight" name="weight" class="easyui-textbox" style="width: 160px;">(吨)
+			</div>
+
+			<div align="center"  style="text-align:center;clear:both;">
+				<br /> 
+				<a id="weightBtn" class="easyui-linkbutton"
+					data-options="iconCls:'icon-save'" onclick="submitWeightForm();">提交</a>
+			</div> 
+		</form>
+	</div>
+	
+	
+	
+<div id="selectLotNo" style="margin:0 auto;width:900px"  align="center">
+		    <table style="margin:0 auto;width:500px;line-height: 40px;">
+		    	<tr>
+		    		<td colspan="4">
+	 					<fieldset style="border: 1px solid;width:800px">
+	 						<legend align="left">选择合计信息</legend>
+	 						<table style="float: left;line-height: 10px;">
+	 						     <tr>
+			    		            <td style="text-align:justify;text-justify:distribute-all-lines;text-align-last:justify;">
+ 							                        货主:
+			    		            </td>
+			    		            <td colspan="5" id="transferNote11">
+			    		            <div class="inputArea2 inputArea_points">
+ 							            <input id="wsOwner" name="wsOwner" class="easyui-combogrid" type="text" style="width: 680px" />
+ 							        </div>
+			    		            </td> 
+			    	             </tr>
+	 						
+	 							<tr>
+	 								<td style="text-align:justify;text-justify:distribute-all-lines;text-align-last:justify;">总重量:</td>
+	 								<td><input id="lotNototalWeight" name="lotNototalWeight" class="easyui-textbox" type="text" data-options="readonly:true"/>(KG)</td>
+	 								<td style="text-align:justify;text-justify:distribute-all-lines;text-align-last:justify;">总数量:</td>
+	 								<td><input id="lotNototalQuanlity" name="lotNototalQuanlity" class="easyui-textbox" type="text" data-options="readonly:true"/></td>
+	 								<td rowspan="2"><div style=" width: 100px;margin-left: 30px"><a href="javascript:void(0)" onclick="goOutStock()"  style=" width: 60px; height: 40px" class="easyui-linkbutton">增加</a></div></td>
+	 								<td rowspan="2"><a href="javascript:void(0)" onclick="getBack()" style=" width: 60px; height: 40px" class="easyui-linkbutton">返回</a></td>
+	 							</tr>
+	 							<tr>
+	 								<td style="text-align:justify;text-justify:distribute-all-lines;text-align-last:justify;">剩余重量:</td>
+	 								<td><input id="remainWeight" name="remainWeight" class="easyui-textbox" type="text" data-options="readonly:true"/>(KG)</td>
+	 								<td style="text-align:justify;text-justify:distribute-all-lines;text-align-last:justify;">剩余数量:</td>
+	 								<td><input id="remainQuanlity" name="remainQuanlity" class="easyui-textbox" type="text" data-options="readonly:true"/></td>
+	 							</tr>
+	 						</table>
+	 					</fieldset>
+					</td>
+		    	</tr>
+		    	 <tr>
+		    		<td colspan="6" >
+		    			<fieldset style="border: 1px solid;width:800px">
+		    			<legend align="left">批次库存</legend>
+		    			<div style="margin-top: 10px">
+ 								<table id="stockTotalInfo">
+ 								</table> 
+		    			</div>
+		    			</fieldset>
+		    		</td>
+		    	</tr>
+		    	  <tr>
+		    		<td colspan="6" >
+		    			<fieldset style="border: 1px solid;width:800px">
+		    			<legend align="left">批次库存详情</legend>
+		    			<div style="margin-top: 10px" >
+ 								<table id="stockTotalDetilInfo">
+ 								</table> 
+		    			</div>
+		    			</fieldset>
+		    		</td>
+		    	</tr>
+		    </table>
+	 </div>
+</body>
+</html>

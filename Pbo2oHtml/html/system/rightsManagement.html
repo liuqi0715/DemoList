@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<link rel="stylesheet" type="text/css" href="../../themes/default/easyui.css">
+<link rel="stylesheet" type="text/css" href="../../themes/icon.css">
+<link rel="stylesheet" type="text/css" href="../../themes/demo.css">
+<script type="text/javascript" src="../../js/jquery.min.js"></script>
+<script type="text/javascript" src="../../js/jquery.easyui.min.js"></script>
+<script type="text/javascript" src="../../js/locale/easyui-lang-zh_CN.js"></script>
+<script type="text/javascript" src="../global.js"></script>
+<script type="text/javascript">
+$(function () {
+	$('#permissionId').textbox('textbox').css('background','#EBEBE4');
+	$('#itemId').textbox('textbox').css('background','#EBEBE4'); 
+    $('#menuId').combobox({
+        valueField:'menuId', 
+        textField:'menuDesc',
+        url:'rightsController/getAllMenuChildren',
+        required:true,
+        editable:false,//不可编辑，只能选择
+        value:'--请选择--'
+   });
+    
+    $('#tree').tree({
+ 	   url:'rightsController/getItemList',
+ 	   method: 'GET', 
+ 	   checkbox: true, 
+ 	   animate: true,  
+ 	   cascadeCheck:true,//层叠选中  
+ 	   lines:true,//显示虚线效果  	  
+ 	   onSelect:function(node)  
+ 	   {  
+ 	       var cknodes = $('#tree').tree("getChecked");
+            for (var i = 0; i < cknodes.length; i++) {
+                if (cknodes[i].id != node.id) {
+                    $('#tree').tree("uncheck", cknodes[i].target);
+                }
+            }
+            if (node.checked) {
+                $('#tree').tree('uncheck', node.target);
+
+            } else {
+                $('#tree').tree('check', node.target);
+            }
+            $("#menuId").combobox('setValue',node.menuId)
+            $("#permissionId").textbox('setValue',node.permissionId)
+            $("#itemId").textbox('setValue',node.itemId)
+            $("#itemName").textbox('setValue',node.itemName)
+            $("#itemDesc").textbox('setValue',node.itemDesc)
+            $("#itemNum").textbox('setValue',node.orderNum)
+            
+            var menuId=node.menuId;
+            $('#itemsdg').datagrid({
+                width: "100%", 
+            	height: 150,
+                nowrap: true,
+                autoRowHeight: false,
+                striped: true,
+                collapsible: true,
+            	singleSelect:true,
+                remoteSort: false,
+                rownumbers:true,
+                checkOnSelect: true,
+                frozenColumns: [[
+                    { field: 'ck', checkbox: true ,width:100},
+                ]],
+        		url: 'rightsController/getItemListByMenuId?menuId='+menuId,
+                columns: [[
+                	{field:'itemId',title:'元素ID',width:50,align:'left',hidden:true},
+                	{field:'orderNum',title:'元素排序',width:60,align:'left'},
+                    {field:'itemName',title:'元素名',width:100,align:'left'},
+                    {field:'itemDesc',title:'描述',width:90,align:'left'},
+                    {field:'menuId',title:'所属菜单Id',width:70,align:'left',hidden:true},
+                    {field:'menuDesc',title:'所属菜单',width:100,align:'left'},
+                    {field:'permissionId',title:'权限编号',width:60,align:'left'}
+                ]],
+                pagination: false
+           });
+
+        },
+        onLoadSuccess: function (node, data) {
+            $(this).find('span.tree-checkbox').unbind().click(function () {
+                $('#tree').tree('select', $(this).parent());
+                return false;
+            }); 
+ 	  }
+     });
+    if(verification("permission","add")){
+		 $("#addBtn").css("display","");
+	}
+	if(verification("permission","save")){
+		 $("#saveButton").css("display","");
+	}
+});
+
+function saveItem(){	
+	var itemName=$('#itemName').textbox("getValue");
+	if(itemName==null || itemName==""){
+		$.messager.alert('提示','操作失败!元素名不能为空！','error');
+		return;
+	}
+	var itemDesc=$('#itemDesc').textbox("getValue");
+	if(itemDesc==null || itemDesc==""){
+		$.messager.alert('提示','操作失败!元素描述不能为空！','error');
+		return;
+	}	
+	
+	var itemNum=$('#itemNum').textbox("getValue");
+	if(itemNum==null || itemNum==""){
+		$.messager.alert('提示','操作失败!元素排序不能为空！','error');
+		return;
+	}	
+	var menuId=$('#menuId').combobox("getValue");
+	if(menuId==null || menuId==""||menuId=="--请选择--"){
+		$.messager.alert('提示','操作失败!请选择所属菜单!','error');
+		return;
+	}
+
+	/*  $('#form').form('submit',{
+		url:'rightsController/saveItem' ,
+		onSubmit: function(){
+		},
+		queryParams:{
+			itemName:itemName,
+			itemDesc:itemDesc,
+			menuId:menuId,
+			itemNum:itemNum
+		},
+		success: function(result){
+			$('#saveButton').linkbutton('enable');
+			var result = eval('('+result+')');
+			if (result.msgCode =='Y'){
+				$.messager.alert('提示','操作成功!','info');
+				$('#form').form('clear');
+				$('#saveButton').linkbutton('enable');
+				$('#tree').tree('reload'); 
+			} else {
+				$.messager.alert('提示',result.msg,'error');
+			}
+		}
+	});  */ 
+	var itemId = $('#itemId').val();
+	
+	if(itemId == "" || itemId == null){
+		itemId = "isnull";
+	}
+	if(itemId != "isnull"){
+		$.ajax({
+			url : "rightsController/saveItem",
+			type : "post",
+			data : {
+				itemName:itemName,
+				itemDesc:itemDesc,
+				menuId:menuId,
+				itemNum:itemNum,
+				itemId:itemId
+			},
+			dataType : "json",
+			success: function(result){
+				$('#saveButton').linkbutton('enable');
+				if (result.msgCode =='Y'){
+					$.messager.alert('提示','操作成功!','info');
+					$('#form').form('clear');
+					$('#saveButton').linkbutton('enable');
+					$('#tree').tree('reload'); 
+				} else {
+					$.messager.alert('提示',result.msg,'error');
+				}
+			}
+		});
+	}else{
+		$.ajax({
+			url : "rightsController/addItem",
+			type : "post",
+			data : {
+				itemName:itemName,
+				itemDesc:itemDesc,
+				menuId:menuId,
+				itemNum:itemNum
+			},
+			dataType : "json",
+			success: function(result){
+				$('#saveButton').linkbutton('enable');
+				if (result.msgCode =='Y'){
+					$.messager.alert('提示','操作成功!','info');
+					$('#form').form('clear');
+					$('#saveButton').linkbutton('enable');
+					$('#tree').tree('reload'); 
+				} else {
+					$.messager.alert('提示',result.msg,'error');
+				}
+			}
+		});
+	}
+	
+}
+</script>
+</head>
+<body>
+<div class="inner-center" style="width:980px;">
+	<div style="float:left;width:400px;height: 488px;">
+	    <div id="p" class="easyui-panel" title="权限列表" style="width:100%;height:100%;background:#E5E5E5;" data-options="closable:false, collapsible:false,minimizable:false,maximizable:false">   
+			 <ul id="tree" class="easyui-tree"></ul>  
+		</div> 
+	</div>
+	<div id="w" style="float:left;margin-left:40px;">
+	    <fieldset style="margin:0 auto;padding:20px 20px 30px 20px;" >
+		    <legend>相关操作</legend>
+			<form method="post" id="form">
+			  <div  id="itemsdgDiv" style="margin-top: 5px" align="center">
+		  			<table id="itemsdg"></table> 
+		  	  </div>
+			  <div style="padding:1px;">
+				<div id="rights0" style="height:355px;"> 
+					<div class="inputArea1" style="margin-bottom:10px;">
+					  	<label>所属菜单</label>：<input id="menuId" name="menuId" type="text" data-options="required:true" /><font color="red">*</font>
+					</div>
+					<div class="inputArea1" style="margin-bottom:10px;">
+					  	<label>权限编号</label>：<input id="permissionId" name="permissionId" type="text"  class="easyui-textbox" data-options="readonly:true"/>
+					</div>
+					<div class="inputArea1" style="margin-bottom:10px;">
+					  	<label>元素编号</label>：<input id="itemId" type="text" name="itemId" class="easyui-textbox" data-options="readonly:true" />
+					</div>
+					<div class="inputArea1" style="margin-bottom:10px;">
+					  	<label>元素名称</label>：<input id="itemName" name="itemName"  class="easyui-textbox" data-options="required:true" ><font color="red">*</font>
+					</div>
+					<div class="inputArea1" style="margin-bottom:10px;">
+					  	<label>元素序号</label>：<input id="itemNum" name="itemNum"  class="easyui-textbox" data-options="required:true" ><font color="red">*</font>
+					</div>
+					<div class="inputArea1" id="rights1">
+					  	<label>元素描述</label>：<input id="itemDesc" name="itemDesc" class="easyui-textbox" data-options="multiline:true"/>
+					</div>
+				</div> 
+				  
+		 		<div style="width:100%;text-align:center;padding-top:20px;">
+		 		     <a id="addBtn" class="easyui-linkbutton window-submitBtn" data-options="iconCls:'icon-save'" style="display: none"  onclick="$('#form').form('clear');">新增元素</a>
+		  			 <a class="easyui-linkbutton window-submitBtn" data-options="iconCls:'icon-save'" style="display: none" id="saveButton" onClick="saveItem();">保存</a>
+		  			 <a class="easyui-linkbutton window-submitBtn" data-options="iconCls:'icon-reload'" onClick="refreshFeature();">刷新</a>
+			    </div>	
+			   </div>			
+			</form>
+		 </fieldset>
+	</div>
+</div>
+</body>
+</html>

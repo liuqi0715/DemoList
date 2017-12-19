@@ -1,0 +1,1832 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Insert title here</title>
+<script type="text/javascript" src="../../js/jquery.min.js"></script>
+<script type="text/javascript" src="../../js/echarts.js"></script>
+<script type="text/javascript" src="../../js/macarons.js"></script>
+<script type="text/javascript" src="../global.js"></script>
+</head>
+    <body style="position:relative;">
+    <section id="loadBg">
+      <div class="loadBox">
+        <div class="loading"></div>
+        <div class="loadword">数据加载中...</div>
+      </div>
+    </section>
+    <section class="calendarPage" id="calendarBox">
+        <section id="calendar-slc-box">
+            <section class="calendar-slc-l">
+                <div style="width:140px;height:100%;margin:0 auto;text-align:center;">
+                <span class='calendar-title' id='calendarYear' style="margin-right:20px;"></span>
+                <span class='calendar-title' id='calendarMonth'></span>
+                </div>
+            </section>
+            <section class="calendar-slc-r">
+                <div class="slcPane prev-month" id="prevMonth">
+                    <div class="btnTriLeft inner-center"></div>
+                </div>
+                <div class="slcPane next-month" id="nextMonth">
+                    <div class="btnTriRight inner-center"></div>
+                </div>
+            </section>
+        </section>
+        <section class="calendarBox">
+            <section class='calendar' id='calendar'></section>
+        </section>
+    </section>
+        <section id="chartHead">
+           <!--  <select name="时间" id="date">
+                <option value="昨日">昨日</option>
+            	<option value="今日">今日</option>
+            	<option value="年">年</option>
+            	<option value="月">月</option>
+            	<option value="周">周</option>
+            	<option value="日">日</option>
+            </select> -->
+            <div style="float:right;">
+                <select name="省" id="province">
+                </select>
+                <select name="市" id="city">
+                </select>
+                <select name="区" id="area">
+                </select>
+                <!-- <select name="镇" id="town">
+                </select>
+                <select name="村" id="country">
+                </select>-->
+            </div>
+        </section>
+        <section class="chartBox">
+	        <section class="chartBoxBlock" id="main1"></section>
+	        <section class="chartBoxBlock" id="main2"></section>
+	    </section>
+	    <section class="chartBox chartBoxFull" id="main3"></section> 
+	    <section class="chartBox chartBoxFull" id="main4"></section>
+	    <section class="chartBox chartBoxFull" id="main5"></section>
+	    <section class="chartBox chartBoxFull" id="main6"></section>
+    </body>
+</html>
+<style>
+.chartBox{
+    width: 95%;
+    clear:both;
+    min-height: 340px;
+    position: relative;
+    margin: 10px auto;
+}
+.chartBoxBlock{
+    width: 49.5%;
+    height: 340px;
+    float: left;
+    overflow:hidden;
+    border: 1px solid #2EC7C9;
+}
+.chartBoxFull{
+    height:420px;
+    border: 1px solid #FFB980;
+}
+.chartBoxBlock:nth-child(2){
+    float: right;
+}
+/*LOADING*/
+#loadBg{
+  position: absolute;
+  top: 25%;
+  width: 100%;
+  height: 20%;
+  z-index: 1000;
+  -webkit-transform:translateY(-50%);
+}
+.loadBox{
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform:translate(-50%,-50%);
+  -webkit-transform:translate(-50%,-50%);
+  -o-transform:translate(-50%,-50%);
+  -moz-transform:translate(-50%,-50%);
+  width: 15%;
+  height:30%;
+  color:#FFF;
+  border-radius: 2px;
+  background: #DCE6F2;
+}
+.loadword{
+  position: absolute;
+  bottom: 10%;
+  width:100%;
+  text-align:center;
+}
+.loading {
+    position: absolute;
+    top:5%;
+    width: 40px;
+    height: 40px;
+    left: 50%;
+    border: 2px #FFF solid;
+    border-radius: 50%;
+    margin-left:-20px !important;
+    -webkit-animation: rotation 1s ease-in-out infinite;
+    -moz-animation: rotation 1s ease-in-out infinite;
+    animation: rotation 1s ease-in-out infinite;
+    margin: 0.6rem auto;
+}
+.loading:after {
+    width: 8px;
+    height: 8px;
+    background-color: #FFF;
+    border-radius: 100%;
+    position: absolute;
+    top:10px;
+    content: "";
+}
+@-webkit-keyframes rotation{
+    0%{-webkit-transform: rotate(0deg);}
+    100%{-webkit-transform: rotate(360deg);}
+}
+/**
+ * 设置日历的大小
+ */
+ #daySlc{
+ 	position:relative;
+ 	top:5px;
+ 	color:rgba(255,0,0,.3);
+ 	cursor:pointer;
+ }
+.calendarPage{
+    width: 80%;
+    padding-bottom: 10px;
+    height:50%;
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    -webkit-transform:translate(-50%,-50%);
+    -moz-transform:translate(-50%,-50%);
+    -o-transform:translate(-50%,-50%);
+    z-index:100;
+    display:none;
+}
+#calendar ul{
+	margin:0 !important;
+	padding:0 !important;
+}
+.calendarTop{
+    width: 100%;
+    height: 40px;
+    margin-bottom: 5px;
+    position: relative;
+}
+.calendarTop li{
+    width: 14.2%;
+    float: left;
+    text-align: center;
+    line-height: 40px;
+    color: #FC907E;
+    list-style:none;
+}
+.calendar-title{
+    color: #4D9BE8;
+    font-size: 18px;
+    font-weight: bold;
+    display: block;
+    width: 60px;
+    height: 100%;
+    float: left;
+    text-align: left;
+    cursor:pointer;
+}
+.calendarBox{
+    width: 60%;
+    min-height: 310px; 
+    padding-bottom: 10px;
+    margin: 0 auto;
+    border-radius: 5px; 
+    background: #52A7FC;
+}
+.calendar{
+    width: 100%;
+    height: auto;
+    padding-bottom: 5px;
+    position: relative;
+    font-weight: bold;
+    background: #52A7FC;
+    border-bottom: 1px solid #4D9BE8;
+}
+
+/**
+ * 设置日历顶部盒子
+ */
+.calendar .calendar-title-box{
+    position: relative;
+    width: 100%;
+    height: 36px;
+    line-height: 36px;
+    text-align:center;
+    color: #FFF;
+    border-bottom: 1px solid #ddd;
+}
+/**
+ * 设置日期切换
+ */
+#calendar-slc-box{
+    position: relative;
+    margin:0 auto;
+    width: 60%;
+    height: 36px;
+    line-height: 36px;
+    text-align:center;
+    border-bottom: 1px solid #ddd;
+    background: #FFF;
+    box-shadow: -1px -1px 2px rgba(0,0,0,.1);
+}
+/**
+ * 设置上个月的按钮图标
+ */
+.slcPane{
+    width: 40%;
+    height: 36px;
+    cursor: pointer;
+    background:#EAEAEA; 
+    position: relative;
+}
+.btnTriLeft {
+    width: 0;
+    height: 0;
+    border-top: 8px solid transparent;
+    border-right: 13px solid #FFF;
+    border-bottom: 8px solid transparent;
+}
+.btnTriRight {
+    width: 0;
+    height: 0;
+    border-top: 8px solid transparent;
+    border-left: 13px solid #FFF;
+    border-bottom: 8px solid transparent;
+}
+.prev-month {
+    float: left;
+} 
+/**
+ * 设置下个月的按钮图标
+ */
+.next-month {
+   float: right;
+}
+/* 设置日历表格样式 */
+.calendar-table{
+    width: 100%;
+    border-collapse: collapse;
+    text-align:center;
+    border-radius: 5px;
+}
+ 
+/* 表格行高 */
+.calendar-table tr{
+    height: 43px;
+    padding: 5px 0;
+}
+.calendar-table td{
+    position: relative;
+    padding: 1px;  
+    line-height: 40px;
+}
+.calendar-table th{
+    color: #CCC; 
+}
+.dayStyle{
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+/* 本月 文字颜色 */
+.currentMonth {
+    color: #FFF;
+}
+/* 当前天 颜色特殊显示 */
+.currentDay {
+    color: #F7D34B;
+} 
+/* 其他月颜色 */
+.otherMonth{
+    color: #8B8B8B;
+}
+.inner-center{
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform:translate(-50%,-50%);
+    -webkit-transform:translate(-50%,-50%);
+    -o-transform:translate(-50%,-50%);
+    -moz-transform:translate(-50%,-50%);
+}
+.calendar-slc-l{
+    position: relative;
+    width:60%;
+    height:100%;
+    float:left;
+}
+.calendar-slc-r{
+    position: relative;
+    width:40%;
+    height:100%;
+    float:right;
+    background:#EAEAEA; 
+}
+.monthLine{
+    width: 100%;
+    height: 100px;
+}
+.monthBlock{
+    width: 25%;
+    height: 100%;
+    float: left;
+    position: relative;
+}
+.monthTag{
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: #FFF;
+    text-align: center;
+    line-height: 80px;
+    font-size: 20px;
+    cursor: pointer;
+    color: #FF5D3E;
+}
+.yearLine{
+    width: 100%;
+    height: 75px;
+}
+.yearBlock{
+    width: 20%;
+    height: 100%;
+    float: left;
+    position: relative;
+}
+.yearTag{
+    width: 80px;
+    height: 40px;
+    background: #FFF;
+    text-align: center;
+    line-height: 40px;
+    font-size: 18px;
+    cursor: pointer;
+    color: #FF5D3E;
+}
+/*图标样式*/
+#chartHead select {
+    display: block;
+    float: left;
+    width: 100px;
+    height: 30px;
+    margin-right: 10px;
+    padding-left: 5px;
+}
+#chartHead{
+    width: 95%;
+    height: 40px;
+    margin: 0 auto;
+    padding-top: 30px;
+    margin-bottom: 30px;
+    overflow:hidden;
+}
+.chartBody{
+    width: 95%;
+    margin: 0 auto;
+    height: auto;
+    min-height: 40px;
+}
+.chartBody h2,.chartBody h5{
+    margin:5px auto;
+    color: #FFF;
+}
+.chartTip{
+    width: 100%;
+    height: 40px;
+    font-weight: bold;
+    line-height: 40px;
+    margin-bottom: 30px;
+    border-bottom: 3px solid #FFCFCF;
+}
+.chartBlockPane{
+    width: 100%;
+    min-height: 100px;
+}
+.chartBlock{
+    width: 20%;
+    height: 80px;
+    float: left;
+}
+.chartBlockCon{
+    width: 80%;
+    height: 100%;
+    background: #3C6697;
+    text-align: center;
+    padding-top: 10px;
+    color: #FFF;
+    background: -webkit-linear-gradient(top, #3C6697, #52A7FC);
+}
+.hasMargin{
+    margin-left:5%;
+}
+.hasMargin1{
+    margin-left:10%;
+}
+.hasMargin2{
+    margin-left:15%;
+}
+.lastCon{
+    float: right;
+}
+.chartDisplay{
+    width: 100%;
+    min-height: 260px;
+    margin-bottom: 10px;
+}
+.chartDisplay-l{
+    width: 62%;
+    min-height: 260px;
+    float: left;
+    border: 1px solid #CCC;
+}
+.chartDisplay-r{
+    width: 37%;
+    float: right;
+    min-height: 260px;
+    border: 1px solid #CCC;
+}
+.chartDisplay2{
+    width: 100%;
+    min-height: 200px;
+    margin-bottom: 10px;
+}
+.chartDisplayBlock{
+    width: 25%;
+    height: 200px;
+    border: 1px solid #CCC;
+    float: left;
+    overflow: hidden;
+}
+</style>
+
+<script>
+var currentY,currentM,currentTime;
+var timeline,timeline2,areaId=null,time=new Date();
+var custStateList,periodsOfOrderMap,frequencyOfOrderMap,timeOfOrderMap,priceRangeOfOrderMap,orderStatisticList;
+var year=time.getFullYear();
+var month=time.getMonth()+1;
+var day=time.getDate();
+var timeType;
+timeline=year+"-"+month+"-"+(day-1);
+/****************日历******************/
+/*
+ * 用于记录日期，显示的时候，根据dateObj中的日期的年月显示
+ */
+var dateObj = (function(){
+  var _date = new Date();    // 默认为当前系统时间
+  return {
+    getDate : function(){
+      return _date;
+    },
+    setDate : function(date) {
+      _date = date;
+    }
+  };
+})();
+// 设置calendar div中的html部分
+renderHtml();
+// 表格中显示日期
+showCalendarData();
+// 绑定事件
+bindEvent();
+selectDay();
+
+/**
+ * 渲染html结构
+ */
+function renderHtml() {
+  var calendar = document.getElementById("calendar");
+  var titleBox = document.createElement("div");  // 标题盒子 设置上一月 下一月 标题
+  var bodyBox = document.createElement("div");  // 表格区 显示数据
+  // 设置表格区的html结构
+  bodyBox.className = 'calendar-body-box';
+  var _headHtml = "<ul class='calendarTop'>" + 
+            "<li>日</li>" +
+            "<li>一</li>" +
+            "<li>二</li>" +
+            "<li>三</li>" +
+            "<li>四</li>" +
+            "<li>五</li>" +
+            "<li>六</li>" +
+          "</ul>";
+  var _bodyHtml = "";
+
+  // 一个月最多31天，所以一个月最多占6行表格
+  for(var i = 0; i < 6; i++) {  
+    _bodyHtml += "<tr>" +
+            "<td></td>" +
+            "<td></td>" +
+            "<td></td>" +
+            "<td></td>" +
+            "<td></td>" +
+            "<td></td>" +
+            "<td></td>" +
+          "</tr>";
+  }
+  bodyBox.innerHTML = "<table id='calendarTable' class='calendar-table'>" +
+            _headHtml + _bodyHtml +
+            "</table>";
+  // 添加到calendar div中
+  calendar.appendChild(bodyBox);
+}
+/**
+ * 表格中显示数据，并设置类名
+ */
+ function checkWeek(){
+     $("#calendarTable").find("tr").each(function(){
+       var self=$(this);
+       self.mouseover(function(){
+           self.css({"background":"rgba(255,255,255,.3)"});
+       });
+       self.mouseleave(function(){
+           self.css({"background":"transparent"});
+       });
+     });
+ }
+ function showCalendarData() {
+	    var _year = dateObj.getDate().getFullYear();
+	    var _month = dateObj.getDate().getMonth() + 1;
+	    var _dateStr = getDateStr(dateObj.getDate());
+	    // 设置顶部标题栏中的 年、月信息
+	    var calendarYear = document.getElementById("calendarYear");
+	    var calendarMonth = document.getElementById("calendarMonth");
+	    var titleStr = _dateStr.substr(0, 4) + "年" + _dateStr.substr(4,2) + "月";
+	    calendarYear.innerText =  _dateStr.substr(0, 4) + "年";
+	    calendarMonth.innerText =  _dateStr.substr(4,2) + "月";
+	    currentY=_dateStr.substr(0, 4);
+	    currentM=_dateStr.substr(4,2);
+	    // 设置表格中的日期数据
+	    var _table = document.getElementById("calendarTable");
+	    var _tds = _table.getElementsByTagName("td");
+	    var _firstDay = new Date(_year, _month - 1, 1);  // 当前月第一天
+	    for(var i = 0; i < _tds.length; i++) {
+	      var _thisDay = new Date(_year, _month - 1, i + 1 - _firstDay.getDay());
+	      var _thisDayStr = getDateStr(_thisDay);
+	      var _div=document.createElement("div");
+	      _div.className="dayStyle";
+	      _div.innerText=_thisDay.getDate();
+	      _tds[i].appendChild(_div);
+	      _tds[i].className = _tds[i].className.replace('signed', ' ');
+	      //_tds[i].data = _thisDayStr;
+	      _tds[i].setAttribute('data', _thisDayStr);
+	      if(_thisDayStr == getDateStr(new Date())) {    // 当前天
+	        _tds[i].className = 'currentMonth currentDay';
+	      }else if(_thisDayStr.substr(0, 6) == getDateStr(_firstDay).substr(0, 6)) {
+	        _tds[i].className = 'currentMonth';  // 当前月
+	      }else {    // 其他月
+	        _tds[i].className = 'otherMonth';
+	      };
+	    }
+	    if(timeType=="w"){
+	    	checkWeek();
+	    }
+	}
+
+/**
+ * 绑定上个月下个月事件
+ */
+function bindEvent() {
+  var prevMonth = document.getElementById("prevMonth");
+  var nextMonth = document.getElementById("nextMonth");
+  addEvent(prevMonth, 'click', toPrevMonth);
+  addEvent(nextMonth, 'click', toNextMonth);
+}
+/**
+ * 格式化日期，xxxx-xx-xx
+ */
+function strFormat(str){
+  var year=str.substring(0,4);
+  var month=str.substring(4,6);
+  var day=str.substring(6,8);
+  var newStr=year+'-'+month+'-'+day;
+  return newStr;
+}
+function selectDay(){ //选择天
+  if(timeType=="w"){
+	   var week=[];  
+	   $("#calendarTable").find("tr").each(function(){
+	         var self=$(this);
+	         self.click(function(){
+	        	self.find("td").each(function(){
+	        		var _this=this;
+	        		var days=$(_this).attr("data");
+			        week.push(days); 
+	        	});
+	        	var len=week.length;
+        		timeline=strFormat(week[0]);
+        		timeline2=strFormat(week[len-1]);
+        	    $("#calendarBox").hide();
+        	    getData();
+	         });
+
+	       });
+  }else{
+	  $(".currentMonth .dayStyle").each(function(){
+	      $(this).click(function(){
+	            var temp=$(this).html();
+	            if(temp<10){
+	                var day="0"+temp;
+	            }else{
+	                var day=temp;
+	            }
+	            console.log(currentY+'-'+currentM+'-'+day);
+	            timeline=currentY+'-'+currentM+'-'+day;
+	            timeline2=null;
+	            $("#calendarBox").hide();
+	            getData();
+	        }); 
+ 	 });  
+  }
+}
+function selectMonth(){ //选择月
+	    $("#calendar").empty();
+	    for(var i=0;i<3;i++){
+	        var monthLine=document.createElement("div");
+	        monthLine.className='monthLine';
+	        for(var j=0;j<4;j++){
+	            var monthBlock=document.createElement("div");
+	            var monthTag=document.createElement("div");
+	            monthBlock.className='monthBlock';
+	            monthTag.className='monthTag inner-center';
+	            monthBlock.appendChild(monthTag);
+	            monthLine.appendChild(monthBlock);
+	        };
+	        calendar.appendChild(monthLine);
+	    }
+	    $(".monthTag").each(function(inx,val){
+	        $(this).html(inx+1+"月");
+	        $(this).click(function(){
+	            $(this).css({"background":"#DBDBDB","color":"rgba(255,93,62,.6)"});
+	            setTimeout(function(){
+	                $(this).css({"background":"#FFF","color":"#FF5D3E"}); 
+	            },50);
+	            setTimeout(function(){
+	            	if(timeType=="m"){
+	            		if(inx+1<10){
+	            			var temp="0"+(inx+1);
+	            		}else{
+	            			var temp=inx+1;
+	            		}
+	            		timeline=currentY+"-"+temp+"-"+"01";
+	            		timeline2=null;
+	            	    $("#calendarBox").hide();
+	            	    getData();
+	            	}else{
+		                $("#calendar").empty();
+		                renderHtml();
+		                var date = dateObj.getDate();
+		                dateObj.setDate(new Date(date.getFullYear(), inx, 1));
+		                showCalendarData();
+		                selectDay();
+	            	}
+	            },100);
+	        });
+	    });
+}
+function selectYear(){ //选择年
+      $("#calendar").empty();
+      for(var i=0;i<4;i++){
+          var yearLine=document.createElement("div");
+          yearLine.className='yearLine';
+          for(var j=0;j<5;j++){
+              var yearBlock=document.createElement("div");
+              var yearTag=document.createElement("div");
+              yearBlock.className='yearBlock';
+              yearTag.className='yearTag inner-center';
+              yearBlock.appendChild(yearTag);
+              yearLine.appendChild(yearBlock);
+          };
+          calendar.appendChild(yearLine);
+      }
+      $(".yearTag").each(function(inx,val){
+          $(this).html(2016+inx+"年");
+          $(this).click(function(){
+              $(this).css({"background":"#DBDBDB","color":"rgba(255,93,62,.6)"});
+              setTimeout(function(){
+                  $(this).css({"background":"#FFF","color":"#FF5D3E"}); 
+              },50);
+              
+              if(timeType=="y"){
+            	  timeline=2016+inx+"-"+"01"+"-"+"01";
+            	  timeline2=null;
+            	  $("#calendarBox").hide();
+            	  getData();
+              }else{
+                  setTimeout(function(){
+                      $("#calendar").empty();
+                      renderHtml();
+                      var date = dateObj.getDate();
+                      dateObj.setDate(new Date(2016+inx, date.getMonth(), 1));
+                      showCalendarData();
+                      selectDay();
+                  },100); 
+              }
+          });
+      });
+}
+/**
+ * 绑定事件
+ */
+function addEvent(dom, eType, func) {
+  if(dom.addEventListener) {  // DOM 2.0
+    dom.addEventListener(eType, function(e){
+      func(e);
+    });
+  } else if(dom.attachEvent){  // IE5+
+    dom.attachEvent('on' + eType, function(e){
+      func(e);
+    });
+  } else {  // DOM 0
+    dom['on' + eType] = function(e) {
+      func(e);
+    }
+  }
+}
+
+/**
+ * 点击上个月图标触发
+ */
+function toPrevMonth() {
+  if(timeType=="m"){
+	  var _dateStr = getDateStr(dateObj.getDate());
+	  var val=parseInt(_dateStr.substr(0, 4))-1;
+	  var date = dateObj.getDate();
+	  dateObj.setDate(new Date(val, date.getMonth(), 1));
+	  currentY=val;
+	  $("#calendarYear").html(val+"年");
+  }else{
+	  $("#calendar").empty();
+	  renderHtml();
+	  var date = dateObj.getDate();
+	  dateObj.setDate(new Date(date.getFullYear(), date.getMonth() - 1, 1));
+	  showCalendarData();
+	  selectDay(); 
+  }
+}
+
+/**
+ * 点击下个月图标触发
+ */
+function toNextMonth() {
+  if(timeType=="m"){
+	  var _dateStr = getDateStr(dateObj.getDate());
+	  var val=parseInt(_dateStr.substr(0, 4))+1;
+	  var date = dateObj.getDate();
+	  dateObj.setDate(new Date(val, date.getMonth(), 1));
+	  currentY=val;
+	  $("#calendarYear").html(val+"年");
+  }else{
+	  $("#calendar").empty();
+	  renderHtml();
+	  var date = dateObj.getDate();
+	  dateObj.setDate(new Date(date.getFullYear(), date.getMonth() + 1, 1));
+	  showCalendarData();
+	  selectDay();
+  }
+}
+
+/**
+ * 日期转化为字符串， 4位年+2位月+2位日
+ */
+function getDateStr(date) {
+  var _year = date.getFullYear();
+  var _month = date.getMonth() + 1;    // 月从0开始计数
+  var _d = date.getDate();
+   
+  _month = (_month > 9) ? ("" + _month) : ("0" + _month);
+  _d = (_d > 9) ? ("" + _d) : ("0" + _d);
+  return _year + _month + _d;
+}
+$("#calendarMonth").click(function(){
+	    selectMonth();
+});//月点击事件
+$("#calendarYear").click(function(){
+	    selectYear();
+});//年点击事件
+/****************图表******************/
+var getProvince=function(){//获取省
+	$("#province").empty();
+	$("#province").append('<option value="全部" id="all1">全部</option>');
+	$.ajax({
+	    type:"GET",
+	    url:'/areaController/getAllProvince',
+	    headers: {'Content-Type': 'application/json;charset=utf-8'},
+	    dataType:'json',
+	    success:function(data) {
+			var datas=data;
+			for(var i=0;i<datas.length;i++){
+				var op=document.createElement("option");      // 新建OPTION (op) 
+				op.setAttribute("value",datas[i].provinceName); // 设置OPTION的 VALUE 
+				op.setAttribute("id",datas[i].provinceId); 
+				op.appendChild(document.createTextNode(datas[i].provinceName)); // 设置OPTION的 TEXT
+				$("#province").append(op);           // 为SELECT 新建一 OPTION(op)
+			}
+	    },
+	    error:function(n){
+	    	console.log(n);
+	    }
+	  });
+};
+var getCity=function(Id){//获取市
+	   $("#city").empty();
+	   $("#city").append('<option value="全部" id="all2">全部</option>');
+	   $.ajax({
+		    type:"POST",
+		    url:'/areaController/getCityByProvinceId',
+		    headers: {Accept: "application/json; charset=utf-8"},
+		    data:
+		    {
+		    	provinceId : Id
+		    },
+		    dataType:'json',
+		    success:function(data) {
+				var datas=data;
+				for(var i=0;i<datas.length;i++){
+					var op=document.createElement("option");      // 新建OPTION (op) 
+					op.setAttribute("value",datas[i].cityName); // 设置OPTION的 VALUE 
+					op.setAttribute("id",datas[i].cityId); 
+					op.appendChild(document.createTextNode(datas[i].cityName)); // 设置OPTION的 TEXT
+					$("#city").append(op);           // 为SELECT 新建一 OPTION(op)
+				}
+		    },
+		    error:function(n){
+		    	console.log(n);
+		    }
+		  });
+};
+var getArea=function(Id){//获取区
+	   $("#area").empty();
+	   $("#area").append('<option value="全部" id="all3">全部</option>');
+	   $.ajax({
+		    type:"POST",
+		    url:'/areaController/getAreaByCityIdAll',
+		    headers: {Accept: "application/json; charset=utf-8"},
+		    dataType:'json',
+		    data:
+		    {
+		    	cityId : Id
+		    },
+		    success:function(data) {
+				var datas=data;
+				for(var i=0;i<datas.length;i++){
+					var op=document.createElement("option");      // 新建OPTION (op) 
+					op.setAttribute("value",datas[i].areaName); // 设置OPTION的 VALUE 
+					op.setAttribute("id",datas[i].areaId); 
+					op.appendChild(document.createTextNode(datas[i].areaName)); // 设置OPTION的 TEXT
+					$("#area").append(op);           // 为SELECT 新建一 OPTION(op)
+				}
+		    },
+		    error:function(n){
+		    	console.log(n);
+		    }
+		  });
+};
+var getTown=function(Id){ //获取镇
+	   $("#town").empty();
+	   $("#town").append('<option value="全部" id="all4">全部</option>');
+	   $.ajax({
+		    type:"POST",
+		    url:'/areaController/getStreetByArea',
+		    headers: {Accept: "application/json; charset=utf-8"},
+		    dataType:'json',
+		    data:
+		    {
+		    	areaId : Id
+		    },
+		    success:function(data) {
+				var datas=data;
+				for(var i=0;i<datas.length;i++){
+					var op=document.createElement("option");      // 新建OPTION (op) 
+					op.setAttribute("value",datas[i].stName); // 设置OPTION的 VALUE 
+					op.setAttribute("id",datas[i].stId); 
+					op.appendChild(document.createTextNode(datas[i].stName)); // 设置OPTION的 TEXT
+					$("#town").append(op);           // 为SELECT 新建一 OPTION(op)
+				}
+		    },
+		    error:function(n){
+		    	console.log(n);
+		    }
+		  });
+};
+var getCountry=function(Id){ //获取村
+	   $("#country").empty();
+	   $("#country").append('<option value="全部" id="all5">全部</option>');
+	   $.ajax({
+		    type:"POST",
+		    url:'/areaController/getCountryByStreet',
+		    headers: {Accept: "application/json; charset=utf-8"},
+		    dataType:'json',
+		    data:
+		    {
+		    	streetId : Id
+		    },
+		    success:function(data) {
+				var datas=data;
+				for(var i=0;i<datas.length;i++){
+					var op=document.createElement("option");      // 新建OPTION (op) 
+					op.setAttribute("value",datas[i].countryName); // 设置OPTION的 VALUE 
+					op.setAttribute("id",datas[i].countryId); 
+					op.appendChild(document.createTextNode(datas[i].countryName)); // 设置OPTION的 TEXT
+					$("#country").append(op);           // 为SELECT 新建一 OPTION(op)
+				}
+		    },
+		    error:function(n){
+		    	console.log(n);
+		    }
+		  });
+};
+
+var myChart1 = echarts.init(document.getElementById('main1'), 'macarons');
+var myChart2 = echarts.init(document.getElementById('main2'), 'macarons');
+var myChart3 = echarts.init(document.getElementById('main3'), 'macarons'); 
+var myChart4 = echarts.init(document.getElementById('main4'), 'macarons');
+var myChart5 = echarts.init(document.getElementById('main5'), 'macarons');
+var myChart6 = echarts.init(document.getElementById('main6'), 'macarons'); 
+var getChart1=function(){
+	var custLabelName=[],custCount=[];
+	for(var i=0;i<custStateList.length;i++){
+		custLabelName.push(custStateList[i].custLabelName);
+		custCount.push(custStateList[i].custCount);
+	}
+	console.log('name');
+	console.log(custLabelName);
+	var option1 = {
+		      backgroundColor:'white',
+		        title:{
+		          text : '数据漏斗',
+		          left: 'center',
+		          top: 5,
+		          padding: [
+		              5,  // 上
+		              10, // 右
+		              10, // 左
+		          ]
+		        },
+		      tooltip : {
+		          trigger: 'axis',
+		          axisPointer: {
+		              type:'shadow',
+		              textStyle: {
+		                  color: '#fff',
+		              }
+
+		          }
+		      },
+		      grid: {
+		          left: '5%',
+		          right: '5%',
+		          top: '15%',
+		          bottom: '15%',
+		          containLabel: true
+		      },
+		      toolbox: {
+		          show : false,
+		          y:'20',
+		          feature : {
+		              mark : {show: false},
+		              dataView : {show: true, readOnly: false},
+		              magicType : {show: true, type: ['line', 'bar']},
+		              restore : {show: true},
+		              saveAsImage : {show: true}
+		          }
+		      },
+		      dataZoom : {
+		          show : true,
+		          realtime : true,
+		          y: 300,
+		          height: 20,
+		          start : 0,
+		          end : 100
+		      },
+		      calculable : true,
+		      xAxis : [
+		          {
+		              type : 'category',
+		              boundaryGap : true,
+		              data : custLabelName
+		          }
+		      ],
+		      yAxis : [
+		          {
+		            // name : '人数',
+		              type : 'value'
+		          }
+		      ],
+		      series : [
+		          {
+		              name:'总数',
+		              type:'bar',
+		              //stack: '总量',
+		              barMaxWidth : 25,
+		              label: {
+		                  normal: {
+		                      show:true,
+		                      position: 'top',
+		                      offset:[0,-10],
+		                      textStyle:{
+		                         color:'#D87A80',
+		                      },
+		                  }
+		              },
+		              itemStyle:{
+		                normal:{
+		                  borderWidth : 3
+		                }
+		              },
+		              data:custCount
+		          }
+		          
+		      ]
+		};
+	myChart1.setOption(option1); 
+};
+var getChart2=function(){
+	var date=[],quanty=[];
+	var pom=Object.keys(periodsOfOrderMap);
+	pom=pom.sort();
+	for(var i=0;i<pom.length;i++){
+		var len=pom[i].length;
+		if(pom[i+1]){
+			var prev=pom[i].substring(0,len-1);
+			var next=pom[i+1].substring(0,len-1);
+			if(prev>next){
+				pom[i]=pom[i+1];
+				pom[i+1]=pom[i];
+			}
+		}
+	}
+	for(var i=0;i<pom.length;i++){
+		date.push(pom[i]);
+		quanty.push(periodsOfOrderMap[pom[i]]);
+	}
+	var option2 = {
+	      backgroundColor:'white',
+	        title:{
+	          text : '最近一次下单距今时长（客户数）',
+	          left: 'center',
+	          top: 5,
+	          padding: [
+	              5,  // 上
+	              10, // 右
+	              10, // 左
+	          ]
+	        },
+	      tooltip : {
+	          trigger: 'axis',
+	          axisPointer: {
+	              type:'shadow',
+	              textStyle: {
+	                  color: '#fff',
+	              }
+
+	          }
+	      },
+	      grid: {
+	          left: '5%',
+	          right: '5%',
+	          top: '15%',
+	          bottom: '15%',
+	          containLabel: true
+	      },
+	      toolbox: {
+	          show : false,
+	          y:'20',
+	          feature : {
+	              mark : {show: false},
+	              dataView : {show: true, readOnly: false},
+	              magicType : {show: true, type: ['line', 'bar']},
+	              restore : {show: true},
+	              saveAsImage : {show: true}
+	          }
+	      },
+	      dataZoom : {
+	          show : true,
+	          realtime : true,
+	          y: 300,
+	          height: 20,
+	          start : 0,
+	          end : 100
+	      },
+	      calculable : true,
+	      xAxis : [
+	          {
+	              type : 'category',
+	              boundaryGap : true,
+	              data : date
+	          }
+	      ],
+	      yAxis : [
+	          {
+	            // name : '人数',
+	              type : 'value'
+	          }
+	      ],
+	      series : [
+	          {
+	              name:'客户数',
+	              type:'bar',
+	              //stack: '总量',
+	              barMaxWidth : 15,
+                  barMaxWidth : 25,
+                  label: {
+                      normal: {
+                          show:true,
+                          position: 'top',
+                          offset:[0,-10],
+                          textStyle:{
+                             color:'#D87A80',
+                          },
+                      }
+                  },
+	              itemStyle:{
+	                normal:{
+	                  borderWidth : 3
+	                }
+	              },
+	              color:['#B6A2DE'],
+	              data:quanty
+	          }
+	          
+	      ]
+	  };
+	myChart2.setOption(option2); 
+};
+var getChart3=function(){
+	var date=[],quanty=[],notNum;
+	var fom=Object.keys(frequencyOfOrderMap);
+	fom=fom.sort();
+	for(var i=0;i<fom.length;i++){
+		if((fom[i]).indexOf("+")!=-1){
+			notNum=fom[i];
+		}else{
+			date.push(fom[i]);
+			quanty.push(frequencyOfOrderMap[fom[i]]);
+		}
+	}
+	date.push(notNum);
+	var option3 = {
+	      backgroundColor:'white',
+	        title:{
+	          text : '最近一月，不同回收频率的客户数',
+	          left: 'center',
+	          top: 5,
+	          padding: [
+	              5,  // 上
+	              10, // 右
+	              10, // 左
+	          ]
+	        },
+           tooltip : {
+               trigger: 'axis',
+               axisPointer: {
+                   type:'shadow',
+                   textStyle: {
+                       color: '#fff',
+                   }
+
+               }
+           },
+	      // legend: {
+	      //   selectedMode : false,
+	      //     data:['新客户','老客户'],
+	      //     y:'20'
+	      // },
+	      grid: {
+	          left: '5%',
+	          right: '5%',
+	          top: '15%',
+	          bottom: '15%',
+	          containLabel: true
+	      },
+	      toolbox: {
+	          show : false,
+	          y:'20',
+	          feature : {
+	              mark : {show: false},
+	              dataView : {show: true, readOnly: false},
+	              magicType : {show: true, type: ['line', 'bar']},
+	              restore : {show: true},
+	              saveAsImage : {show: true}
+	          }
+	      },
+	      dataZoom : {
+	          show : true,
+	          realtime : true,
+	          y: 360,
+	          height: 20,
+	          start : 0,
+	          end : 100
+	      },
+	      calculable : true,
+	      xAxis : [
+	          {
+	              type : 'category',
+	              boundaryGap : true,
+	              data : date
+	          }
+	      ],
+	      yAxis : [
+	          {
+	            // name : '人数',
+	              type : 'value'
+	          }
+	      ],
+	      series : [
+	          {
+	              name:'客户数',
+	              type:'bar',
+	              //stack: '总量',
+                  barMaxWidth : 25,
+                  label: {
+                      normal: {
+                          show:true,
+                          position: 'top',
+                          offset:[0,-10],
+                          textStyle:{
+                             color:'#D87A80',
+                          },
+                      }
+                  },
+	              itemStyle:{
+	                normal:{
+	                  borderWidth : 3
+	                }
+	              },
+	              color:['#5AB1EF'],
+	              data:quanty
+	          }
+	          
+	      ]
+	  };
+	myChart3.setOption(option3); 
+};
+var getChart4=function(){
+	var date=[],quanty=[],notNum;
+	var tom=Object.keys(timeOfOrderMap);
+	tom=tom.sort();
+	for(var i=0;i<tom.length;i++){
+		if((tom[i]).indexOf("+")!=-1){
+			notNum=tom[i];
+		}else{
+			date.push(tom[i]);
+			quanty.push(timeOfOrderMap[tom[i]]);
+		}
+	}
+	date.push(notNum);
+	var option4 = {
+	      backgroundColor:'white',
+	        title:{
+	          text : '最近一月，客户下单次数',
+	          left: 'center',
+	          top: 5,
+	          padding: [
+	              5,  // 上
+	              10, // 右
+	              10, // 左
+	          ]
+	        },
+          tooltip : {
+              trigger: 'axis',
+              axisPointer: {
+                  type:'shadow',
+                  textStyle: {
+                      color: '#fff',
+                  }
+
+              }
+          },
+	      // legend: {
+	      //   selectedMode : false,
+	      //     data:['新客户','老客户'],
+	      //     y:'20'
+	      // },
+	      grid: {
+	          left: '5%',
+	          right: '5%',
+	          top: '15%',
+	          bottom: '15%',
+	          containLabel: true
+	      },
+	      toolbox: {
+	          show : false,
+	          y:'20',
+	          feature : {
+	              mark : {show: false},
+	              dataView : {show: true, readOnly: false},
+	              magicType : {show: true, type: ['line', 'bar']},
+	              restore : {show: true},
+	              saveAsImage : {show: true}
+	          }
+	      },
+	      dataZoom : {
+	          show : true,
+	          realtime : true,
+	          y: 380,
+	          height: 20,
+	          start : 0,
+	          end : 100
+	      },
+	      calculable : true,
+	      xAxis : [
+	          {
+	              type : 'category',
+	              boundaryGap : true,
+	              data : date
+	          }
+	      ],
+	      yAxis : [
+	          {
+	            // name : '人数',
+	              type : 'value'
+	          }
+	      ],
+	      series : [
+	          {
+	              name:'客户数',
+	              type:'bar',
+	              //stack: '总量',
+                  barMaxWidth : 25,
+                  label: {
+                      normal: {
+                          show:true,
+                          position: 'top',
+                          offset:[0,-10],
+                          textStyle:{
+                             color:'#D87A80',
+                          },
+                      }
+                  },
+	              itemStyle:{
+	                normal:{
+	                  borderWidth : 3
+	                }
+	              },
+	              color:['#5AB1EF'],
+	              data:quanty
+	          }
+	          
+	      ]
+	  };
+	myChart4.setOption(option4); 
+};
+var getChart5=function(){
+	var date=[],quanty=[],num=[];
+	var Pom=Object.keys(priceRangeOfOrderMap);
+	Pom=Pom.sort();
+   	for(var i=0;i<Pom.length;i++){
+   		var len=Pom[i].length;
+		var temp=Pom[i].indexOf("+")==-1?parseInt(Pom[i].substring(0,len-1)):parseInt(Pom[i].substring(0,len-2));
+		num.push(parseInt(temp));
+   	}
+   	num.sort(function (a, b) {
+   	    return a > b ? 1 : -1;
+   	});
+   	console.log(num);
+   	Pom=[];
+   	for(var j=0;j<num.length;j++){
+   		if(j<num.length-1){
+   			Pom.push(num[j]+"元");
+   		}else{
+   			Pom.push(num[j]+"+元");
+   		}
+   	}
+	for(var i=0;i<Pom.length;i++){
+		date.push(Pom[i]);
+		quanty.push(priceRangeOfOrderMap[Pom[i]]);
+	}
+	var option5 = {
+	      backgroundColor:'white',
+	        title:{
+	          text : '不同价格区间回收单数',
+	          left: 'center',
+	          top: 5,
+	          padding: [
+	              5,  // 上
+	              10, // 右
+	              10, // 左
+	          ]
+	        },
+          tooltip : {
+              trigger: 'axis',
+              axisPointer: {
+                  type:'shadow',
+                  textStyle: {
+                      color: '#fff',
+                  }
+
+              }
+          },
+	      grid: {
+	          left: '5%',
+	          right: '5%',
+	          top: '15%',
+	          bottom: '15%',
+	          containLabel: true
+	      },
+	      toolbox: {
+	          show : false,
+	          y:'20',
+	          feature : {
+	              mark : {show: false},
+	              dataView : {show: true, readOnly: false},
+	              magicType : {show: true, type: ['line', 'bar']},
+	              restore : {show: true},
+	              saveAsImage : {show: true}
+	          }
+	      },
+	      dataZoom : {
+	          show : true,
+	          realtime : true,
+	          y: 380,
+	          height: 20,
+	          start : 0,
+	          end : 100
+	      },
+	      calculable : true,
+	      xAxis : [
+	          {
+	              type : 'category',
+	              boundaryGap : true,
+		  	      show:true, 
+			        axisLabel:{
+			           interval:0,
+			           rotate:45,
+			           margin: 30,
+			           textStyle:{
+			                align: 'center'
+			               
+			           },
+			        },
+			        axisTick:{
+			            alignWithLabel:true,
+			            lineStyle:{
+			                color:'#ddd',
+			                
+			            },
+			        },
+	              data : date
+	          }
+	      ],
+	      yAxis : [
+	          {
+	            // name : '人数',
+	              type : 'value'
+	          }
+	      ],
+	      series : [
+	          {
+	              name:'客户数',
+	              type:'bar',
+	              //stack: '总量',
+	              barMaxWidth : 25,
+                  label: {
+                      normal: {
+                          show:true,
+                          position: 'top',
+                          offset:[0,-10],
+                          textStyle:{
+                             color:'#D87A80',
+                          },
+                      }
+                  },
+	              itemStyle:{
+	                normal:{
+	                  borderWidth : 3
+	                }
+	              },
+	              color:['#5AB1EF'],
+	              data:quanty
+	          }
+	          
+	      ]
+	  };
+	myChart5.setOption(option5); 
+};
+var getChart6=function(){
+	var createTime=[],custOrderCount=[],recycleOrderCount=[];
+	for(var i=0;i<orderStatisticList.length;i++){
+		createTime.push(orderStatisticList[i].createTime);
+		custOrderCount.push(orderStatisticList[i].custOrderCount);
+		recycleOrderCount.push(orderStatisticList[i].recycleOrderCount);
+	}
+	var option6 = {
+	      backgroundColor:'white',
+	        title:{
+	          text : '每日的下单数与回收单数的对比',
+	          left: 'center',
+	          top: 5,
+	          padding: [
+	              5,  // 上
+	              10, // 右
+	              10, // 左
+	          ]
+	        },
+	        tooltip:{
+	            show:true,
+	            trigger: 'axis',
+	            axisPointer: {
+	                type:'shadow',
+	                textStyle: {
+	                    color: '#fff',
+	                }
+
+	            },
+	        },
+	      legend: {
+	         selectedMode : false,
+	         right:'20%',
+	         data:['下单用户','回收单数']
+	      },
+	      grid: {
+	          left: '1%',
+	          right: '1%',
+	          top: '10%',
+	          bottom: '15%',
+	          containLabel: true
+	      },
+	      toolbox: {
+	          show : false,
+	          y:'20',
+	          feature : {
+	              mark : {show: false},
+	              dataView : {show: true, readOnly: false},
+	              magicType : {show: true, type: ['line', 'bar']},
+	              restore : {show: true},
+	              saveAsImage : {show: true}
+	          }
+	      },
+	      dataZoom : {
+	          show : true,
+	          realtime : true,
+	          y: 390,
+	          height: 20,
+	          start : 0,
+	          end : 100
+	      },
+	      calculable : true,
+	      xAxis: {
+	        show:true, 
+	        axisLabel:{
+	           interval:0,
+	           rotate:45,
+	           margin: 30,
+	           textStyle:{
+	                align: 'center'
+	               
+	           },
+	        },
+	        axisTick:{
+	            alignWithLabel:true,
+	            lineStyle:{
+	                color:'#ddd',
+	                
+	            },
+	        },
+	        data:createTime,
+	      },
+	      yAxis : [
+	          {
+	            // name : '人数',
+	              type : 'value'
+	          }
+	      ],
+	      series : [
+	          {
+	              name:'下单用户',
+	              type:'bar',
+	              barMaxWidth : 25,
+	              label: {
+	                  normal: {
+	                      show:true,
+	                      position: 'insideTop',
+	                      offset:[0,20],
+	                      textStyle:{
+	                         color:'#FFF',
+	                      },
+	                  }
+	              },
+	              itemStyle:{
+	                normal:{
+	                  borderWidth : 3
+	                }
+	              },
+	              data:custOrderCount
+	          },
+	          {
+	              name:'回收单数',
+	              type:'bar',
+	              barMaxWidth : 25,
+	              label: {
+	                  normal: {
+	                      show:true,
+	                      position: 'top',
+	                      offset:[0,-20],
+	                      textStyle:{
+	                         color:'#D87A80',
+	                      },
+	                  }
+	              },
+	              itemStyle:{
+	                normal:{
+	                  borderWidth : 3
+	                }
+	              },
+	              data:recycleOrderCount
+	          }
+	          
+	      ]
+	  };
+	myChart6.setOption(option6); 
+};
+var getData=function(){
+   $("#loadBg").show();
+   var data={};
+   //data.getTime=timeline;
+   data.areaId=areaId;
+   //data.type=timeType;
+   //data.end=timeline2;
+   $.ajax({
+	    type:"POST",
+	    url:'/orderStatistic/getOrderStatististic',
+	    headers: {Accept: "application/json;charset=utf-8"},
+	    data:data,
+	    dataType:'json',
+	    success:function(data) {
+	    	$("#loadBg").hide();
+			var obj=data;
+			custStateList=obj.custStateList;//数据漏斗
+			periodsOfOrderMap=obj.periodsOfOrderMap;//最近一次下单距今时长
+			frequencyOfOrderMap=obj.frequencyOfOrderMap;//最近一月，不同回收频率的客户数
+			timeOfOrderMap=obj.timeOfOrderMap;//最近一月，客户下单次数
+			priceRangeOfOrderMap=obj.priceRangeOfOrderMap;//不同价格区间回收单数
+			orderStatisticList=obj.orderStatisticList;//每日的下单数与回收单数的对比
+			//console.log(periodsOfOrderMap);
+			getChart1();
+			getChart2();
+			getChart3();
+			getChart4();
+			getChart5();
+			getChart6();
+	    },
+	    error:function(n){
+	    	console.log(n);
+	    }
+	  });
+};
+$("#date").change(function(){
+   var selectedCon=$("#date").find("option:selected").text();
+   if(month<10){
+	  var temp="0"+month;
+   }else{
+	  var temp=month;
+   }
+   if(selectedCon=="昨日"){
+      timeType="prev";
+      timeline=year+"-"+temp+"-"+(day-1);
+      timeline2=null;
+      getData();
+   }else if(selectedCon=="今日"){
+	  timeType="now";
+      timeline=year+"-"+temp+"-"+day;
+      timeline2=null;
+      getData();
+   }else if(selectedCon=="年"){
+	  timeType="y";
+	  $("#calendar-slc-box").css("display","none");
+	  selectYear();
+	  $("#calendarBox").show();
+   }else if(selectedCon=="月"){
+	  timeType="m";
+	  selectMonth();
+	  $("#calendar-slc-box").css("display","block");
+	  $("#calendarYear").css({"float":"none","margin":"auto"});
+	  $("#calendarMonth").hide();
+	  $("#calendarBox").show();
+   }else if(selectedCon=="周"){
+	  timeType="w";
+	  $("#calendar").empty();
+	  renderHtml();
+	  // 表格中显示日期
+	  showCalendarData();
+	  selectDay();
+	  $("#calendar-slc-box").css("display","block");
+	  $("#calendarYear").css({"float":"left","margin-right":"20px"});
+	  $("#calendarMonth").show();
+	  $("#calendarBox").show(); 
+   }else if(selectedCon=="日"){
+	  dateObj.setDate(new Date());
+	  timeType="d";
+	  $("#calendar").empty();
+	  renderHtml();
+	  // 表格中显示日期
+	  showCalendarData();
+	  selectDay();
+	  $("#calendar-slc-box").css("display","block");
+	  $("#calendarYear").css({"float":"left","margin-right":"20px"});
+	  $("#calendarMonth").show();
+	  $("#calendarBox").show();
+   }   
+});
+var provinceSlc,citySlc,areaSlc,townSlc,countrySlc;
+$("#province").change(function(){ //省选择
+   var provinceSlc=$("#province").find("option:selected").attr("id");
+   if(provinceSlc=="all1"){
+	   areaId=null;
+	   console.log("work");
+	   $("#city").empty();
+	   $("#city").append('<option value="全部" id="all2">全部</option>');
+	   $("#area").empty();
+	   $("#area").append('<option value="全部" id="all3">全部</option>');
+	   $("#town").empty();
+	   $("#town").append('<option value="全部" id="all4">全部</option>');
+	   $("#country").empty();
+	   $("#country").append('<option value="全部" id="all5">全部</option>');
+   }else{
+	   areaId=provinceSlc;
+	   getCity(provinceSlc); 
+   }
+   getData();
+}); //省选择
+$("#city").change(function(){ // 市选择
+	   var citySlc=$("#city").find("option:selected").attr("id");
+	   if(citySlc=="all2"){
+		   areaId=provinceSlc;
+		   $("#area").empty();
+		   $("#area").append('<option value="全部" id="all3">全部</option>');
+		   $("#town").empty();
+		   $("#town").append('<option value="全部" id="all4">全部</option>');
+		   $("#country").empty();
+		   $("#country").append('<option value="全部" id="all5">全部</option>');
+	   }else{
+		   areaId=citySlc;
+		   getArea(citySlc);
+	   }
+	   getData();
+}); //市
+$("#area").change(function(){ // 区选择
+	   var areaSlc=$("#area").find("option:selected").attr("id");
+	   if(areaSlc=="all3"){
+		   areaId=citySlc;
+		   $("#town").empty();
+		   $("#town").append('<option value="全部" id="all4">全部</option>');
+		   $("#country").empty();
+		   $("#country").append('<option value="全部" id="all5">全部</option>');
+	   }else{
+		   areaId=areaSlc;
+		   getTown(areaSlc);
+	   }
+	   getData();
+}); //区
+$("#town").change(function(){ // 镇选择
+	   var townSlc=$("#town").find("option:selected").attr("id");
+	   if(townSlc=="all4"){
+		   areaId=areaSlc;
+		   $("#country").empty();
+		   $("#country").append('<option value="全部" id="all5">全部</option>');
+	   }else{
+		   areaId=townSlc;
+		   getCountry(townSlc);
+	   }
+	   getData();
+});  //镇
+$("#country").change(function(){ // 村选择
+	   var countrySlc=$("#country").find("option:selected").attr("id");
+	   if(countrySlc=="all5"){
+		   areaId=townSlc;
+	   }else{
+		   areaId=countrySlc;
+	   }
+	   getData();
+});  //村
+var initial=function(){
+	getProvince();
+	$("#city").append('<option value="全部" id="all2">全部</option>');
+	$("#area").append('<option value="全部" id="all3">全部</option>');
+	$("#town").append('<option value="全部" id="all4">全部</option>');
+	$("#country").append('<option value="全部" id="all5">全部</option>');
+    if(month<10){
+	  var temp="0"+month;
+    }else{
+	  var temp=month;
+    }
+    timeType="prev";
+    timeline=year+"-"+temp+"-"+(day-1);
+    timeline2=null;
+	getData();
+};
+initial();//初始化
+// 指定图表的配置项和数据
+</script>

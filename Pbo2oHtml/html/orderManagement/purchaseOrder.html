@@ -1,0 +1,802 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="../../themes/default/easyui.css">
+<link rel="stylesheet" type="text/css" href="../../themes/icon.css">
+<link rel="stylesheet" type="text/css" href="../../themes/demo.css">
+<link rel="stylesheet" type="text/css" href="../../css/timeline.css">
+<script type="text/javascript" src="../../js/jquery.min.js"></script>
+<script type="text/javascript" src="../../js/jquery.easyui.min.js"></script>
+<script type="text/javascript" src="../../js/jquery.json-2.3.js"></script>
+<script type="text/javascript" src="../../js/locale/easyui-lang-zh_CN.js"></script>
+<script type="text/javascript" src="../../js/datagrid-detailview.js"></script>
+<script type="text/javascript" src="../../js/jquery.edatagrid.js"></script>
+<script type="text/javascript" src="../../js/timeline.js"></script>
+<script src="https://cdn.bootcss.com/sockjs-client/1.1.4/sockjs.min.js"></script>
+<script src="https://cdn.bootcss.com/stomp.js/2.3.3/stomp.min.js"></script>
+<script type="text/javascript" src="../global.js"></script>
+
+<style type="text/css">
+	#pOrder .textbox,#poOrder2 .textbox{
+		width: 178px !important;
+	}
+</style>
+<script type="text/javascript">
+	var url;
+	var hig=0;
+	var count=0;
+	var orderState="";
+	function domark(er,index){
+    	$('#mark').dialog('open');
+    	var markId = $("input[type=radio][name=markId]");
+    	for (var i = 0; i < markId.length; i++) {
+			if (markId[i].value == er) {
+				markId[i].checked = true;
+			}else {
+				markId[i].checked = false;
+			}
+		}
+		var orderHeadId = $('#dg').datagrid("getRows")[index].orderHeadId;
+		var orderMemo = $('#dg').datagrid("getRows")[index].orderMemo;
+		$("input[name='orderHeadId").val(orderHeadId);
+		$("textarea[name='orderMemo']").val(orderMemo);
+	}
+	$(function () {
+		$("#bgc li").click(function () {
+		    $(this).css({"background":"#F56A58","color":"#FFF"});
+		    $(this).siblings().css({"background":"white","color":"#F56A58"})
+		    orderState=$(this).index()==1?"4":$(this).index()==2?"3":$(this).index()==3?"6":$(this).index()==4?"9":"";
+		    transferSlipInSearch();
+		})
+ 		$('#buyMoblieQu').combobox({
+	 		url:'poOrder/getBuyMoblie',
+	 		valueField:'id',
+	 		textField:'contact',
+	 		/* width:'300', */
+	 		editable:true,
+	 		filter: function(q, row){
+	         	var opts = $(this).combobox('options');
+		             //只要航悠输入的内容，即可匹配
+					return row[opts.textField].indexOf(q) >-1;
+	        }
+		});
+		$('#start').datebox({
+			editable:false,
+		    width:'110px',
+		    onSelect:function(start){
+		    	var now = new Date();
+		    	if(start > now){
+		    		$.messager.alert('提示','操作失败!日期不能超过当前时间','error');
+		    		$('#start').datebox('setValue','');
+		    	}
+	 		}
+		});
+		$('#end').datebox({
+			editable:false,
+		    width:'110px',
+		    onSelect:function(date){
+		    	var now = new Date();
+		    	if(date > now){
+		    		$.messager.alert('提示','操作失败!日期不能超过当前时间','error');
+		    		$('#end').datebox('setValue','');
+		    	}
+		    	var start = $('#start').datebox('getValue');
+		    	var end = $('#end').datebox('getValue');
+		    	if(start>end){
+		    		$.messager.alert('提示','操作失败!起始时间不能晚于结束时间','error');
+		    		$('#end').datebox('setValue','');
+		    	}
+	 		}
+		});
+		$('#province').combobox({
+	        valueField:'provinceId', //值字段
+	        textField:'provinceName', //显示的字段
+	        url:'areaController/getAllProvince',
+	        value:'--请选择--',
+	        editable:false,//不可编辑，只能选择
+	        width:'100',
+	        onSelect:function(){
+	        	var province = $(this).combobox('getValue');
+	            $('#city').combobox({
+	            valueField:'cityId', 
+	            textField:'cityName',
+	            url:'areaController/getCityByProvinceId?provinceId='+province,
+	            required:true,
+	            editable:false//不可编辑，只能选择
+	          }); 
+	        },
+	     });
+		$('#city').combobox({
+	        editable:false,
+	        width:'100',
+	        value:'请先选择省份',
+	       	onSelect:function(){
+	        	var city = $(this).combobox('getValue');
+	            $('#area').combobox({
+	            valueField:'areaId', 
+	            textField:'areaName',
+	            url:'areaController/getAreaByCityId?cityId='+city,
+	            required:true,
+	            editable:false//不可编辑，只能选择
+	           });
+	       	},
+	     	onLoadSuccess:function(){
+	       		$('#area').combobox({
+			 		width:'100',
+			 		editable:false,
+	       			value:'请先选择城市',
+	       			
+				});
+	    	}
+	     });
+		$('#area').combobox({
+		 		width:'100',
+		 		editable:false,
+		 		value:'请先选择城市',
+	        	onSelect:function(){
+	        	var areaId = $(this).combobox('getValue');
+	        }
+		});
+		$('#mark').window({
+        	title: '修改标识',
+        	width:600,
+        	height:400,
+        	resizable:false, 
+        	closed:true,
+            minimizable: false,
+            maximizable: false,
+            collapsible: false
+   		});
+		$('#detialLog').dialog({
+	    	title: '采购单信息',
+	    	width:'1000',
+	    	height:'710',
+	    	resizable:true, 
+	    	closed:true,
+	        minimizable: false,
+	        maximizable: false,
+	        collapsible: true,
+	        maximized:false
+		});
+		$("#dd").window({
+			title: '结算信息',
+			width:650,
+        	height:400,
+        	resizable:false, 
+        	closed:true,
+            minimizable: false,
+            maximizable: false,
+            collapsible: false
+	    });
+		var tableH = Math.max(document.documentElement.scrollHeight,document.body.scrollHeight)-($('#dg').offset().top+20);
+		var ttIndex=0;
+		$('#dg').datagrid({
+	        iconCls: 'icon-save',
+	        width: "100%",
+	        height: tableH,
+        	fitColumns:true,//自动使列适应表格宽度以防止出现水平滚动。
+            nowrap: true,
+        	autoRowHeight: true,
+        	singleSelect: true,
+        	multiSort : true,
+        	striped: true,
+        	resizable : true, 
+        	collapsible: true,
+        	rownumbers:true,
+        	checkOnSelect: true,
+	        url: 'poOrder/procurementMain',
+	        queryParams: {
+	        	start : $('#start').combo('getValue'),
+    			end : $('#end').combo('getValue')
+			},
+	        idField: 'orderHeadId',
+	        columns: [[
+	            { field: 'orderHeadId', title: '订单id',hidden:true, width: 50 },
+	            { field: 'markId', title: '标识', width: 30,align:'center',
+	            	formatter:function(value, row, index){//使用formatter格式化刷子
+	            		return '<img onclick="javascript:domark('+value+','+index+');" src="../../images/'+value+'.png">';
+				}},
+	            { field: 'orderNo', title: '订单号', width: 110,sortable:true ,align:'center'},
+	            { field: 'shopName', title: '门店', width: 150,sortable:true ,align:'center'},
+	            { field: 'shopEmp', title: '门店负责人', width: 120,sortable:true ,align:'center'},
+	            { field: 'buyMoblie', title: '回收员', width: 150 ,sortable:true,align:'center'},
+	            { field: 'state', title: '状态', width: 60 ,sortable:true,align:'center'},
+	            { field: 'totalQuantity', title: '总数量', width: 50,sortable:true,align:'center'},
+	            { field: 'tradeTotalWeight', title: '总重量/Kg', width: 50,sortable:true,align:'center'},
+				{ field: 'accountsPayable', title: '支付金额', width: 80,sortable:true ,align:'center',formatter: function (value, row, index) {
+                    if (row != null) {
+                        return (parseFloat(value).toFixed(2) + '').replace(/\d{1,3}(?=(\d{3})+(\.\d*)?$)/g, '$&,');
+                  }
+                  }},
+				{ field: 'createTime', title: '创建时间', width: 100,sortable:true }
+	        ]], 
+	        onDblClickRow :  function(index, row){
+	        	$('#detialLog').dialog('open');
+	        	$('#tt').panel('open').panel('refresh');
+	        	loadDateGrad(row.orderNo);
+	        	$('#tt').tabs({
+	                width: "100%",
+	        		height:640,
+	        	    border:false,   
+	        	    onSelect:function(title,index){  
+	        	    	if(index==1){
+	        	    		img1(row.orderImage);
+	        	    	}
+	        	    }
+	        	});
+ 	        	$("#tt").tabs("select","基本信息") ; 
+	        	$.ajax({
+	        		url:'poOrder/procurementTimeStatus?orderNo='+row.orderNo,
+	        		type:'GET',
+	        		success:function(stateTimes){
+	        			var conf={
+	  	            	      textAlign:'left',//设置文字位置,left在点上方,center在线上方
+	  	            	      lineWidth:130//设置线条长度
+	  	            	};
+	        			$(".pro").empty().timeLines(stateTimes,conf);
+	        		},
+	        		error: function (jqXHR, textStatus, errorThrown) {
+	    	        	$.messager.show({
+	    					title: 'Error',
+	    					msg: jqXHR.responseText
+	    				});
+	    	        }
+	        	});
+	        	$('#orderNo').textbox('setValue',row.orderNo);
+	        	$('#shopName').textbox('setValue',row.shopName);
+	        	$('#shopEmp').textbox('setValue',row.shopEmp);
+	        	$('#buyMoblie').textbox('setValue',row.buyMoblie);
+	        	$('#createTime').textbox('setValue',row.createTime);
+	        	$('#totalQuantity').textbox('setValue',row.totalQuantity);
+	        	$('#tradeTotalWeight').textbox('setValue',row.tradeTotalWeight);
+	        	$('#tradeTotalPrice').textbox('setValue',row.tradeTotalPrice);
+	        	$('#prepaidAccounts').numberbox('setValue',row.prepaidAccounts);
+	        	$('#accountsPayable').textbox('setValue',row.accountsPayable);
+	        },
+	        pagination: true,
+	    	pageSize : 40, 
+	    	pageList : [ 40, 80, 120 ],
+	    	toolbar: [
+				{
+	    			id: 'total',
+	   				text: '<div>总重量(元)：<input  style="display:none;border:0px;" readonly="readonly" id="totalWeightBar"></div>',
+				},
+				{
+					id: 'total',
+					text: '<div>总成本(元)：<input  style="display:none;border:0px;" readonly="readonly" id="totalCostBar"></div>',
+				}
+			],
+			onLoadSuccess: function(data){
+				if(data.totalWtCt.totalWeight!=null){
+					 document.getElementById("totalWeightBar").style.display= "";
+				     $('#totalWeightBar').val(data.totalWtCt.totalWeight);
+				}
+				if(data.totalWtCt.totalCost!=null){
+					document.getElementById("totalCostBar").style.display= "";
+				    $('#totalCostBar').val(data.totalWtCt.totalCost);
+				}
+			}
+	    });	
+	});	
+	
+function cancelOrder(){
+	var row=$('#dg').datagrid("getSelected");
+	if(row==null){
+		$.messager.alert('提示','请至少选择一行数据','info');
+		return;
+	}else if(row.length>1){
+		$.messager.alert('提示','只可选择一行','info');
+		return;
+	}
+	var orderNo=row.orderNo;
+ 	$.messager.confirm('提示', '是否确认删除？', function(r){
+ 		if (r){
+                 $.ajax({
+                    url: "poOrder/cancelOrder",
+                    type: "post",
+                    data:{
+                    	orderNo : orderNo,
+                    	status : row.stateId
+                    },
+                    success: function (text) {
+                    	if (text.msgCode == "Y") {
+	                    	$.messager.alert('提示','操作成功！','info',function () {
+	            				$('#dg').datagrid('reload');
+            		        });
+						}else if (text.msgCode == "N") {
+	                    	$.messager.alert('提示','操作失败！','info',function () {
+	            				$('#dg').datagrid('reload');
+            		        });
+						}
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                    	$.messager.alert('提示','操作失败！');
+                    }
+                });
+ 		}else {
+				return;
+			}
+ 	});
+}
+function transferSlipInSearch(){
+	$('#detialLog').panel('close');
+	var province = $('#province').combobox('getValue');
+	var city = $('#city').combobox('getValue');
+	var area = $('#area').combobox('getValue');
+	var shopCust = $('#shopCustQu').textbox('getValue');
+	var buyMoblie = $('#buyMoblieQu').combobox('getValue');
+	var orderNo = $('#orderNoQu').textbox('getValue');
+	var areaId;
+	if (province == "--请选择--" || province == "") {
+		province = "isEmpty";
+	} else {
+		areaId = province;
+	}
+	if (city != "--请选择--" && city != "请先选择省份" && city != "") {
+		areaId = city;
+	}
+	if (area != "--请选择--" && area != "请先选择城市" && area != "") {
+		areaId = area;
+	}	
+	$('#dg').datagrid('load',{
+		areaId : areaId,
+		start : $('#start').combo('getValue'),
+		end : $('#end').combo('getValue'),
+		orderNo : orderNo,
+		buyMoblie : buyMoblie,
+		shopCust : shopCust,
+		orderState: orderState
+	});
+}
+
+function poExcle(){
+	var province = $('#province').combobox('getValue');
+	var city = $('#city').combobox('getValue');
+	var area = $('#area').combobox('getValue');
+	var shopCust = $('#shopCustQu').textbox('getValue');
+	var buyMoblie = $('#buyMoblieQu').combobox('getValue');
+	var orderNo = $('#orderNoQu').textbox('getValue');
+	var areaId;
+	if (province == "--请选择--" || province == "") {
+		province = "isEmpty";
+		areaId="";
+	} else {
+		areaId = province;
+	}
+	if (city != "--请选择--" && city != "请先选择省份" && city != "") {
+		areaId = city;
+	}
+	if (area != "--请选择--" && area != "请先选择城市" && area != "") {
+		areaId = area;
+	}	
+	var start=$('#start').combo('getValue');
+	var end=$('#end').combo('getValue');
+	window.location.href=getUrl("poOrder/poExcle")+"?areaId="+areaId+"&shopCust="+shopCust+"&buyMoblie="+buyMoblie
+			+"&start="+start+"&end="+end+"&orderState="+orderState+"&orderNo="+orderNo+"&loginToken="+getLoginToken();
+}
+function updateResult(result){
+	$('#dd').window('close'); 
+	$.ajax({ 
+		async: false,
+        type:'post',
+        url:'transferSlipIn/updateOrderState',  
+        data:{
+        	state : state,
+        	stateId:stateId,
+        	orderNo : orderNo,
+        	result : result
+        },
+        dataType:'json',  
+        success:function(data){
+       	 if(data.msg == ""){
+       		 $.messager.alert('提示','操作成功!','info');
+       		 $('#dg').datagrid('reload');
+       	 }else{
+       		$.messager.alert('提示','操作失败!','error');
+       	 }
+         },
+      	  error : function() {  
+      		$.messager.alert('提示','操作失败!','error'); 
+   	  }
+    });
+}
+var state;
+var orderNo;
+var stateId
+function updateState() {
+	var row=$('#dg').datagrid("getSelected");
+	if(row==null){
+		$.messager.alert('提示','请至少选择一行数据','info');
+	}else if(row.length>1){
+		$.messager.alert('提示','只可选择一行','info');
+	}
+	this.orderNo=row.orderNo;
+	this.stateId=row.stateId;
+	this.state='5';
+	var result=null;
+	$.ajax({ 
+		async: false,
+        type:'post',
+        url:'poOrder/checkState',  
+        data:{
+        	orderNo : orderNo
+        },
+        dataType:'json',  
+        success:function(data){
+	       	 if(data.msgCode != null && data.msgCode=="Y"){
+	       		$.messager.confirm('确认','您确认想要支付这条订单吗？',function(r){    
+	       		    if (r){
+	       		    	$.ajax({ 
+	       		    		async: false,
+	       		            type:'post',
+	       		            url:'poOrder/updateOrderStateFist',  
+	       		            data:{
+	       		            	state : state,
+	       		            	orderNo : orderNo
+	       		            },
+	       		            dataType:'json',  
+	       		            success:function(data){
+	       		           	 if(data.msg != "" && data.msg != null){
+	       		           		$('#dd').html('<iframe src="'+data.msg+'?orderNo='+orderNo+'&state='+state+'&stateId='+stateId+'" style="width:100%;height:100%;"frameborder="0"></iframe>');
+	       		           		$('#dd').window('open'); 
+	       		           	 }
+	       	              },
+	       	          	  error : function() {  
+	       	       	            // view("异常！");
+	       	          		$.messager.alert('提示','操作失败!','error'); 
+	       		       	  }
+	       		        });
+	       		    }    
+	       		}); 
+	       	 }else{
+	       		$.messager.alert('提示','该单不可支付!','error'); 
+	       	 }
+	    },
+	  	error : function() {  
+	  		$.messager.alert('提示','操作失败!','error'); 
+	   	}
+    });
+	
+}
+
+function updatePrice(id){
+	$.messager.prompt('提示信息', '请输入修改后的单价：', function(r){
+		if (r){
+			if(isNaN(r)|| parseFloat(r)<0){
+				$.messager.alert('提示','输入有误','error',function(){
+					updatePrice(id);	
+				});
+			}else{
+				$.ajax({ 
+					async: false,
+			        type:'post',
+			        url:'poOrder/updatePrice',  
+			        data:{
+			        	id : id,
+			        	price : r
+			        },
+			        dataType:'json',  
+			        success:function(data){
+			       	 if(data.msg == ""){
+			       		 $.messager.alert('提示','操作成功!','info');
+			       		 $('#dg').datagrid('reload');
+			           	 $('#dg1').datagrid('reload');
+			       		 
+			       		 
+			       	 }else{
+			       		$.messager.alert('提示',data.msg,'error');
+			       	 }
+			         },
+			      	  error : function() {  
+			   	            // view("异常！");
+			      		$.messager.alert('提示','操作失败!','error'); 
+			   	  }
+			    });
+			}
+			
+		}
+	});
+}
+
+function loadDateGrad(orderNo) {
+	$('#dg1').datagrid({
+		width: "100%",
+		title:'商品信息',
+		height: 300, 
+	    nowrap: true,
+	    autoRowHeight: true,
+	    singleSelect: true,
+	    striped: true,
+	    resizable : true, 
+	    collapsible: true,
+	    rownumbers:true,
+	    checkOnSelect: true,
+        url: 'poOrder/procurementNext',
+        queryParams: {
+        	orderNo : orderNo
+		},
+        idField: 'orderHeadId',
+        columns: [[
+            { field: 'id', title: '订单id',hidden:true },
+            { field: 'catId', title: '类型',align:'center',width:120},
+            { field: 'brandName', title: '品牌',align:'center',width:60},
+            { field: 'modelName', title: '型号',align:'center',width:70},
+            { field: 'boxCode', title: '箱号',align:'center',width:100},
+            { field: 'unitWeight', title: '单位重量/Kg',align:'center',width:100},
+            { field: 'number', title: '数量',align:'center',width:40},
+            { field: 'unit', title: '单位',align:'center',width:40},
+            { field: 'totalWeight', title: '总重量',align:'center',width:60},
+            { field: 'tradeUnitPrice', title: '单价',align:'center',width:55,formatter: function (value, row, index) {
+                if (row != null) {
+                    return (parseFloat(value).toFixed(2) + '').replace(/\d{1,3}(?=(\d{3})+(\.\d*)?$)/g, '$&,');
+              }
+              }},
+            { field: 'totalPrice', title: '总价',align:'center',width:80,formatter: function (value, row, index) {
+                if (row != null) {
+                    return (parseFloat(value).toFixed(2) + '').replace(/\d{1,3}(?=(\d{3})+(\.\d*)?$)/g, '$&,');
+                }}
+            }
+        ]],
+        pagination: false
+	});
+} 
+
+function img1(src) {
+   	var sp=src.substring(src.lastIndexOf('.'),src.length);
+   	src=getUrl(src);
+   	if(sp!=null && sp=='.mp4'){
+   		$('#img').hide();
+   		$('#mp4').show();   		
+   		$('#mp4').attr("src",src);
+   	}else{
+   		$('#mp4').hide();
+   		$('#img').show();
+   		$('#img').attr("src",src);
+   	} 
+  // 	$('#imgWin').dialog('open');
+	
+} 
+function saveMark(){
+	var markId = $('input:radio[name="markId"]:checked').val();
+	var orderHeadId = $('#orderHeadId').val();
+	var orderMemo = $('#orderMemo').val();
+	$.ajax({ 
+		async: false,
+        type:'post',
+        url:'poOrder/updatePurchaseOrderMemo',  
+        data:{
+        	markId : markId,
+        	orderHeadId : orderHeadId,
+        	orderMemo : orderMemo
+        },
+        dataType:'json',  
+        success:function(data){
+       	 if(data.msgCode == "Y"){
+       		$.messager.alert('提示','操作成功!','info');
+       		$('#mark').dialog('close');
+       		$('#dg').datagrid('reload');
+       	 }else{
+       		$.messager.alert('提示','操作失败!<br>'+data.msg,'error');
+       	 }
+         },
+    	  error : function() {  
+    		$.messager.alert('提示','操作失败!','error'); 
+   	  }
+    });
+}
+
+function timeOut(obj){
+	if(obj.checked==true){
+		begin();
+	}
+	if(obj.checked==false){
+		stop();
+	}
+}
+function begin(){timeID = setInterval("searchIn()",20000);}
+function stop(){clearInterval(timeID);}
+function searchIn(){
+	$('#tt').panel('close');
+	var province = $('#province').combobox('getValue');
+	var type = $('#type').combobox('getValue');
+	var city = $('#city').combobox('getValue');
+	var area = $('#area').combobox('getValue');
+	var commTypeId = $('#commTypeId').combobox('getValue');
+	var content = $('#content').textbox('getValue');
+	$('#dg').datagrid({
+		url : 'poOrder/procurementSearch',
+		queryParams: {
+			province : province,
+			city : city,
+			state : '4',
+			start : $('#start').combo('getValue'),
+			end : $('#end').combo('getValue'),
+			area : area,
+			type : type,
+			content : content,
+			commTypeId : commTypeId
+		},
+		onLoadSuccess:function(data){
+			if(data.total>count){
+				textPlay();
+				count=data.total;
+			}
+		}
+	});
+}
+
+function textPlay(){
+	var audio = document.getElementById("messageShow");
+	audio.play();
+}
+function detialLogClose(){
+	$('#detialLog').dialog('close');  
+}
+
+$(function () {
+	if(verification("poOrder","pay")){
+		 $("#payone").css("display","");
+	}
+	if(verification("poOrder","export")){
+		 $("#excelcom").css("display","");
+	}
+	if(verification("poOrder","delete")){
+		 $("#deletecom").css("display","");
+	}
+	
+	var socket = new SockJS(getUrl('/wspo'));
+	stompClient = Stomp.over(socket);
+	var url = getUrl("/porder/pushPorder/") + getOrgId();
+	
+	stompClient.connect({}, function (frame) {
+		stompClient.subscribe(url, function (response) {
+			
+			if(orderState==4){
+				transferSlipInSearch();
+				textPlay();
+			}
+		});
+	});
+});
+ 
+</script>
+</head>
+<body>
+	<div style="margin-left:auto; margin-right:auto;">
+  		<div class="order_top">
+		    <div class="order_state">
+		        <ul id="bgc">
+		            <li onclick="">全部</li>
+		            <li onclick="">待付款</li>
+		            <li onclick="">已结算</li>
+		            <li onclick="">已完成</li>
+		            <li onclick="">已作废</li>
+		        </ul>
+		    </div>
+		    <div id="search">
+			  <form id="searchform">
+			  <div class="inputArea1">
+			  	<label>订单号</label>：<input type="text" id="orderNoQu" name="orderNoQu" class="easyui-textbox">
+			  	<label>省份</label>：<input id="province" />
+			  	<label>城市</label>：<input id="city" />
+			  	<span id="pOrder"><label>区域</label>：<input id="area" /></span>
+			  </div>
+			  <div class="inputArea1">
+			  	<label>门店负责人</label>：<input type="text" class="easyui-textbox" id="shopCustQu" name="shopCustQu">
+			  	<label>下单时间</label>：<input id="start" name="start" type="text"></input>
+			  	<label style="margin-right:14px;text-align:center;text-align-last:center;">至</label><input id="end" name="end" type="text"></input>
+			  	<span id="poOrder2"><label>回收员</label>：<input type="text" class="easyui-combobox" id="buyMoblieQu" name="buyMoblieQu"></span> 
+			  	<a class="easyui-linkbutton" data-options="iconCls:'icon-search'" style="padding-left: 5px;padding-right: 5px" onClick="transferSlipInSearch()">查询</a>
+			  <a class="easyui-linkbutton" data-options="iconCls:'icon-clear'" style="padding-left: 5px;padding-right: 5px" onClick="$('#searchform').form('clear')">清空</a>
+			  </div>
+			  </form>
+		    </div>
+		</div>
+			<a class="easyui-linkbutton" onClick="updateState()" id="payone" style="padding-left: 5px;padding-right: 5px; display:none;">支付</a>&nbsp;&nbsp;
+			<a class="easyui-linkbutton" onClick="poExcle()" id="excelcom" style="padding-left: 5px;padding-right: 5px; display:none;">导出</a>&nbsp;&nbsp;
+			<a class="easyui-linkbutton" onClick="cancelOrder()" id="deletecom" style="padding-left: 5px;padding-right: 5px; display:none;">删除</a>
+		<table id="dg" style="align:center"></table> 
+	</div>
+	<div id="mark">
+  		<form id = "markfrom" action="" method="get" style="padding: 50px"> 
+  			<input type="hidden" name="orderHeadId" id="orderHeadId">
+  			<table>
+  				<tr>
+					<td align="right" width="100px;">
+						<font color="red">*</font>
+						 <span style="font-weight: 600;">标记:</span>
+					</td>
+					<td align="left" width="300px;">
+						<label><input name="markId" type="radio" value="1" /><img src="../../images/1.png"> </label> 
+						<label><input name="markId" type="radio" value="2" /><img src="../../images/2.png"> </label> 
+						<label><input name="markId" type="radio" value="3" /><img src="../../images/3.png"> </label> 
+						<label><input name="markId" type="radio" value="4" /><img src="../../images/4.png"> </label> 
+						<label><input name="markId" type="radio" value="5" /><img src="../../images/5.png"> </label> 
+						<label><input name="markId" type="radio" value="6" /><img src="../../images/6.png"> </label> 
+					</td>
+				</tr>
+				<tr>
+					<td align="right" width="100px;">
+						<font color="red">*</font>
+						 <span style="font-weight: 600;">标记信息:</span>
+					</td>
+					<td align="left" width="300px;">
+						<textarea id='orderMemo'name="orderMemo" style="width: 300px;height: 200px;max-width: 300px;max-height: 200px;"></textarea>
+					</td>
+				</tr>
+  				<tr>
+					<td align="center" colspan="2">
+						<div align="center">
+							<a class="easyui-linkbutton" data-options="iconCls:'icon-save'" onclick="saveMark()">提交</a>
+						</div>
+					</td>
+				</tr>
+  			</table>
+		</form> 
+  	</div>
+  	<div id="dd"></div>
+  	<div id="print"></div>
+	<audio id="messageShow">
+		<source src="sound/hangge.mp3" type="audio/mp3">
+		<source src="sound/hangge.ogg" type="audio/ogg">
+	</audio>
+	
+	<div id="detialLog" style="margin:0 auto;overflow:hidden;">
+	    <div style="width: 100%;position:relative;">
+			<div class="pro"></div>
+		</div>
+		<div id="tt" class="easyui-panel">
+		    <div title="基本信息"> 
+			    <table style="margin:0 auto;width:80%;line-height: 40px; text-align: center;">
+			    	<tr>
+			    		<td style="text-align:justify;text-justify:distribute-all-lines;text-align-last:justify;">订单编号</td>
+			    		<td><input id="orderNo" class="easyui-textbox" type="text" readonly="readonly"/></td>
+			    		<td style="text-align:justify;text-justify:distribute-all-lines;text-align-last:justify;">总数量</td>
+			    		<td ><input id="totalQuantity" class="easyui-textbox" type="text" readonly="readonly"/>只</td>
+			    	</tr>
+			    	<tr>
+			    		<td style="text-align:justify;text-justify:distribute-all-lines;text-align-last:justify;">门店</td>
+			    		<td><input id="shopName" class="easyui-textbox" type="text" readonly="readonly"/></td>
+			    		<td style="text-align:justify;text-justify:distribute-all-lines;text-align-last:justify;">总重量</td>
+			    		<td><input id="tradeTotalWeight" class="easyui-textbox" type="text" readonly="readonly" />KG</td>
+			    	</tr>
+			    	<tr>
+			    		<td style="text-align:justify;text-justify:distribute-all-lines;text-align-last:justify;">门店负责人</td>
+			    		<td><input id="shopEmp" class="easyui-textbox" type="text" readonly="readonly"/></td>
+			    		<td style="text-align:justify;text-justify:distribute-all-lines;text-align-last:justify;">总价格</td>
+			    		<td><input id="tradeTotalPrice" class="easyui-textbox" type="text" readonly="readonly" />元</td>
+			    	</tr>
+			    	<tr>
+			    		<td style="text-align:justify;text-justify:distribute-all-lines;text-align-last:justify;">回收员</td>
+			    		<td><input id="buyMoblie" class="easyui-textbox" type="text" readonly="readonly"/></td>
+			    		<td style="text-align:justify;text-justify:distribute-all-lines;text-align-last:justify;">预付金额</td>
+			    		<td><input id="prepaidAccounts" class="easyui-numberbox" type="text"  readonly="readonly" data-options="min:0,precision:2"/>元</td>
+			    	</tr>
+			    	<tr>
+			    		<td style="text-align:justify;text-justify:distribute-all-lines;text-align-last:justify;">订单时间</td>
+			    		<td><input id="createTime" class="easyui-textbox" type="text" readonly="readonly"/></td>
+			    		<td style="text-align:justify;text-justify:distribute-all-lines;text-align-last:justify;">现付金额</td>
+			    		<td><input id="accountsPayable" class="easyui-textbox" type="text"  readonly="readonly"/>元</td>
+			    	</tr>
+			    	<tr>
+			    		<td colspan="4" >		    			
+							<table id="dg1" align="center" style="margin-top: 10px"></table> 
+			    		</td>
+			    	</tr>
+				</table>
+				<div style="text-align:center;width:100%;padding-top:10px;">
+					<a id="clanelButt" onclick="detialLogClose()" class="easyui-linkbutton window-submitBtn" style="padding-left: 10px;padding-right: 10px">关闭</a>
+				</div> 
+			</div>
+		    <div title="图片视频" >  
+			    <div id="imgWin" style="width:100% ;height:99% "> 
+				    <img id="img" src="" width="100%" height="99%">
+		  			<video src=" "  id="mp4" width="100%" height="100%" autoplay controls="controls">
+					Your browser does not support the video tag.
+					</video>
+	  			</div>	
+			</div>
+		</div> 
+	 </div>
+</body>
+</html>

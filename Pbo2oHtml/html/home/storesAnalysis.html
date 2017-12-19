@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="../../js/angular.js"></script>
+
+    <script src="../../js/echarts.js"></script>
+   
+    <script src="../../js/jquery-1.9.1.js"></script>
+    <script type="text/javascript" src="http://api.map.baidu.com/getscript?v=2.0&ak=S2XBCnEYouwQYSpqxcpX2BP1"></script>
+    <script src="../../libs/baiduMapW.js"></script>
+    <link rel="stylesheet" href="../../css/index.css">
+    <script src="../global.js"></script>
+    <script src="../../libs/index.js"></script>
+    <title>报表数据</title>
+</head>
+<body>
+    <div class="overspread" ng-app="myHome" ng-controller="myCtrl">
+        <div id="contain">
+            <div class="top">
+                <div class="notRecovered" onclick="declaration(this)">
+                    <div class="notRecovered_left">
+                        <span class="notRe">
+                            下单数量
+                        </span>
+                        <img src="images/jinrihuishou.png" alt="">
+                    </div>
+                    <div class="notRecovered_right">
+                        <p>
+                            <img src="images/fresh.png" alt="" id="fresh01">
+                            <img src="images/fresh2.gif" alt="" id="fresh1">
+                        </p>
+                        <div id="reInfo">
+                            <span class="Renum">{{tradingStatistics.countCustOrder}}</span>
+                            <span class="Redan">单</span>
+                        </div>
+
+                    </div>
+                    <div id="bottom">
+                        <a  href="javascript:void(0)">点击查看详情</a>
+                        <p>下单总重量 &nbsp : &nbsp
+                            <span class="ReWeight">{{tradingStatistics.sumTotalWeight}}</span> kg </p>
+                    </div>
+                </div>
+            <!-- 第二个方块成交数量 -->
+
+                <div class="recovered" onclick="poOrder(this)">
+                    <div class="notRecovered_left">
+                        <span class="notRe">
+                            成交重量
+                        </span>
+                        <img src="images/jifeng.png" alt="">
+
+                    </div>
+                    <div class="notRecovered_right">
+                        <p>
+                            <img src="images/fresh.png" alt="" id="fresh02">
+                            <img src="images/fresh2.gif" alt="" id="fresh2">
+                        </p>
+                        <div id="reInfo2">
+                            <span class="Renum2">{{tradingStatistics.countOrder}}</span>
+                            <span class="Redan">吨</span>
+                        </div>
+
+                    </div>
+                    <div id="bottom2">
+                        <a href="javascript:void(0)" >点击查看详情</a>
+                        <p>回收总重量 &nbsp : &nbsp
+                            <span class="ReWeight2">{{tradingStatistics.sumTradeTotalWeight}}</span> kg </p>
+                    </div>
+                </div>
+                <!-- 顶部第三个Echarts数据图 -->
+                <div id="inwentory" >
+                   
+                </div>
+                <!-- 底部第四个Echarts数据图 -->
+                <div id="pieChart">
+                    <span class="pieInfo">点击查看详情</span>
+                    <div id="onePie">
+
+                    </div>
+                    <div id="twoPie">
+
+                    </div>
+                </div>
+               
+
+            </div>
+             <!-- 第二部分中间的线图 -->
+             <div class="line">
+                <div id="line">
+                    
+                </div>
+                <div id="lineInfo">
+                        <div class="oneLine">
+                                <span class="danshu"></span>
+                                订单数
+                        </div>
+                        <div class="twoLine">
+                                <span class="weight"></span>
+                                下单数
+                        </div>
+
+                </div>
+             </div>
+             <!-- //第三部分表格和地图部分------------------------------ -->
+             <div class="mapTable">
+                    <div id="enSmall">
+                            <img src="../../images/enSmall.png" alt="">
+                    </div>
+                <div class="thLeftTable">
+                    <table>
+                        <tr>
+                            <th>店名</th>
+                            <th>负责人</th>
+                            <th>手机</th>
+                            <th>交易次数</th>
+                            <th>满意度</th>
+                            <th>产废量</th>
+                            <th>成交金额</th>
+                            <th>最近成交日期</th>
+                        </tr>
+                        <tr ng-repeat="stroe in custTradStatistics" ng-click="check(stroe)">
+                            <td>{{stroe.shopName}}</td>
+                            <td>{{stroe.custName}}</td>
+                            <td>{{stroe.custPhone}}</td>
+                            <td>{{stroe.transactionNumber}}</td>
+                            <td>{{stroe.satisfaction}}</td>
+                            <td>{{stroe.transactionWeight}}</td>
+                            <td>{{stroe.transactionPrice}}</td>
+                            <td>{{stroe.orderTime}}</td>
+                        </tr>
+                       
+                    </table>
+                    <div class="cr_bottom">
+                        <div ng-click="next()">下一页</div>
+                        <div class="different_b"><span class="current">{{nowPage}}</span>/ <span class="all_num">{{totalPage}}</span></div>
+                        <div ng-click="prev()">上一页</div>
+                    </div>
+                </div> 
+                <div class="map">
+                    <div id="address">
+                        <p class="adress">地区选择</p>
+                        <select name="" id="provice">
+                            <option value="0">全部省份</option>
+                            <option value="1">广东省</option>
+                        </select>
+                        <select name="" id="city">
+                            <option value="0">全部城市</option>
+                            <option value="1">深圳省</option>
+                        </select>
+                        <select name="" id="area">
+                            <option value="0">全部区域</option>
+                            <option value="1">福田区</option>
+                        </select>
+                    </div>
+                    <div id="date">
+                        <p class="date">请选择日期</p>
+                        <select name="" id="city">
+                                <option value="0">请选择开始日期</option>
+                             
+                        </select>
+                        <select name="" id="area">
+                            <option value="0">请选择结束日期</option>
+                            
+                        </select>
+                        <p class="userStyle">用户类型</p>
+                        <input type="radio" name="all">全部用户
+                        <input type="radio" name="all">30天未交易用户
+                        <input type="radio" name="all">不知道用户
+                        <button id="search"> 查询</button>
+                    </div>
+                    
+                    <div id="enlarge">
+                        <img src="../../images/large.png" alt="">
+                    </div>
+                </div>
+             </div>
+             <div id="mapDiu">
+                
+             </div>
+             <!-- ------------------第四部分底部表格-------------------- -->
+             <div id="bottomTable">
+                <table>
+                    <tr>
+                        <th>订单产生时间</th>
+                        <th>订单状态</th>
+                        <th>总数量</th>
+                        <th>总重量</th>
+                        <th>总金额</th>
+                        <th>回收单号</th>
+                        <th>回收员</th>
+                        <th>回收员电话</th>
+                        <th>图片</th>
+                    </tr>
+                    <tr ng-repeat="orderInfo in orderInfos">
+                        <td>{{orderInfo.orderTime}}}</td>
+                        <td>{{orderInfo.stateName}}</td>
+                        <td>{{orderInfo.totalQuantity}}</td>
+                        <td>{{orderInfo.totalWeight}}</td>
+                        <td>{{orderInfo.totalPrice}}</td>                       
+                        <td>{{orderInfo.orderNo}}</td>
+                        <td>{{orderInfo.contact}}</td>
+                        <td>{{orderInfo.userPhone}}</td>
+                        <td><img ng-src="orderInfo.orderImage" alt="图片" class="tdImg"></td>
+                    </tr> 
+                  
+                </table>
+                <div class="cr_bottom">
+                    <div ng-click="next2()">下一页</div>
+                    <div class="different_b"><span class="current">{{nowPage2}}</span>/ <span class="all_num">{{totalNum||1}}</span></div>
+                    <div ng-click="prev2()">上一页</div>
+                </div>
+             </div>
+        </div>
+    </div>
+
+</body>
+<script>
+    $(function(){
+    var fontH = (window.innerHeight-50)/850
+    var hRate2 = $(window).height() - 23;
+    console.log(fontH)
+    $("#contain").css({ "height": hRate2 + "px" });
+    $(".Renum").css({"font-size":fontH*50+"px"})
+    $(".Renum2").css({"font-size":fontH*50+"px"})
+    $(".Renum3").css({"font-size":fontH*50+"px"})
+})
+</script>
+</html>

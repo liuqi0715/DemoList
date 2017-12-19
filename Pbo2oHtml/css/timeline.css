@@ -1,0 +1,86 @@
+  .inner-center{
+        position: absolute;
+        top:50%;
+        left: 50%;
+        height: 50%;
+        transform:translate(-50%,-50%);
+        -webkit-transform:translate(-50%,-50%);
+        -ms-transform:translate(-50%,-50%);
+        -moz-transform:translate(-50%,-50%);
+        -o-transform:translate(-50%,-50%);
+    }
+    .progress{
+        position: relative;
+        min-width:100px;
+        height:70px;
+        margin: 0 auto;
+    }
+    .progress ul{
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    .progress li{
+        float: left;
+        width: auto;
+        height: 70px;
+        list-style: none;
+        white-space:nowrap;
+    }
+    .progress_time,.progress_text{
+        height: 33px;
+        text-align: center; 
+        margin-left: -8px;
+        color: #8E8E8E;
+    }
+    .progress_bar{
+        position: relative;
+        width: 130px;
+        height: 4px;
+    }
+    .progress_bar_stick1{
+        float: right;
+        width: 118px;
+        height: 4px;
+        background: linear-gradient(0deg, #FFF 20%, #FADEA0 50%, #EAEAEA 80%);
+    }
+    .progress_bar_stick2{
+        float: right;
+        width: 118px;
+        height: 0px;
+        border:1px dashed #CCC;
+    }
+    .progress_text{
+        line-height: 40px;
+        color: #FF7C2E;
+    }
+    .progress_bigCir{
+        position: absolute;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: rgba(206,206,206,.3);
+        top:0;
+        transform:translateY(-50%);
+        -webkit-transform:translateY(-50%);
+        -ms-transform:translateY(-50%);
+        -moz-transform:translateY(-50%);
+        -o-transform:translateY(-50%);
+    }
+    .notLastCir{
+        left: 0;
+    }
+    .lastCir{
+        right: -10px;
+    }
+    .progress_smallCir{
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: radial-gradient(#FFF,#ccc);
+    }
+    .progress_bigCir_active{
+        background: rgba(250,113,33,.3);
+    }
+    .progress_smallCir_active{
+        background: radial-gradient(#f00,#ccc);
+    }

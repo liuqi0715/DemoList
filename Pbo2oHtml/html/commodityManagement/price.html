@@ -1,0 +1,275 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <title>价格管理</title>
+    <link rel="stylesheet" type="text/css" href="../../themes/default/easyui.css">
+    <link rel="stylesheet" type="text/css" href="../../themes/icon.css">
+    <link rel="stylesheet" type="text/css" href="../../themes/demo.css">
+    <script type="text/javascript" src="../../js/jquery.min.js"></script>
+    <script type="text/javascript" src="../../js/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="../../js/locale/easyui-lang-zh_CN.js"></script>
+    <script type="text/javascript" src="../global.js"></script>
+<style type="text/css">
+	#cat .textbox{
+		width:155px !important;
+	}
+</style>
+    <script type="text/javascript">
+  		var url;
+  		function update(index){
+  			$('#catId').val($('#dg').datagrid("getRows")[index].catId);
+  			$('#unit').val($('#dg').datagrid("getRows")[index].unit);
+  			$('#collectId').val($('#dg').datagrid("getRows")[index].collectId);
+  			var collectPrice = $('#dg').datagrid("getRows")[index].collectPrice;
+  			$('#collectPrice').textbox('setValue',collectPrice);
+  			$('#updatePrice').textbox('setValue',$('#dg').datagrid("getRows")[index].slidingScalePrice);
+  			url="basePrice/updateChinaBasePrice";
+  			$('#w').dialog('open');
+  		}  		
+    	$(function () {
+    		$('#catName').combobox({
+    	 		url:'commodity/getAllcategory',
+    	 		valueField:'catId',
+    	 		textField:'catName',
+    	 		width:'145',
+    	 		editable:false,
+    	 		value:'请选择类型',
+    		});
+    		$('#start').datebox({    
+    		    editable:false,
+    		    width:'100px',
+    		    onSelect:function(start){
+    		    	var now = new Date();
+    		    	if(start > now){
+    		    		$.messager.alert('提示','操作失败!日期不能超过当前时间','error');
+    		    		$('#start').datebox('setValue','');
+    		    	}
+    		    	
+    	 		}
+    		});
+    		$('#end').datebox({    
+    		    width:'100px',
+    		    editable:false,
+    		    onSelect:function(date){
+    		    	var now = new Date();
+    		    	if(date > now){
+    		    		$.messager.alert('提示','操作失败!日期不能超过当前时间','error');
+    		    		$('#end').datebox('setValue','');
+    		    	}
+    		    	var start = $('#start').datebox('getValue');
+    		    	var end = $('#end').datebox('getValue');
+    		    	if(start>end){
+    		    		$.messager.alert('提示','操作失败!起始时间不能晚于结束时间','error');
+    		    		$('#end').datebox('setValue','');
+    		    	}
+    	 		}
+    		});    		    		
+    		win = $('#w').window({
+  		        title: '价格操作',
+  		        width:400,
+  		        height:150,
+  		        closed:true
+  		    });
+    		var tableH = Math.max(document.documentElement.scrollHeight,document.body.scrollHeight)-($('#dg').offset().top+30);
+	    	$('#dg').datagrid({
+	        	iconCls: 'icon-save',
+	        	width: '100%',
+	        	height: tableH,
+	        	fitColumns:true,//自动使列适应表格宽度以防止出现水平滚动。
+	        	nowrap: true,
+	            autoRowHeight: false,
+	            singleSelect: true,
+	            striped: true,
+	            collapsible: true,
+	        	url: 'basePrice/search',
+	        	queryParams: {
+	        		catId : "",
+	        		start : "",
+	        		end : ""
+        		},
+	        	remoteSort: false,
+	        	rownumbers:true,
+	        	checkOnSelect: true,
+	        	multiSort : true,
+	        	idField: "collectId",
+	        	columns: [[
+	        		{ field: 'collectId',title: '采集ID',hidden:true, width: 60},
+	        		{ field: 'catId',title: '类型ID',hidden:true, width: 60},
+	            	{ field: 'catName', title: '类型', width: 180, sortable:true,align:'left'},
+	            	{ field: 'unit', title: '类型', width: 50,hidden:true},
+	            	{ field: 'collectPrice', title: '采集价格', width: 100,sortable:true ,align:'right',
+	            		formatter: function (value, row, index) {
+                        if (row != null) {
+                            return (parseFloat(value).toFixed(2) + '').replace(/\d{1,3}(?=(\d{3})+(\.\d*)?$)/g, '$&,');
+                      }
+                      }},
+	            	{ field: 'basePrice', title: '全国基础价格', width: 100, align:'right',
+	            		formatter: function (value, row, index) {
+	            			if(value==null){
+	            				return 0;
+	            			}else{
+	                            return (parseFloat(value).toFixed(2) + '').replace(/\d{1,3}(?=(\d{3})+(\.\d*)?$)/g, '$&,');
+	            			}
+                            
+                          }
+	            	},
+	            	{ field: 'slidingScalePrice', title: '浮动价格', width: 100, align:'right',
+	            		formatter: function (value, row, index) {
+	            			if(value==null){
+	            				return 0;
+	            			}else{
+	            				return (parseFloat(value).toFixed(2) + '').replace(/\d{1,3}(?=(\d{3})+(\.\d*)?$)/g, '$&,');
+	            			}
+	            			
+                          }
+	            	},
+	            	{ field: 'collectTime', title: '采集时间', width: 180 ,sortable:true, align:'center'},
+	            	{ field: 'createTime', title: '创建时间', width: 180,hidden:true},
+	            	{ field: 'updateTime', title: '采集修改时间', width: 180,hidden:true },
+	            	{ field: 'chinaUpTime', title: '修改时间', width: 180, align:'center'},
+	            	{ field: 'si', title: '是否可修改', width: 50,hidden:true },
+	            	{ field: 'configCount', title: '是否可修改', width: 50,hidden:true },
+	            	{ field: 'createUserName', title: '创建人', width: 100,hidden:true },
+	            	{ field: 'updateUserName', title: '修改人', width: 100 ,align:'left'},
+	            	{ field: 'operate', title: '操作', width: 100,
+	            		formatter: function (value, row, index) {
+	            			var d=new Date();
+	            			var t=row.collectTime;
+	            			var oldTime = (new Date(t))
+	            			var o=oldTime.getFullYear()+"-"+(oldTime.getMonth()+1)+"-"+oldTime.getDate();
+	            			var dd=d.getFullYear()+"-"+(d.getMonth()+1)+"-"+(d.getDate()); 
+	            			console.log(row.configCount);
+	                    	if(row.configCount==0){
+	                    		return "";
+	                    	}else{
+	                    		if(row.si==0){
+		                    		if(o==dd){  
+		                    			return (verification("basePrice","update")?"&nbsp;&nbsp;&nbsp;<a href=\"javascript:update("+index+");\">修改</a>":"");
+		                    		}else{return "";}	
+		                    	}else{
+		                    		if(row.si==2 && o==dd){
+		                    			return (verification("basePrice","update")?"&nbsp;&nbsp;&nbsp;<a href=\"javascript:update("+index+");\">修改</a>":"");
+		                    		}else{
+		                    			return "";
+		                    		}
+		                    	}
+	                    	}	           			
+	            		}	 
+	            	}
+	            	
+	        	]],	
+	        	pagination: true,
+	        	pageSize : 40, 
+	        	pageList : [ 40, 80, 120]
+	    	});
+	  	});
+    	function collectPrice(){
+    		var catId = $('#catName').combobox('getValue');
+    		var start = $('#start').datebox('getValue');
+    		var end = $('#end').datebox('getValue');
+    		if(isNaN(catId)){
+    			catId='';
+    		}
+    		$('#dg').datagrid('loadData', { total: 0, rows: [] }); 
+    	//	$('#dg').datagrid('load');    // 重新载入当前页面数据  
+    		/* $('#dg').datagrid({
+    			url : 'parice/price',
+    			queryParams : {
+    				catId : catId,
+    				start : start,
+    				end : end
+    			},
+    		});   */
+    		$('#dg').datagrid('load', { catId: catId,start: start,end: end}); 
+    	}
+    	
+    	function submitData(){
+    		console.log(1111);
+    	  	var updatePrice = $("#updatePrice").val();
+    	  	var collectPrice = $("#collectPrice").val();
+    	  	if(isNaN(updatePrice)){
+    	  		$.messager.alert('提示','操作失败!输入的只能是数字','error');
+    	  		return ;
+    	  	}
+    	  	$('#btn1').linkbutton('disable');
+    	  	var formData = new FormData(document.getElementById("form1"));
+    	  	if(Math.abs(updatePrice)>collectPrice){
+				$.messager.alert('提示','操作失败!浮动价格的绝对值不能超过采集价格','error');
+				return;
+			}
+
+    		$.ajax({
+  				url : url,
+  				type : "post",
+  				data : formData,
+  				dataType : "json",
+  				success : function(result){
+  					$('#btn1').linkbutton('enable');
+    				if (result.msgCode =='Y'){
+    					$.messager.alert('提示','操作成功!','info');
+    					$('#w').dialog('close');		// close the dialog
+    					$('#dg').datagrid('reload');	// reload the user data
+    					$('#form1').form('clear');
+    				} else {
+    					$.messager.alert('提示','操作失败','error');
+    				}
+  				}
+  			}); 
+    	}
+    </script>
+  </head>
+  <body>
+  	<div style="margin-left:auto; margin-right:auto;">
+	    <form id="searchform">
+	    <div class="inputArea">
+		  	<span id="cat"><label>类型</label>：<input id="catName"></span>
+		  	<label>起始时间</label>：<input id="start" type="text"></input> 
+		  	<label>结束时间</label>：<input id="end" type="text"></input>
+			<a id="btn" class="easyui-linkbutton" data-options="iconCls:'icon-search'" onClick="collectPrice();">查看</a>
+			<a id="cbtn" class="easyui-linkbutton" data-options="iconCls:'icon-clear'" onClick="$('#searchform').form('clear')" style="margin-left:15px;">清空</a>
+		</div>
+		</form>
+		<table id="dg" >
+		</table> 
+	</div>
+	<div id="w">
+		<form method="post" id="form1">
+		<input type="hidden" name="catId" value="" id="catId">
+		<input type="hidden" name="unit" value="" id="unit">
+		<input type="hidden" name="collectId" value="" id="collectId">
+		<div align="center" >
+			<table align="center" width="80%" >
+				<tr><td align="right" width="100px;"></td>
+					<td align="right" width="100px;"></td>
+				</tr>
+				<tr>
+					<td align="right" width="100px;" >
+						<span>采集价格:</span>
+					</td>
+					<td align="left" width="200px;" >
+						<input id="collectPrice" type="text" name="collectPrice" value="" class="easyui-textbox" readonly="readonly"  placeholder="基础价格" />
+					</td>
+				</tr>
+				<tr><td align="right" width="100px;"></td>
+					<td align="right" width="100px;"></td>
+				</tr>
+				<tr>
+					<td align="right" width="100px;">
+						<span>浮动价格 :</span>
+					</td>
+					<td align="left" width="200px;" >
+					<input id="updatePrice" type="text" name="updatePrice" value="" class="easyui-textbox" data-options="required:true"  placeholder="价格操作" />
+					<font color="red">+&nbsp;-</font>
+					</td>
+				</tr>
+				<tr>
+					<td align="center" colspan="2">
+						<div align="center">
+							<a id="btn1" class="easyui-linkbutton" data-options="iconCls:'icon-save'" onclick="submitData();" >提交</a>
+						</div>
+					</td>
+				</tr>
+		</table>
+		</div></form></div>
+  </body>
+</html>

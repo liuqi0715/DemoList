@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>回收箱</title>
+<link rel="stylesheet" type="text/css" href="../../themes/default/easyui.css">
+<link rel="stylesheet" type="text/css" href="../../themes/icon.css">
+<link rel="stylesheet" type="text/css" href="../../themes/demo.css">
+<script type="text/javascript" src="../../js/jquery.min.js"></script>
+<script type="text/javascript" src="../../js/jquery.easyui.min.js"></script>
+<script type="text/javascript" src="../../js/locale/easyui-lang-zh_CN.js"></script>
+<script type="text/javascript" src="../../js/datagrid-detailview.js"></script>
+<script type="text/javascript" src="../../js/datagrid-dnd.js"></script>
+<script type="text/javascript" src="../../js/jquery.edatagrid.js"></script>
+<script type="text/javascript" src="../../js/ajaxfileupload.js"></script>
+<script type="text/javascript" src="../global.js"></script>
+<style type="text/css">
+.report-title {
+	color: #00A8BD;
+	font: bold 34px "黑体";
+	margin: 0.5em 0;
+	text-align: center;
+}
+
+#allmap {
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+	margin: 0;
+	font-family: "微软雅黑";
+}
+
+#allmap2 {
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+	margin: 0;
+	font-family: "微软雅黑";
+}
+
+.float {
+	float: left;
+}
+
+.x3 {
+	width: 30%;
+}
+
+.x7 {
+	width: 70%;
+}
+
+.layui-timeline {
+	padding-left: 5px
+}
+
+.layui-timeline-item {
+	list-style-type: none;
+	position: relative;
+	padding-bottom: 20px
+}
+
+.layui-timeline-axis {
+	position: absolute;
+	top: 0;
+	z-index: 10;
+	width: 12px;
+	height: 12px;
+	line-height: 20px;
+	background-color: #5FB878;
+	color: #fff;
+	border-radius: 100%;
+	text-align: center;
+	cursor: pointer;
+	border: 0px solid;
+}
+
+.layui-timeline-axis:hover {
+	color: #5FB878
+}
+
+.layui-timeline-item:before {
+	content: '';
+	position: absolute;
+	left: 5px;
+	top: 0;
+	z-index: 0;
+	width: 2px;
+	height: 100%;
+	background-color: #5FB878
+}
+
+.layui-timeline-item:last-child:before {
+	display: none
+}
+
+.layui-timeline-item:first-child:before {
+	display: block
+}
+
+.layui-timeline-content {
+	padding-left: 25px
+}
+
+.layui-badge,
+.layui-badge-rim {
+	line-height: 18px;
+	padding: 0 5px
+}
+
+.layui-timeline-title {
+	position: relative;
+	margin-bottom: 10px
+}
+
+.layui-text {
+	line-height: 22px;
+	font-size: 14px;
+	color: #666
+}
+
+.layui-text p {
+	margin-top: 3px;
+	margin-bottom: 3px;
+}
+
+.margin {
+	margin-left: 300px;
+}
+
+.margin-top-little {
+	margin-top: 10px;
+}
+
+.timeLineX {
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.panelBox {
+	visibility: hidden;
+}
+
+.panel {
+	margin-bottom: 20px;
+	background-color: #fff;
+	border: 1px solid transparent;
+	border-radius: 4px;
+	-webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
+	box-shadow: 0 1px 1px rgba(0, 0, 0, .05);
+}
+
+.panel-default {
+	border-color: #ddd;
+}
+
+.panel-heading {
+	padding: 10px 15px;
+	border-bottom: 1px solid #ddd;
+	border-top-left-radius: 3px;
+	border-top-right-radius: 3px;
+}
+
+.font-bold {
+	font-weight: bold
+}
+</style>
+
+<script>
+function add() {
+	var recycleType = '';
+	var areaNo;
+	var boxTypeCode;
+
+	$('#recycleBoxTypeList').combobox({
+		width: '150',
+		valueField: 'code', //值字段
+		textField: 'name', //显示的字段
+		url: 'recycleBox/getAllRecycleBoxType',
+		editable: false,//不可编辑，只能选择
+		value: '--请选择--',
+		onSelect: function (data) {
+			boxTypeCode=data.code;
+			refreshRecycleBoxData(areaNo,boxTypeCode);
+		},
+	});
+
+	$("#wareHouseCbox").combobox({
+		width: '150',
+		url: 'recycleBox/getOrgWareHuose',
+		valueField: 'warehouseNo',
+		textField: 'warehouseName',
+		value: '--请选择--',
+		onLoadSuccess: function () {
+
+		},
+		onSelect: function (wareHuoseData) {
+			areaNo = wareHuoseData.areaId;
+			refreshRecycleBoxData(areaNo,boxTypeCode);
+		}
+	});
+
+	$("#add").dialog('open');
+
+}
+
+function addRecycleBox() {
+
+	if ($('#buyNum').textbox('getValue') == "" || $('#buyNum').textbox('getValue') == 0) {
+		$.messager.alert('新购入库提示消息', "请输入新购数量", 'info', function () { });
+		return;
+	}
+
+	if ($('#wareHouseCbox').combobox('getText') == '--请选择--' || $("#recycleBoxTypeList").combobox('getText') == '--请选择--') {
+		$.messager.alert('新购入库提示消息', "请选择", 'info', function () { });
+		return;
+	}
+
+	var sendData = {
+		'rbCode': $("#recycleBoxTypeList").combobox('getValue'),
+		'rbTypeName': $("#recycleBoxTypeList").combobox('getText'),
+		'recycleBoxCount': $('#recycleBoxCount').textbox('getValue'),
+		'maxBoxCode': $('#maxBoxCode').textbox('getValue'),
+		'startCode': $('#startCode').textbox('getValue'),
+		'buyNum': $('#buyNum').textbox('getValue'),
+		'endtCode': $('#endtCode').textbox('getValue'),
+		'warehouseNo': $('#wareHouseCbox').combobox('getValue'),
+		'wareHouseCbox': $('#wareHouseCbox').combobox('getText')
+	};
+
+	$.ajax({
+		url: 'recycleBox/addRecycleBox',
+		type: "post",
+		data: sendData,
+		success: function (data) {
+			var msg = '';
+			if (data.msg == '1') {
+				msg = '新购入库成功';
+			} else {
+				msg = '操作失败，请检查输入的数据';
+			}
+			$.messager.alert('新购入库提示消息', msg, 'info', function () {
+
+			});
+			loadData();
+			$("#add").dialog('close');
+		}
+	});
+}
+
+function refreshRecycleBoxData(areaNo,boxTypeCode) {
+	$('#recycleBoxCount').textbox('setValue', '0');
+	$("#maxBoxCode").textbox('setValue', '0');
+	$('#recycleBoxCount').textbox('setValue', '0');
+	$("#maxBoxCode").textbox('setValue', '0');
+	$("#startCode").textbox('setValue', '0');
+	$("#endtCode").textbox('setValue', '0');
+	$("#buyNum").textbox('setValue', '0');
+	if (areaNo != null && areaNo != "") {
+		$.ajax({
+			type: "post",
+			url: "recycleBox/getAddRecycleBoxInfo",
+			data: {
+				'recycleType': $("#recycleBoxTypeList").combobox('getValue'),
+				'warehouseNo': $("#wareHouseCbox").combobox('getValue'),
+				'areaNo': areaNo
+			},
+			success: function (data) {
+				if((boxTypeCode+'').length==1){
+					boxTypeCode='0'+boxTypeCode;
+				}
+				if (data.allRecycleBoxCount == null | data.allRecycleBoxCount == 0) {
+					$('#recycleBoxCount').textbox('setValue', '0');
+					$("#maxBoxCode").textbox('setValue', '0');
+					$("#startCode").textbox('setValue', areaNo +''+ boxTypeCode +'0001');
+				} else {
+					var maxCode= (parseInt(data.maxBoxCode) + 1)+'';
+					var length = maxCode.length;
+					$('#recycleBoxCount').textbox('setValue', data.recycleBoxCount);
+					$("#maxBoxCode").textbox('setValue', areaNo +''+ boxTypeCode+''+data.maxBoxCode);
+					for(var i=4-length;i>=1;i--){
+						maxCode='0'+maxCode;
+					}
+					$("#startCode").textbox('setValue', areaNo +''+ boxTypeCode+''+maxCode);
+				}
+			},
+			error: function (info) {
+				console.log(info);
+			}
+		});
+	}
+}
+
+function loadData(data) {
+	$('#dg').datagrid('reload');
+}
+
+function timeLineX(data) {
+	var timeLineX = $('.timeLineX').eq(0);
+	timeLineX.empty();
+	timeLineX.append('<ul class="layui-timeline"></ul>');
+	var ul = timeLineX.find('ul');
+	for (var i = 0; i < data.length; i++) {
+		var item = data[i];
+		ul.append('<li class="layui-timeline-item"></li>');
+		var li = ul.find('li').eq(i);
+		li.append('<span class="layui-icon layui-timeline-axis"></span>');
+		li.append('<div class="layui-timeline-content layui-text"></div>');
+		var div = li.find('div');
+		div.append('<p>' + item.location + '</p>');
+		div.append('<p>' + item.createTime + '</p>');
+		div.append('<p>' + item.step + '</p>');
+		if (i == 0)
+			timeLineX.css('width', item.createTime.length * 10);
+	}
+	timeLineX.css('visibility', 'visible');
+}
+
+function submitForm() {
+	var val = $('#locationType').combobox('getValue');
+	if (val == '--请选择--')
+		val = '';
+	$('#dg').datagrid('reload', {
+		'searchTitle': $('#searchTitle').textbox('getValue'),
+		'locationTypeConfigId': val
+	});
+}
+
+function cancleForm() {
+	$('#dg').datagrid('reload', {
+		'searchTitle': null,
+		'locationTypeConfigId': null
+	});
+	
+	$('#searchTitle').textbox('setValue', '');
+	$('#locationType').combobox({
+		value: '--请选择--'
+	});
+}
+$(function () {
+	var wareHouseAeraId = '';
+	$('#add').dialog({
+		title: '新增回收箱入库',
+		width: 500,
+		closed: true
+	});
+
+	var tableH = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight) - ($('#dg').offset().top + 30);
+	var tableW = ($(window).width() > 1750) ? 1100 : 1100 * ($(window).width() / 1755);
+	console.log($(window).width());
+	console.log(tableW);
+	$('#dg').datagrid({
+		iconCls: 'icon-save',
+		width: tableW,
+		height: tableH,
+		url: 'recycleBox/getBoxList',
+		fitColumns: true,
+		nowrap: true,
+		singleSelect: true,
+		autoRowHeight: false,
+		striped: true,
+		collapsible: true,
+		remoteSort: false,
+		rownumbers: true,
+		checkOnSelect: true,
+		idField: "beginDate",
+		columns: [[
+			{ field: 'boxCode', title: '回收箱编号', width: 180 },
+			{ field: 'boxName', title: '名称', width: 120 },
+			{ field: 'location', title: '当前位置', width: 100 },
+			{ field: 'step', title: '当前货物状态', width: 100 },
+		]],
+		pagination: true,
+		pageSize: 40,
+		pageList: [40, 80, 120],
+		onSelect: function (rowIndex, rowData) {
+			getRecycleBoxProcess(rowData);
+		}
+	});
+
+	$('#locationType').combobox({
+		url: 'recycleBox/getLocationType',
+		valueField: 'locationTypeConfigId',
+		textField: 'locationType',
+		width: '145',
+		editable: false,
+		value: '--请选择--',
+		onSelect: function (data) {
+			console.log(data);
+		},
+		onLoadSuccess: function (data) {
+
+		}
+	});
+
+
+	$("#wareHouseCbox").combobox({
+		width: '150'
+	});
+
+	$('#buyNum').textbox('textbox').bind('keyup', function (e) {
+		var num = parseInt($(this).val());
+		if ($('#recycleBoxCount').textbox('getValue') == '0') {
+			$("#endtCode").textbox('setValue', parseInt($("#startCode").textbox('getValue')) + (num - 1));
+		} else {
+			$("#endtCode").textbox('setValue', parseInt($('#startCode').textbox('getValue')) + (num - 1));
+		}
+	});
+	function getRecycleBoxProcess(data) {
+		$('.panelBox').removeClass('panelBox');
+		$.ajax({
+			url: 'recycleBox/getRecycleBoxProcess',
+			type: "post",
+			data: data,
+			success: function (data) {
+				console.log(data);
+				timeLineX(data);
+				$("#rBox").css({ "margin-left": ($(window).width() > 1750) ? 50 : 50 * ($(window).width() / 1755), "width": ($(window).width() > 1750) ? 500 : 500 * ($(window).width() / 1755), "max-height": tableH });
+				/* $(".layui-timeline-item").height(); */
+				$(".timeLineX").css({ "max-height": tableH - 40 });
+				console.log($(".timeLineX").height());
+				console.log(tableH - 40);
+				if ($(".timeLineX").height() >= tableH - 40) {
+					$(".timeLineX").css("overflow", "scroll");
+				}
+			}
+		});
+	}
+	
+	if(verification("recycleBox","search")){
+		 $("#search11").css("display","");
+		 $("#reset").css("display","");
+	}
+	if(verification("recycleBox","add")){
+		 $("#add11").css("display","");
+	}
+});
+</script>
+</head>
+<body>
+<div>
+<div class="inputArea">
+	<label>位置类型</label>：
+	<input type="text" id='locationType' class='easyui-combobox'>
+	<label>回收箱编号</label>：
+	<input type="text" name='searchTitle' class='easyui-textbox' id='searchTitle' placeholder="回收员手机/门店手机">
+	<a id="search11" style="display:none" href="javascript:void(0)" data-options="iconCls:'icon-search'" class="easyui-linkbutton" onclick="submitForm()">查询</a>
+	<a id="reset" style="display:none" href="javascript:void(0)" class="easyui-linkbutton" onclick="cancleForm()" data-options="iconCls:'icon-clear'">重置</a>
+	<a id="add11" style="display:none" href="javascript:add()" class="easyui-linkbutton" data-options="iconCls:'icon-add'">新购入库</a>
+	</div>
+	<div class='margin-top-little'>
+		<div class='float'>
+			<table id='dg'></table>
+		</div>
+		<div class='float panelBox panel panel-default' id="rBox">
+			<div class="panel-heading font-bold">流转节点</div>
+			<div class="timeLineX"></div>
+		</div>
+	</div>
+
+</div>
+<div id="add">
+	<form action="areaParice/updateAreaProductPrice" method="post" id="form3">
+		<div align='center'>
+			<table cellpadding="2">
+				<tr>
+					<td>回收箱类型</td>
+					<td>
+						<select name="recycleBoxType" id="recycleBoxTypeList" class="easyui-combobox">
+						</select>
+					</td>
+				</tr>
+				<tr>
+					<td>入库仓库</td>
+					<td>
+						<select class="easyui-combobox" name="language" id='wareHouseCbox'>
+						</select>
+					</td>
+				</tr>
+				<tr>
+					<td>已有回收箱个数:</td>
+					<td>
+						<input class="easyui-textbox" type="text" name="recycleBoxCount" data-options='readonly:true,disabled:true' id="recycleBoxCount"></input>
+					</td>
+				</tr>
+				<tr>
+					<td>已有最大编号</td>
+					<td>
+						<input class="easyui-textbox" type="text" name="maxBoxCode" data-options='readonly:true,disabled:true' id='maxBoxCode'></input>
+					</td>
+				</tr>
+				<tr>
+					<td>新购数量</td>
+					<td>
+						<input class="easyui-numberbox" name="buyNum" data-options="required:true,min:0" id='buyNum'></input>
+					</td>
+				</tr>
+				<tr>
+					<td>起始编号</td>
+					<td>
+						<input class="easyui-textbox" name="startCode" data-options='readonly:true,disabled:true' id='startCode'></input>
+					</td>
+				</tr>
+				<tr>
+					<td>结束编号</td>
+					<td>
+						<input class="easyui-textbox" name="endtCode" id='endtCode' data-options="required:true,disabled:true"></input>
+					</td>
+				</tr>
+			</table>
+		</div>
+		<div align="center">
+			<br/>
+			<a id="btn32" class="easyui-linkbutton" data-options="iconCls:'icon-save'" onclick="addRecycleBox()">提交</a>
+		</div>
+	</form>
+</div>
+</body>
+</html>

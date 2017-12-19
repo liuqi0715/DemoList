@@ -88,7 +88,7 @@ body{
 /*中间的两个支付相关+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 
 .range,.payAccount,.payDate{
-    width: 33.3%;
+    width:33%;
     height: 260px;
     float: left;
     position: relative;
@@ -202,7 +202,7 @@ body{
 }
 #table tr td{
     text-align: center;
-    line-height: 20px;
+    line-height: 30px;
 }
 #table tr:nth-child(odd){
     background-color: #f2f2f2;   
@@ -296,26 +296,21 @@ body{
     transform: rotate(90deg); 
    }
     .right {
-         transform: rotate(30deg); 
-       animation:right 0.5s linear;
+         transform: rotate(8deg); 
+       animation:right 1s linear;
 
    }
 
    @keyframes right{
-       0%{
+       from{
            transform: rotate(0deg)
        }
-       32%{
-           transform: rotate(10deg)
-       }
-       60%{
-           transform: rotate(20deg)
-       }
-       100%{
-           transform: rotate(30deg)
+      
+       to{
+           transform: rotate(8deg)
        }
    }
-   .range-info p{
+.range-info p{
        color: #3BA6EA;
        text-align: center;
    }
@@ -345,13 +340,11 @@ body{
     float: left;
 }
 .payAccount{
-    /* border-right: 1px solid #eeeeee; */
-    border-right: 1px solid #FE5F60;
-    
+  
 }
 .needPay2{
     height: 35px;
-    border-bottom: 1px solid #489FFA;
+    border-bottom: 2px solid #eeeeee;
 }
 #dateRange,#dateRange2{
     font-size: 13px;    
@@ -453,8 +446,22 @@ opacity: 0;
 
 
 
+#noData{
+    position: absolute;
+    top: 65px;
+    left: 40%;
+    text-align: center;
+}
+#noData img{
+    display: block;
+}
 
-
+.lineP{
+    width: 2px;
+    height: 92%;
+    background-color: #eeeeee;
+    float: left;
+}
 
 
 

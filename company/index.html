@@ -177,6 +177,7 @@
             $scope.page = 1;
             $scope.pageAll = 1;
             $scope.date = "";
+            var clearprop = "";
             laydate.render({
                 elem: '#date-range', //指定元素
                 position: 'absolute',
@@ -193,7 +194,7 @@
                 },
                 
         });
-//JS逻辑部分-----------------------------------------------------
+    //JS逻辑部分-----------------------------------------------------
 
       $scope.load = function(){
             $.ajax({
@@ -212,11 +213,16 @@
                     }else{
                         $scope.noData2 = false;
                         $scope.purchase = data.data.rows; 
-                        $scope.pageAll = data.data.total/1;
+                        $scope.pageAll = Math.ceil(data.data.total/8);
                     } 
                     $scope.payment = data.data.payment;  //帐期
                     $scope.expire =data.data.expire; //到期支付日
                     $scope.clearprop =data.data.clearprop*100;   //服务费比例
+
+                    clearprop = data.data.clearprop*100;
+                   
+                    console.log(clearprop,"---?");
+
                     $scope.proptotal =data.data.proptotal;   //本期应支付金额
                     $scope.propowefee =data.data.propowefee; //上次欠款金额
                     $scope.propfee =data.data.propfee;   //本期金额 
@@ -227,6 +233,8 @@
                     $scope.weighttotal =data.data.weighttotal; //回收重量
                     $scope.tonntotal =data.data.tonntotal; //本期应支付
                     $scope.tonnowefee =data.data.tonnowefee; //上次欠款
+
+                    $(".right").css({"transform":"rotate("+$scope.clearprop*1.8+"deg)"});
                    
                     $scope.$apply();
 
@@ -238,7 +246,9 @@
 
       }
       $scope.load();
+
       $scope.search = function(){
+        $scope.purchase = [];
         $.ajax({
                 type: "post",
                 url: urls+"statement/selectByMonth",             
@@ -257,11 +267,16 @@
                     }else{
                         $scope.noData2 = false;
                         $scope.purchase = data.data.rows; 
-                        $scope.pageAll = data.data.total/1;
+                        $scope.pageAll = Math.ceil(data.data.total/8);
                     } 
                     $scope.payment = data.data.payment;  //帐期
                     $scope.expire =data.data.expire; //到期支付日
                     $scope.clearprop =data.data.clearprop*100;   //服务费比例
+                    
+                    clearprop = data.data.clearprop*100;
+
+                    console.log(clearprop,"---");
+
                     $scope.proptotal =data.data.proptotal;   //本期应支付金额
                     $scope.propowefee =data.data.propowefee; //上次欠款金额
                     $scope.propfee =data.data.propfee;   //本期金额 
@@ -272,6 +287,9 @@
                     $scope.weighttotal =data.data.weighttotal; //回收重量
                     $scope.tonntotal =data.data.tonntotal; //本期应支付
                     $scope.tonnowefee =data.data.tonnowefee; //上次欠款
+
+                    $(".right").css({"transform":"rotate("+$scope.clearprop*1.8+"deg)"});
+
                     $scope.$apply();
 
                 },
@@ -313,6 +331,11 @@
         //将页面导出-------------------------------------------------------
 
         $scope.export = function(){
+
+            window.location.href=urls+"statement/poExcle"+"?date="+$scope.date+"&weighttotal="+$scope.weighttotal+"&tonnowefee="+$scope.tonnowefee
+			+"&propfee="+$scope.propfee+"&propowefee="+$scope.propowefee+"&tonnfee="+$scope.tonnfee+"&tonntotal="+$scope.tonntotal+"&payment="+$scope.payment
+            +"&clearprop="+$scope.clearprop+"&proptotal="+$scope.proptotal+"&moneytotal="+$scope.moneytotal+"&tonnmoney="+$scope.tonnmoney;
+
             $.ajax({
                 type: "post",
                 url: urls+"statement/poExcle",             
@@ -344,9 +367,15 @@
                 }
             });
         }
-        // var a = $(".right").style.transform;
+        $scope.set = function(){
+            console.log($scope.clearprop,"---$");
+        }
+            
+        $scope.set();
+        console.log(clearprop,"--");
        
-        // console.log(a,"style");
+       
+        
     
         // $(".right").innerHTML = "@-webkit-keyframes right{from {transform: rotate(0deg);} to{transform: rotate("+$scope.clearprop*88+"deg)} }"
         // $(".right").css({"transform":"rotate("+$scope.clearprop*88+"deg)"});

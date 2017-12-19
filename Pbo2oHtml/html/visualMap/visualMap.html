@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html manifest="IGNORE.manifest">
+<head>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    <meta charset="utf-8">
+    <meta name = "format-detection" content="telephone = no" /> 
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width">
+    <title>visualMap</title>
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon"/>  
+    <script src="js/jquery-1.4.2.min.js"></script>
+    <script type="text/javascript" src="http://api.map.baidu.com/getscript?v=2.0&ak=S2XBCnEYouwQYSpqxcpX2BP1"></script>
+    <!--<script type="text/javascript" src="js/baiduMap.js"></script> -->
+    <script src="js/echarts3.js"></script>
+    <script src="js/bmap.js"></script>
+    <script src="js/china.js"></script>
+    <script src="https://cdn.bootcss.com/sockjs-client/1.1.4/sockjs.min.js"></script>
+    <script src="https://cdn.bootcss.com/stomp.js/2.3.3/stomp.min.js"></script>
+    <script src="../global.js"></script>
+    <script src="js/vs.js"></script>
+  </head>
+  <body>
+    <section class="visualmap">
+        <section class="vMap_wrap">
+            <div class='vMap_logo_box'>
+                <img src="img/vmap/border/tt.png" alt="tt">
+                <img src="img/vmap/logo.png" alt="logo">
+                <img src="img/vmap/border/tt.png" alt="tt">
+            </div>
+            <div class="vMap_side vMap_side_l">
+                <img src="img/vmap/border/bb.png" width="100%" height="100%" alt="bb">
+            </div>
+            <div class="vMap_side vMap_side_r">
+                <img src="img/vmap/border/bb1.png" width="100%" height="100%" alt="bb1">
+            </div>
+            <div class="vMap_bottomLine"></div>
+            <nav class="vMap_con1">
+                <div class="vMap_con1_time">
+                    <h3> </h3>
+                    <h2> </h2>
+                </div>
+                <div class="vMap_con1_slc">
+                    <ul>
+                        <li style="margin:0;" id="vcountry"><label>村</label><span></span></li>
+                        <li id="vtown"><label>乡镇</label><span></span></li>
+                        <li id="varea"><label>区/县</label><span></span></li>
+                        <li id="vcity"><label>市</label><span></span></li>
+                        <li id="vprovince"><label>省</label><span></span></li>
+                    </ul>
+                    <section id="vMap_slcPane">
+                        <ul>
+                            <li>山东省</li>
+                        </ul>
+                    </section>
+                </div>
+            </nav>
+            <section class="vMap_con2">
+                <div class="vMap_con2_l">
+                    <div class="vMap_con2_l_box">
+                        <img src="img/vmap/border/ss1.png" alt="ss1">
+                        <img src="img/vmap/border/ss1-1.png" alt="ss1-1">
+                        <img src="img/vmap/border/ss1-2.png" alt="ss1-2">
+                        <img src="img/vmap/border/ss1-3.png" alt="ss1-3">
+                        <section class="vMap_con2_cam1">
+                            <div class="vMap_con2_cam1_l">
+                                  <video id="cam">
+                                    Your browser does not support HTML5 video.
+                                  </video>
+                            </div>
+                            <div class="vMap_con2_cam1_r">
+                                <ul>
+                                    <li class="vMap_con2_cam1_r_bline"></li>
+                                    <li></li>
+                                </ul>
+                            </div>
+                        </section>
+                        <section class="vMap_con2_cam2">
+                            <ul>
+                                <li class="vMap_con2_cam2_bline"></li>
+                                <li class="vMap_con2_cam2_bline"></li>
+                                <li></li>
+                            </ul>
+                        </section>
+                    </div>
+                    <div class="vMap_con2_l_box">
+                        <img src="img/vmap/border/ss1.png" alt="ss1">
+                        <img src="img/vmap/border/ss1-1.png" alt="ss1-1">
+                        <img src="img/vmap/border/ss1-2.png" alt="ss1-2">
+                        <img src="img/vmap/border/ss1-3.png" alt="ss1-3">
+                        <section class="vMap_con2_order" id="vtype">
+                            <span>类型</span>
+                            <ul>
+                            </ul>
+                        </section>
+                        <section class="vMap_con2_order" id="vshop">
+                            <span>店名</span>
+                            <ul>
+                            </ul>
+                        </section>
+                        <section class="vMap_con2_order" id="vton">
+                            <span>重量</span>
+                            <ul>
+                            </ul>
+                        </section>
+                        <section class="vMap_con2_order" id="vasset">
+                            <span>货值</span>
+                            <ul>
+                            </ul>
+                        </section>
+                    </div>
+                </div>
+                <div class="vMap_con2_m">
+                    <div id="vMap"></div>
+                </div>
+                <div class="vMap_con2_r">
+                        <img src="img/vmap/border/ss1.png" alt="ss1">
+                        <img src="img/vmap/border/ss1-1.png" alt="ss1-1">
+                        <img src="img/vmap/border/ss1-2.png" alt="ss1-2">
+                        <img src="img/vmap/border/ss1-3.png" alt="ss1-3">
+                        <section class="vMap_con2_data">
+                            <div class="vMap_con2_data_outCir">
+                            </div>
+                            <div class="vMap_con2_data_inCir" id="newShop">
+                             <img src="img/vmap/pan.gif" alt="pan"/>
+                             <span id="todayShop">0</span>
+                            </div>
+                            <h3>新增门店</h3>
+                        </section>
+                        <section class="vMap_con2_data">
+                            <div class="vMap_con2_data_outCir">
+                            </div>
+                            <div class="vMap_con2_data_inCir" id="sumShop">
+                              <img src="img/vmap/pan.gif" alt="pan"/>
+                              <span id="totalShop">0</span>
+                            </div>
+                            <h3>累计门店</h3>
+                        </section>
+                        <section class="vMap_con2_data">
+                            <div class="vMap_con2_data_outCir">
+                            </div>
+                            <div class="vMap_con2_data_inCir" id="newOrder">
+                              <img src="img/vmap/pan.gif" alt="pan"/>
+                              <span id="todayOrder">0</span>
+                            </div>
+                            <h3>新增订单</h3>
+                        </section>
+                        <section class="vMap_con2_data">
+                            <div class="vMap_con2_data_outCir">
+                            </div>
+                            <div class="vMap_con2_data_inCir" id="sumOrder">
+                              <img src="img/vmap/pan.gif" alt="pan"/>
+                              <span id="orderTotalPrice"></span>
+                            </div>
+                            <h3>新订单总额</h3>
+                        </section>
+                        <section class="vMap_con2_data">
+                            <div class="vMap_con2_data_outCir">
+                            </div>
+                            <div class="vMap_con2_data_inCir" id="newTon">
+                              <img src="img/vmap/pan.gif" alt="pan"/>
+                              <span id="orderTotalWeight"></span>
+                            </div>
+                            <h3>新订单总重</h3>
+                        </section>
+                </div>
+            </section>
+            <section class="vMap_con3">
+                <div class="vMap_con3_l">
+                    <img src="img/vmap/border/ss1.png" alt="ss1">
+                    <img src="img/vmap/border/ss1-1.png" alt="ss1-1">
+                    <img src="img/vmap/border/ss1-2.png" alt="ss1-2">
+                    <img src="img/vmap/border/ss1-3.png" alt="ss1-3">
+                    <div id="chart1" style="width: 100%;height:100%;"></div> 
+                </div>
+                <div class="vMap_con3_m">
+                    <img src="img/vmap/border/ss1.png" alt="ss1">
+                    <img src="img/vmap/border/ss1-1.png" alt="ss1-1">
+                    <img src="img/vmap/border/ss1-2.png" alt="ss1-2">
+                    <img src="img/vmap/border/ss1-3.png" alt="ss1-3">
+                    <section class="vMap_con3_m_l">
+                        <div id="chart2" style="width: 100%;height:100%;"></div>
+                    </section>
+                    <section class="vMap_con3_m_r">
+                        <div style="width:100%;height:50%;">
+                            <div id="chart3" style="width: 100%;height:100%;"></div>
+                        </div>
+                        <div style="width:100%;height:50%;">
+                            <div id="chart4" style="width: 100%;height:100%;"></div>
+                        </div>
+                    </section> 
+                </div>
+                <div class="vMap_con3_r">
+                    <img src="img/vmap/border/ss1.png" alt="ss1">
+                    <img src="img/vmap/border/ss1-1.png" alt="ss1-1">
+                    <img src="img/vmap/border/ss1-2.png" alt="ss1-2">
+                    <img src="img/vmap/border/ss1-3.png" alt="ss1-3">
+                    <div id="chart5" style="width: 100%;height:100%;"></div>
+                </div>
+            </section>
+        </section>
+    </section>
+
+  </body>
+  <span id="key" style="display:none"></span>
+</html>
+
+<style type="text/css">
+.anchorBL{display:none;}
+*{
+    margin:0;
+    padding:0;
+}
+body{
+    overflow: hidden;
+}
+
+
+    #panel {
+        position: absolute;
+        top:30px;
+        left:10px;
+        z-index: 999;
+        color: #fff;
+    }
+    #login{
+        position:absolute;
+        width:300px;
+        height:40px;
+        left:50%;
+        top:50%;
+        margin:-40px 0 0 -150px;
+    }
+    #login input[type=password]{
+        width:200px;
+        height:30px;
+        padding:3px;
+        line-height:30px;
+        border:1px solid #000;
+    }
+    #login input[type=submit]{
+        width:80px;
+        height:38px;
+        display:inline-block;
+        line-height:38px;
+    }
+
+
+.visualmap{
+    position:absolute;
+    width: 100%;
+    height: 100%;
+    top:0;
+    left: 0;
+    right:0;
+    bottom: 0;
+    background:#090915;
+}
+.vMap_logo_box{
+    width: 260px;
+    height: 30px;
+    position: absolute;
+    top: -20px;
+    left: 420px;
+    background: #090915;
+    text-align: center;
+}
+.vMap_logo_box>img:nth-child(1){
+    float: left;
+}
+.vMap_logo_box>img:nth-child(2){
+    display: inline-block;
+}
+.vMap_logo_box>img:nth-child(3){
+    float: right;
+}
+.vMap_bottomLine{
+    width: 60%;
+    height: 10px;
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform:translateX(-50%);
+    -webkit-transform:translateX(-50%);
+    -o-transform:translateX(-50%);
+    -ms-transform:translateX(-50%);
+    -moz-transform:translateX(-50%);
+    background: #090915;
+}
+.vMap_wrap{
+    position: relative;
+    width: 96%;
+    height: auto;
+    padding: 10px 30px 20px 30px;
+    margin: 20px auto;
+    border: 4px solid #1D4295;
+    cursor: pointer;
+}
+.vMap_side{
+    width: 36px;
+    height: 240px;
+    position: absolute;
+    top: 50%;
+    z-index: 100;
+    transform:translateY(-50%);
+    -webkit-transform:translateY(-50%);
+    -o-transform:translateY(-50%);
+    -ms-transform:translateY(-50%);
+    -moz-transform:translateY(-50%);
+}
+.vMap_side_l{
+    left: -33px;
+}
+.vMap_side_r{
+    right: -33px;
+}
+.vMap_con1{
+    position: relative;
+    width: 100%;
+    height: 70px;
+}
+.vMap_con1_time{
+    width: 20%;
+    height: 100%;
+    float: left;
+    text-align: center;
+}
+.vMap_con1_time h2,.vMap_con1_time h3{
+    color: #D1D3D4;
+    margin: 0;
+    padding: 0;
+    font-weight: normal;
+    font-family: Microsoft YaHei,\\5FAE\8F6F\96C5\9ED1,tahoma,arial,simsun,\\5B8B\4F53;
+}
+.vMap_con1_time h2{
+    font-size: 28px;
+}
+.vMap_con1_time h3{
+    font-size: 22px;
+}
+.vMap_con1_slc{
+    position: relative;
+    padding-top: 20px;
+    float: right;
+    height: 30px;
+}
+.vMap_con1_slc li{
+    float: right;
+    width: 150px;
+    height: 30px;
+    border: 1px solid #6490A9;
+    text-align: right;
+    margin-right: 30px;
+}
+#vMap_slcPane{
+    position: absolute;
+    width: 100%;
+    height:auto;
+    max-height: 200px;
+    top:55px;
+    background: rgba(126,206,244,.9);
+    z-index: 100;
+    overflow: hidden;
+    display: none;
+}
+#vMap_slcPane ul{
+    height: auto !important;
+    overflow-x: hidden;
+    overflow-y: scroll;
+    overflow: auto !important;
+    padding-top: 1px;
+    padding-bottom:10px !important;
+}
+#vMap_slcPane li{
+    height:30px !important;
+    float: left;
+    text-align: center;
+    line-height: 30px !important;
+    color: #E8E8E8;
+    overflow: hidden;
+    margin: 10px;
+    background: rgba(9,9,21,.5);
+}
+.vMap_con1_slc li>label{
+    float: left;
+    color: #7ECEF4;
+    font-size: 14px;
+    margin-left: 10px;
+    line-height: 30px;
+    font-family: Microsoft YaHei,\\5FAE\8F6F\96C5\9ED1,tahoma,arial,simsun,\\5B8B\4F53;
+}
+.vMap_con1_slc li>span{
+    float: right;
+    display: inline-block;
+    width: 0;
+    height: 0;
+    line-height: 30px;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 10px solid #2C3A49;
+    margin-top: 10px;
+    margin-right: 20px;
+}
+.vMap_con2{
+    position: relative;
+    width: 100%;
+    height: 560px;
+    margin-bottom: 10px;
+}
+.vMap_con2_l{
+    width: 22%;
+    height: 100%;
+    margin-right: 6px;
+    float: left;
+}
+.vMap_con2_l_box:nth-child(1){
+    margin-bottom: 10px;
+}
+.vMap_con2_l_box{
+    position: relative;
+    width: 100%;
+    height: 49%;
+    border:2px solid #1D4295;
+}
+.vMap_con2_cam1{
+    width: 100%;
+    height: 66.6%;
+}
+.vMap_con2_cam1_l{
+    width: 66.6%;
+    height: 100%;
+    float: left;
+    overflow: hidden;
+    border-right: 1px solid #1D4295;
+}
+.vMap_con2_cam1_r{
+    float: right;
+    width: 33.1%;
+    height: 100%;
+}
+.vMap_con2_cam1_r ul,.vMap_con2_cam2 ul{
+    width: 100%;
+    height: 100%;
+}
+.vMap_con2_cam1_r li{
+    width: 100%;
+    height: 50%;
+}
+.vMap_con2_cam1_r_bline{
+    border-bottom: 1px solid #1D4295;
+}
+.vMap_con2_cam2{
+    width: 100%;
+    height: 33.3%;
+}
+.vMap_con2_cam2 li{
+    width: 33.1%;
+    height: 100%;
+    float: left;
+    border-top: 1px solid #1D4295;
+}
+.vMap_con2_cam2_bline{
+    border-right: 1px solid #1D4295;
+}
+.vMap_con2_order{
+    width: 22%;
+    height: 100%;
+    float: left;
+    text-align: center;
+    padding: 15px 0;
+    font-size: 12px;
+}
+.vMap_con2_order>span{
+    color: #7ECEF4;
+}
+.vMap_con2_order ul{
+    height: 220px;
+    overflow: hidden;
+}
+.vMap_con2_order li{
+    height: 25px;
+    line-height: 25px;
+}
+.vMap_con2_order:nth-of-type(2){
+     width: 34%;
+}
+.vMap_con2_m{
+    width: 69%;
+    height: 100%;
+    float: left;
+    overflow: hidden;
+}
+.vMap_con2_r{
+    position: relative;
+    width: 8%;
+    height: 100%;
+    float: right;
+    border:2px solid #1D4295;
+}
+.vMap_con2_data{
+    position: relative;
+    width: 100%;
+    height: 20%;
+    padding-top: 6px;
+    text-align: center;
+}
+.vMap_con2_data h3{
+    color: #A4A9AE;
+    font-size: 14px;
+    margin:0;
+    font-family: Microsoft YaHei,\\5FAE\8F6F\96C5\9ED1,tahoma,arial,simsun,\\5B8B\4F53;
+}
+.vMap_con2_data_outCir{
+    position: relative;
+    width: 74px;
+    height: 74px;
+    margin: 0 auto 5px;
+    background: url(img/vmap/wai.png);
+    background-size: 100% 100%;
+}
+.vMap_con2_data_inCir{
+    position: absolute;
+    color: #fff;
+    font-size: 14px;
+    width: 64px;
+    height: 64px;
+    top: 10px;
+    left: 50%;
+    line-height: 63px;
+    transform:translateX(-50%);
+    -webkit-transform:translateX(-50%);
+    -o-transform:translateX(-50%);
+    -ms-transform:translateX(-50%);
+    -moz-transform:translateX(-50%);
+    background: url(img/vmap/n.png); 
+    background-size: 100% 100%; 
+    font-family: Microsoft YaHei,\\5FAE\8F6F\96C5\9ED1,tahoma,arial,simsun,\\5B8B\4F53;
+}
+.vMap_con2_data_inCir>img{
+    position: absolute;
+    top:0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    display: none;
+}
+.cirOutMove{
+    animation:cirOut 2s;
+    -webkit-animation:cirOut 2s; /* Safari 和 Chrome */
+}
+@keyframes cirOut
+{
+0 {transform:rotate(0deg);}
+/*25% {transform:rotate(-90deg);}*/
+50% {transform:rotate(-90deg);}
+/*75% {transform:rotate(25deg);}*/
+100% {transform:rotate(0deg);}
+}
+.vMap_con3{
+    width: 100%;
+    height: 250px;
+}
+.vMap_con3_l{
+    position: relative;
+    width: 22%;
+    height: 100%;
+    margin-right: 9px;
+    float: left;
+    border:2px solid #1D4295;
+}
+.vMap_con3_m{
+    position: relative;
+    width: 54%;
+    height: 100%;
+    float: left;
+    border:2px solid #1D4295;
+}
+.vMap_con3_m_l{
+    width: 80%;
+    height: 100%;
+    float: left;
+}
+.vMap_con3_m_r{
+    width: 20%;
+    height: 100%;
+    float: right;
+}
+.vMap_con3_r{
+    position: relative;
+    width: 22%;
+    height: 100%;
+    float: right;
+    margin-left: 7px;
+    border:2px solid #1D4295;
+}
+#vMap {width: 101%;height: 100%;}
+.vMap_con2_l_box>img:nth-child(1),.vMap_con2_r>img:nth-child(1),.vMap_con3_l>img:nth-child(1),.vMap_con3_m>img:nth-child(1),.vMap_con3_r>img:nth-child(1){
+    position: absolute;
+    top: -2px;
+    left: -2px;
+}
+.vMap_con2_l_box>img:nth-child(2),.vMap_con2_r>img:nth-child(2),.vMap_con3_l>img:nth-child(2),.vMap_con3_m>img:nth-child(2),.vMap_con3_r>img:nth-child(2){
+    position: absolute;
+    top: -2px;
+    right: -2px;
+}
+.vMap_con2_l_box>img:nth-child(3),.vMap_con2_r>img:nth-child(3),.vMap_con3_l>img:nth-child(3),.vMap_con3_m>img:nth-child(3),.vMap_con3_r>img:nth-child(3){
+    position: absolute;
+    bottom: -2px;
+    left: -2px;
+}
+.vMap_con2_l_box>img:nth-child(4),.vMap_con2_r>img:nth-child(4),.vMap_con3_l>img:nth-child(4),.vMap_con3_m>img:nth-child(4),.vMap_con3_r>img:nth-child(4){
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+}
+#vtype li{
+    color: #A5B487; 
+}
+#vshop li{
+    color: #8C8C93; 
+}
+#vton li{
+    color: #798FB0;
+}
+#vasset li{
+    color: #798FB0;
+}
+.vmap_new{
+    color: #F74E4F !important;
+}
+</style>

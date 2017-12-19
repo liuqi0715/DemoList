@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<link rel="stylesheet" type="text/css" href="../../themes/default/easyui.css">
+<link rel="stylesheet" type="text/css" href="../../themes/icon.css">
+<link rel="stylesheet" type="text/css" href="../../themes/demo.css">
+<link rel="stylesheet" href="../../themes/css/zTreeStyle/zTreeStyle.css" type="text/css">
+<script type="text/javascript" src="../../js/jquery.min.js"></script>
+<script type="text/javascript" src="../../js/jquery.easyui.min.js"></script>
+<script type="text/javascript" src="../../js/locale/easyui-lang-zh_CN.js"></script>
+<script type="text/javascript" src="../../js/jquery.ztree.core-3.5.js"></script>
+<script type="text/javascript" src="../../js/jquery.ztree.excheck-3.5.js"></script>
+<script type="text/javascript" src="../../js/jquery.json-2.3.js"></script>
+<script type="text/javascript" src="../global.js"></script>
+<style type="text/css">
+	.report-title {
+	    color: #00A8BD;
+	    font: bold 34px "黑体";
+	    margin: 0.5em 0;
+	    text-align: center;
+	}.
+	.checkAll:hover {
+			cursor: pointer;
+	}
+</style>
+<script type="text/javascript">
+var roleId = '';
+var url = '';
+function zTreeOnClick(event, treeId, treeNode) {
+	
+};
+
+var setting = {
+		check: {
+			enable: true,
+			chkDisabledInherit: true
+		},
+		callback: {
+			onClick: zTreeOnClick
+		},
+		data: {
+			simpleData: {
+				enable: true
+			}
+		}
+	};
+$(function () {
+	$(".dataSpan").change(function(){
+		var val=$('input:radio[name="dataSpan"]:checked').val();
+		if(val==1){
+			$("#dataSpanTime").textbox('enable');
+		}else{
+			$("#dataSpanTime").textbox('disable');
+		}
+	});
+	$('#organizationQuery').combobox({
+		url:'roleManagement/getOrganization',
+ 		valueField:'orgId',
+ 		textField:'orgName',
+ 		width:'150',
+ 		panelHeight: '100',
+ 		editable:false,
+        value:''
+     });
+	
+	$('#organization').combobox({
+		url:'roleManagement/getOrganization',
+ 		valueField:'orgId',
+ 		textField:'orgName',
+ 		width:'150',
+ 		panelHeight: '100',
+ 		editable:false,
+ 		required : true,
+        value:'',
+        onSelect:function(){
+        	$('#dge1').datagrid({
+        		queryParams: {
+                	orgId : $(this).combobox('getValue')
+        		}
+        	});
+        }
+     });
+	
+    $('#doRelo').dialog({
+    	title: '角色编辑',
+    	width:655,
+    	height:640,
+    	closed:true,
+    	onClose:function(){
+    		roleId = '';
+    		$('#from1').form('clear');
+        	$('#dg').datagrid('load');
+    		
+    		/* $('#wareTodoform2').form('clear');
+	   	     $('#wareToWares').datagrid({
+		     	 data: wareIde
+		     }); */
+    	}
+	});
+    var tableH = Math.max(document.documentElement.scrollHeight,document.body.scrollHeight)-($('#dg').offset().top+30);
+     $('#dg').datagrid({
+        iconCls: 'icon-save',
+        width: "100%",
+        height: tableH,
+        nowrap: true,
+        fitColumns:true,
+    	autoRowHeight: false,
+    	singleSelect: true,
+    	striped: true,
+    	collapsible: true,
+    	remoteSort: false,
+    	rownumbers:true,
+    	checkOnSelect: true,
+        url: 'roleManagement/searchRole',
+        idField: 'roleId',
+        columns: [[
+            { field: 'roleId', title: '角色id',hidden:true },
+            { field: 'orgId', title: '组织Id', hidden:true },
+            { field: 'state', title: '状态Id', hidden:true },
+            { field: 'warehouseAble', title: '是否有仓库', hidden:true },
+            { field: 'recycleAble', title: '是否回收', hidden:true },
+            { field: 'popularizeAble', title: '是否地推', hidden:true },
+            { field: 'op', title: '操作',
+            	formatter: function (value, row, index) {
+            		if(row.state == 1){
+            			return (verification("role","deleteRole")?'<a href="javascript:deleteRole('+row.roleId+');">删除</a>':'');
+            		}else{
+                    	return '';
+            		}
+                }
+            },
+            { field: 'orgName', title: '组织',width:document.getElementById("dgDiv").offsetWidth*0.10,align:'left'},
+            { field: 'roleName', title: '角色名',width:document.getElementById("dgDiv").offsetWidth*0.10,align:'left'},
+            { field: 'createTime', title: '创建时间',align:'left'},
+            { field: 'createUser', title: '创建人Id', hidden:true},
+            { field: 'createBy', title: '创建人',align:'left'},
+            { field: 'stateName', title: '是否有效',align:'left'},
+            { field: 'describe', title: '描述',width:document.getElementById("dgDiv").offsetWidth*0.37,align:'left'}
+        ]],
+        onDblClickRow :  function(index, row){
+        	
+        },
+        pagination: true,
+    	pageSize : 40, 
+    	pageList : [ 40, 80, 120 ],
+    	onLoadSuccess : function(data) {
+      	  	$(this).datagrid('clearChecked');
+		}
+    });
+ 	if(verification("role","addRole")){
+ 		 $("#addBtn").css("display","");
+ 	}
+ 	if(verification("role","updateRole")){
+		 $("#updateBtn").css("display","");
+	}
+ 	 
+});
+
+
+function addRelo(){
+	url = "roleManagement/saveRelo";
+	$('#organization').combobox('enable');
+	inifUserS();
+	$('#doRelo').dialog('open');
+	$('#tt').tabs('select', 0);
+	$('#tt').tabs('disableTab', 1); 
+	$('#tt').tabs('disableTab', 2);
+}
+function deleteRole(rid){
+ 	$.messager.confirm('提示', '是否确认删除此行？', function(r){
+ 		if (r){
+ 			$.ajax({
+ 				url : "roleManagement/deleteRole",
+ 				type : "post",
+ 				data : {
+ 					roleId : rid,
+ 					state : 0
+ 				},
+ 				dataType : "json",
+ 				beforeSend : function() {
+ 				},
+ 				success : function(data) {
+ 					if(data.msgCode == "Y") {
+ 		        		$.messager.alert('提示',data.msg,'info',function () {		// close the dialog
+ 				        	$('#dg').datagrid('load');
+ 				        });
+ 					}else {
+ 						$.messager.alert('提示',data.msg,'info');
+ 					}
+ 				}
+ 			});
+ 		}else {
+				return;
+			}
+ 	});
+}
+function pushUser(){
+	var users = $('#dge1').datagrid('getSelections');
+	var users2 = $('#dge2').datagrid('getRows');
+	for (var i = 0; i < users.length; i++) {
+	 	var fag = 0;
+	 	if (users2.length >0) {
+			for (var j = 0; j < users2.length; j++) {
+				if (users2[j].id == users[i].id) {
+					fag++;
+				}
+			}
+		}
+	 	if (fag==0) {
+			$('#dge2').datagrid('insertRow',{
+				row: users[i]
+			});
+		}
+	}
+}
+
+function remUser(){
+	var users = $('#dge2').datagrid('getSelections');
+	for (var i = users.length-1; i >= 0; i--) {
+		$('#dge2').datagrid('deleteRow', $('#dge2').datagrid('getRowIndex',users[i]));
+	}
+}
+
+function subRelo(){
+ 	$.messager.confirm('提示', '是否确认保存？', function(r){
+ 		if (r){
+ 			var users = $('#dge2').datagrid('getRows');
+ 			var orgId = $("#organization").combobox('getValue');
+ 			var roleName = $("#roleName").textbox('getValue');
+ 			var describe = $("#describe").textbox('getValue');
+ 			var warehouseAble=$('input:radio[name="warehouseAble"]:checked').val();
+ 			var recycleAble=$('input:radio[name="recycleAble"]:checked').val();
+ 			var popularizeAble=$('input:radio[name="popularizeAble"]:checked').val();
+ 			if (orgId == '') {
+ 				$.messager.alert('提示','[组织]不可为空！','info');
+ 				return;
+ 			}
+ 			if (roleName == '') {
+ 				$.messager.alert('提示','[角色]不可为空！','info');
+ 				return;
+ 			}
+ 			if (warehouseAble == null) {
+ 				$.messager.alert('提示','请选择[是否有仓库]!','info');
+ 				return;
+ 			}
+ 			if (recycleAble == null) {
+ 				$.messager.alert('提示','请选择[是否回收]!','info');
+ 				return;
+ 			}
+ 			if (popularizeAble == null) {
+ 				$.messager.alert('提示','请选择[是否地推]!','info');
+ 				return;
+ 			}
+ 			var jsons = [];
+ 			for(x in users){
+ 				var json = {};
+ 				json.Id = users[x]["id"];
+ 				jsons.push(json);
+ 			}
+ 			var jsonText = $.toJSON(jsons);
+ 			$.ajax({
+ 				url : url,
+ 				type : "post",
+ 				data : {
+ 					roleId : roleId,
+ 					userIds : jsonText,
+ 					roleName : roleName,
+ 					orgId : orgId,
+ 					describe : describe,
+ 					warehouseAble : warehouseAble,
+ 					recycleAble : recycleAble,
+ 					popularizeAble : popularizeAble
+ 				},
+ 				dataType : "json",
+ 				beforeSend : function() {
+ 				},
+ 				success : function(data) {
+ 					if(data.msgcode == "Y") {
+ 		        		$.messager.alert('提示',data.msg,'info',function () {		// close the dialog
+ 		        			url = "roleManagement/updateRelo";
+ 							roleId = data.roleId;
+ 				        	$('#dge2').datagrid('load');
+ 				        	$('#tt').tabs('enableTab', 1); 
+ 				        	$('#tt').tabs('enableTab', 2);
+ 				   			inifUserS();
+ 							inifMenueTree();
+ 							inifGroupTree();
+ 							$('#organization').combobox('disable');
+ 				        });
+ 					}else {
+ 						$.messager.alert('提示',data.msg,'info');
+ 					}
+ 				}
+ 			});
+ 		}else {
+				return;
+		}
+ 	});
+}
+
+function editRelo(){
+	var lis = $('#dg').datagrid('getSelections');
+	if(lis.length > 0){
+		url = "roleManagement/updateRelo";
+		$("#organization").combobox('setValue',$('#dg').datagrid('getSelected').orgId);
+		$("#roleName").textbox('setValue',$('#dg').datagrid('getSelected').roleName);
+		$("#describe").textbox('setValue',$('#dg').datagrid('getSelected').describe);
+		roleId = $('#dg').datagrid('getSelected').roleId;
+		var s = $(".warehouseAble");
+		var recycleAbles=$(".recycleAble"); 
+		var popularizeAbles=$(".popularizeAble");  
+		for(var x = 0 ;x < s.length;x++){
+			if(s[x].value==$('#dg').datagrid('getSelected').warehouseAble){
+				s[x].checked=true;
+			}else{
+				s[x].checked=false;
+			}
+		}   
+		for(var x = 0 ;x < recycleAbles.length;x++){
+			if(recycleAbles[x].value==$('#dg').datagrid('getSelected').recycleAble){
+				recycleAbles[x].checked=true;
+			}else{
+				recycleAbles[x].checked=false;
+			}
+		}   
+		for(var x = 0 ;x < popularizeAbles.length;x++){
+			if(popularizeAbles[x].value==$('#dg').datagrid('getSelected').popularizeAble){
+				popularizeAbles[x].checked=true;
+			}else{
+				popularizeAbles[x].checked=false;
+			}
+		}  
+		$('#organization').combobox('disable');
+		$('#tt').tabs('enableTab', 1); 
+		$('#tt').tabs('enableTab', 2);
+		inifUserS();
+		inifMenueTree();
+		inifGroupTree();
+		$('#doRelo').dialog('open');
+		$('#tt').tabs('select',"角色基础信息");
+	}else{
+			$.messager.alert('提示','请选择一行','info');
+	}
+	
+}
+
+function refreshFeature(){
+	inifMenueTree();
+}
+
+function saveFeature(){
+ 	$.messager.confirm('提示', '是否确认保存？', function(r){
+ 		if (r){
+ 			var orgId = $("#organization").combobox('getValue');
+ 			var treeNodes = $.fn.zTree.getZTreeObj("tree1").getCheckedNodes();
+ 			var jsons = [];
+ 			for(x in treeNodes){
+ 				var json = {};
+ 				json.perId = treeNodes[x]["perId"];
+ 				jsons.push(json);
+ 			}
+ 			var jsonText = $.toJSON(jsons);
+ 			$.ajax({
+ 				url : "roleManagement/saveRolePermission",
+ 				type : "post",
+ 				data : {
+ 					modules : jsonText,
+ 					roleId : roleId,
+ 					orgId : orgId
+ 				},
+ 				dataType : "json",
+ 				beforeSend : function() {
+ 				},
+ 				success : function(data) {
+ 					if(data.msgCode == "Y") {
+ 		        		$.messager.alert('提示',data.msg,'info',function () {		// close the dialog
+ 		        			inifMenueTree();
+ 				        });
+ 					}else {
+ 						$.messager.alert('提示',data.msg,'info');
+ 					}
+ 				}
+ 			});
+ 		}else {
+			return;
+		}
+ 	});
+}
+
+function inifUserS() {
+	var orgId = $("#organization").combobox('getValue');
+	$('#dge1').datagrid({
+        iconCls: 'icon-save',
+        width: "100%",
+        height: 330,
+        nowrap: true,
+        fitColumns:true,
+    	autoRowHeight: false,
+    	singleSelect: false,
+    	striped: true,
+    	collapsible: true,
+    	remoteSort: false,
+    	rownumbers:true,
+    	checkOnSelect: true,
+        url: 'roleManagement/searchUserByOrgId',
+        queryParams: {
+        	orgId : orgId
+    	},
+        idField: 'id',
+        columns: [[
+            { field: 'id', title: '用户id',hidden:true },
+            { field: 'loginName', title: '用户名',width:100},
+            { field: 'contact', title: '联系人',width:100}
+        ]],
+        onDblClickRow :  function(index, row){
+        	
+        },
+        pagination: false,
+    	onLoadSuccess : function(data) {
+      	  	$(this).datagrid('clearChecked');
+		}
+    });
+	$('#dge2').datagrid({
+        iconCls: 'icon-save',
+        width: "100%",
+        height: 330,
+        nowrap: true,
+        fitColumns:true,
+    	autoRowHeight: false,
+    	singleSelect: false,
+    	striped: true,
+    	collapsible: true,
+    	remoteSort: false,
+    	rownumbers:true,
+    	checkOnSelect: true,
+        url: 'roleManagement/searchUserByRoleId',
+        queryParams: {
+        	roleId : roleId
+    	},
+        idField: 'id',
+        columns: [[
+            { field: 'id', title: '用户id',hidden:true },
+            { field: 'loginName', title: '用户名',width:100},
+            { field: 'contact', title: '联系人',width:100}
+        ]],
+        onDblClickRow :  function(index, row){
+        	
+        },
+        pagination: false,
+    	onLoadSuccess : function(data) {
+      	  	$(this).datagrid('clearChecked');
+		}
+    });
+}
+function inifMenueTree() {
+	$.ajax({
+		url : "roleManagement/searchMenuAndItem",
+		type : "post",
+		dataType : "json",
+		data : {
+			roleId : roleId,
+		},
+		beforeSend : function() {
+		},
+		success : function(data) {
+			$.fn.zTree.init($("#tree1"), setting,data);
+		}
+	});
+
+    	//$.fn.zTree.init($("#tree1"), setting, data);
+}
+function getCheckAll() {
+   	 if($('#checkAll').is(':checked')) {
+   		$.fn.zTree.getZTreeObj("tree2").checkAllNodes(true);
+   	 }else{
+    	$.fn.zTree.getZTreeObj("tree2").checkAllNodes(false);
+   	 }
+}
+
+function inifGroupTree(){
+	var orgId = $("#organization").combobox('getValue');
+	$.ajax({
+		url : "roleManagement/searchAllOrgAndRole",
+		type : "post",
+		dataType : "json",
+		data : {
+			orgId : orgId,
+			roleId : roleId
+		},
+		beforeSend : function() {
+		},
+		success : function(data) {
+			$.fn.zTree.init($("#tree2"), setting,data.list);
+			var s = $(".dataSpan");
+			if(data.dataSpan <9999){
+				$("#dataSpanTime").textbox('enable');
+				for(var x = 0 ;x < s.length;x++){
+					if(s[x].value==1){
+						s[x].checked=true;
+					}else{
+						s[x].checked=false;
+					}
+				}
+				$("#dataSpanTime").textbox('setValue',data.dataSpan);
+			}else{
+				$("#dataSpanTime").textbox('enable');
+				$("#dataSpanTime").textbox('setValue','');
+				$("#dataSpanTime").textbox('disable');
+				for(var x = 0 ;x < s.length;x++){
+					if(s[x].value==2){
+						s[x].checked=true;
+					}else{
+						s[x].checked=false;
+					}
+				}
+			}
+		}
+	});
+}
+function refreshGroup(){
+	inifGroupTree();
+}
+
+function saveGroup(){
+ 	$.messager.confirm('提示', '是否确认保存？', function(r){
+ 		if (r){
+ 			var dataSpanTime = 9999;
+ 			var dataSpan=$('input:radio[name="dataSpan"]:checked').val();
+ 			var orgId = $("#organization").combobox('getValue');
+ 			var treeNodes = $.fn.zTree.getZTreeObj("tree2").getCheckedNodes();
+ 			var jsons = [];
+ 			for(x in treeNodes){
+ 				if (treeNodes[x]["type"] == 3) {
+ 					var json = {};
+ 					json.orgId = treeNodes[x]["orgId"];
+ 					json.roleId = treeNodes[x]["id"];
+ 					jsons.push(json);
+ 				}
+ 			}
+ 			if (dataSpan == null) {
+ 				$.messager.alert('提示','请选择数据访问时间限制!','info');
+ 				return;
+ 			}else if(dataSpan==1){
+ 				dataSpanTime = $("#dataSpanTime").textbox('getValue');
+ 				if(dataSpanTime=='' || dataSpanTime==0){
+ 	 				$.messager.alert('提示','请输入数据访问时间月数!','info');
+ 	 				return;
+ 				}
+ 			}
+ 			/* if (jsons.length == 0) {
+ 				$.messager.alert('提示','请选择组织下的角色!','info');
+ 				return;
+ 			} */
+ 			var jsonText = $.toJSON(jsons);
+ 			$.ajax({
+ 				url : "roleManagement/saveRoleDataPermission",
+ 				type : "post",
+ 				data : {
+ 					dataRole : jsonText,
+ 					roleId : roleId,
+ 					orgId : orgId,
+ 					dataSpanTime : dataSpanTime
+ 				},
+ 				dataType : "json",
+ 				beforeSend : function() {
+ 				},
+ 				success : function(data) {
+ 					if(data.msgCode == "Y") {
+ 		        		$.messager.alert('提示',data.msg,'info',function () {		// close the dialog
+ 		        			inifGroupTree();
+ 				        });
+ 					}else {
+ 						$.messager.alert('提示',data.msg,'info');
+ 					}
+ 				}
+ 			});
+ 		}else {
+			return;
+		}
+ 	});
+}
+function searchRelo(){
+	var orgId = $('#organizationQuery').combobox('getValue');
+	var roleName = $("#roleNameQuery").textbox('getValue');
+	$('#dg').datagrid('clearSelections');
+    $('#dg').datagrid('load',{
+    	orgId1 : orgId,
+    	roleName : roleName
+    });
+}
+function clearSearch1(){
+	$('#organizationQuery').combobox('setValue','');
+	$("#roleNameQuery").textbox('setValue','');
+}
+</script>
+</head>
+<body>
+	<div style="margin-left:auto; margin-right:auto;">
+	    <div class="inputArea">
+	  	    <label>组织</label>：<input id="organizationQuery" name="organization" class="easyui-combobox" />
+	  	    <label>角色名</label>：<input id="roleNameQuery"  class="easyui-textbox" style="width:100px">
+	        <a class="easyui-linkbutton" data-options="iconCls:'icon-search'" onClick="searchRelo();">查询</a>
+ 			<a class="easyui-linkbutton" data-options="iconCls:'icon-reload'" onClick="clearSearch1();">重置</a>
+	    </div>
+		<div style="margin-top: 10px;margin-bottom: 10px;">
+  			<a id="addBtn" class="easyui-linkbutton" data-options="iconCls:'icon-add'" onClick="addRelo();" style="display: none">新增</a>
+  			<a id="updateBtn" class="easyui-linkbutton" data-options="iconCls:'icon-edit'" onClick="editRelo();" style="display: none">编辑</a>
+		</div>
+		<div id="dgDiv" style="width: 100%">
+			<table id="dg" style="align:center"></table>
+		</div>
+	</div>
+	<div id="doRelo">
+		<div id="tt" class="easyui-tabs" style="width:100%;height:600px;margin-left:auto; margin-right:auto;">   
+		    <div title="角色基础信息" style="padding:10px;">   
+		  		<div style="width:520px;margin-left:20px; margin-right:auto;line-height: 30px;">
+			  		<form id="from1">
+						<div class="inputArea1">
+					  	    <label>组织</label>：<input id="organization" name="organization" class="easyui-combobox" /><font color="red">*</font>
+					  	    <label style="margin-left:30px;">角色</label>：<input id="roleName" class="easyui-textbox" data-options="width:'150',required : true"><font color="red">*</font>
+					    </div>
+					    <div class="inputArea1">
+					  	    <label>是否有仓库</label>：<input class="warehouseAble" name="warehouseAble" type="radio" value="1">是 <input style="margin-left:50px;" class="warehouseAble"  name="warehouseAble" type="radio" value="0" ><span style="margin-right:50px;">否</span>
+					  	    <label>是否回收</label>：<input class="recycleAble" name="recycleAble" type="radio" value="1">是 <input style="margin-left:50px;" class="recycleAble"  name="recycleAble" type="radio" value="0" ><span>否</span>
+					    </div>
+					    <div class="inputArea1">
+					  	    <label>是否地推</label>：<input class="popularizeAble"  name="popularizeAble" type="radio" value="1">是 <input style="margin-left:50px;" class="popularizeAble"  name="popularizeAble" type="radio" value="0" ><span style="margin-right:50px;">否</span>
+					    </div>
+					    <div class="inputArea1" id="roleM1">
+					  	    <label>描述</label>：<input id="describe"  class="easyui-textbox" data-options="width:'250',height:'60',multiline:true">
+					    </div>
+			  		</form>
+		  		</div>
+			  	<div style="width: 100%;margin-left:20px; margin-right:auto;margin-top: 10px;">
+			  		<div style="width:240px;float: left;">
+			  			全部用户
+						<table id="dge1" style="align:center"></table>
+			  		</div>
+			  		<div style="width: 100px;height:360px;float: left;text-align: center;">
+			  			<div style="line-height: 40px;margin-top: 150px;">
+				  			<a class="easyui-linkbutton" onclick="pushUser()" style="padding-left: 10px;padding-right: 10px">&gt;&gt;</a>
+				  			<a class="easyui-linkbutton" onclick="remUser()" style="padding-left: 10px;padding-right: 10px">&lt;&lt;</a>
+			  			</div>
+			  		</div>
+			  		<div style="width:240px;float: left;">
+			  			当前角色用户
+						<table id="dge2" style="align:center"></table>
+			  		</div>
+			  	</div>
+			  	<div style="width: 100%;padding: 10px 0;clear:both;text-align: center;">
+	  				<a class="easyui-linkbutton" data-options="iconCls:'icon-save'" style="padding-left: 20px;padding-right: 20px" onClick="subRelo();">保存</a>
+			  	</div> 
+		    </div>   
+		    <div title="可操作功能"  style="padding:10px;">   
+		        <div>
+			        <div id="p" class="easyui-panel" title="功能列表" style="width:100%;height:490px;padding:10px;background:#fafafa;" data-options="closable:false, collapsible:false,minimizable:false,maximizable:false">   
+		    			 <ul id="tree1" class="ztree"></ul>  
+		    		</div> 
+		        </div>
+		        <div style="width: 100%;padding-top: 20px;clear:both;text-align: center;">
+	  				<a class="easyui-linkbutton" data-options="iconCls:'icon-reload'" style="padding-left: 20px;padding-right: 20px" onClick="refreshFeature();">刷新列表</a>
+	  				<a class="easyui-linkbutton" data-options="iconCls:'icon-save'" onClick="saveFeature();">保存操作功能</a>
+		        </div>
+		    </div>   
+		    <div title="可访问数据"  style="padding:10px;">	    
+			    <span id="roleM0">
+			    	<p style="margin:3px 0;">
+					    <input class="dataSpan" type="radio" name="dataSpan" value="1">
+					    <span style="margin-right:15px;" >可访问</span>
+					    <input id="dataSpanTime" class="easyui-textbox" data-options="width:'60'">个月数据
+				    </p>
+				    <p style="margin:3px 0;">
+				    	<input class="dataSpan" type="radio" name="dataSpan" value="2">可访问全部数据
+			    	</p>
+			    </span>
+	        	<div style="width:50px;margin-bottom: 10px;margin-left:1px;">
+		        	<input type="checkbox" id="checkAll" style="position:relative;top:2px;" onchange="getCheckAll()">全选
+		        </div>
+		        <div style="clear:both;">
+			        <div id="p" class="easyui-panel" title="组织结构" style="width:100%;height:400px;padding:10px;background:#fafafa;" data-options="closable:false, collapsible:false,minimizable:false,maximizable:false">   
+		    			    <ul id="tree2" class="ztree"></ul>   
+		    		</div> 
+		        </div>
+	       		<div style="width:100%;text-align:center;padding-top:20px;">
+	  				<a class="easyui-linkbutton" data-options="iconCls:'icon-reload'" style="padding-left: 20px;padding-right: 20px" onClick="refreshGroup();">刷新列表</a>
+	  				<a class="easyui-linkbutton" data-options="iconCls:'icon-save'" onClick="saveGroup();">保存数据权限</a>
+		        </div>
+		    </div>   
+		</div> 
+	</div>
+</body>
+</html>

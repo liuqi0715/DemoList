@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" type="text/css" href="../../themes/default/easyui.css">
+<link rel="stylesheet" type="text/css" href="../../themes/icon.css">
+<link rel="stylesheet" type="text/css" href="../../themes/demo.css">
+<script type="text/javascript" src="../../js/jquery.min.js"></script>
+<script type="text/javascript" src="../../js/jquery.easyui.min.js"></script>
+<script type="text/javascript" src="../../js/locale/easyui-lang-zh_CN.js"></script>
+<script type="text/javascript" src="../../js/jquery.ztree.core-3.5.js"></script>
+<link rel="stylesheet" href="../../themes/css/zTreeStyle/zTreeStyle.css" type="text/css">
+<script type="text/javascript" src="../global.js"></script>
+<script type="text/javascript">
+var url;
+var orgId;
+$(function () {
+	 $('#province').combobox({
+        valueField:'provinceId', //值字段
+        textField:'provinceName', //显示的字段
+        url:'areaController/getAllProvinceAll',
+        value:'--请选择--',
+        editable:false,//不可编辑，只能选择
+        width:'100',
+        onSelect:function(){
+        	var province = $(this).combobox('getValue');
+            $('#city').combobox({
+            valueField:'cityId', 
+            textField:'cityName',
+            url:'areaController/getCityByProvinceIdAll?provinceId='+province,
+            required:true,
+            editable:false//不可编辑，只能选择
+          }); 
+        },
+     });
+	$('#city').combobox({
+        editable:false,
+        width:'100',
+        value:'请先选择省份',
+       	onSelect:function(){
+        	var city = $(this).combobox('getValue');
+            $('#area').combobox({
+            valueField:'areaId', 
+            textField:'areaName',
+            url:'areaController/getAreaByCityIdAll?cityId='+city,
+            required:true,
+            editable:false//不可编辑，只能选择
+           });
+       	},
+     	onLoadSuccess:function(){
+       		$('#area').combobox({
+		 		width:'100',
+		 		editable:false,
+       			value:'请先选择城市',
+       			
+			});
+    	}
+     });
+	$('#area').combobox({
+	 		width:'100',
+	 		editable:false,
+	 		value:'请先选择城市',
+        	onSelect:function(){
+        	var areaId = $(this).combobox('getValue');
+        }
+		});
+	
+	 $('#parentOrgName').combobox({
+	        valueField:'orgId', 
+	        textField:'orgName',
+	        url:'organizationController/getParentOrgName',
+	        required:true,
+	        editable:false,//不可编辑，只能选择
+	        value:'--请选择--'
+	       
+	     }); 
+ 	  
+ 	  $('#moneySide').combobox({
+ 	 	    value:'--请选择--',   
+ 	 	    valueField:'saCustId',    
+ 	 	    textField:'companyName',    
+ 	 	    url:'organizationController/getMoneySide',
+ 	 	    required:true,
+ 	        editable:false//不可编辑，只能选择
+ 	  });
+	
+    $('#upCharge').dialog({    
+  	  width:180,    
+  	  height:110,
+  	  closed:true,
+  	  draggable: false,
+  	  border : false,
+  	  title: '修改',
+  	});
+
+	win=$('#w').window({
+        title: '新增组织',
+        width:'660',
+    	height:'630',
+        closed:true,
+        onClose: function () { 
+			$('#itemsdg').datagrid('loadData', { total: 0, rows: [] });
+            $('#form1').form('clear');
+        }
+    });
+	
+	form = win.find('form1');
+	var toolbar = [];
+	if(verification('organization','add')){
+		toolbar.push({
+            id: 'btnadd',
+            text: '新增',
+            iconCls: 'icon-add',
+            handler: function () {
+            	  $('#parentOrgName').combobox({
+          	        valueField:'orgId', 
+          	        textField:'orgName',
+          	        url:'organizationController/getParentOrgName',
+          	        required:true,
+          	        editable:false,//不可编辑，只能选择
+          	        value:'--请选择--'
+          	       
+          	     }); 
+            	  $('#moneySide').combobox({
+            	 	    value:'--请选择--',    
+            	 	    valueField:'saCustId',    
+            	 	    textField:'companyName',    
+            	 	    url:'organizationController/getMoneySide',
+            	 	    required:true,
+            	        editable:false//不可编辑，只能选择
+            	  });
+            	  $('#province').combobox({
+            	        valueField:'provinceId', //值字段
+            	        textField:'provinceName', //显示的字段
+            	        url:'areaController/getAllProvinceAll',
+            	        value:'--请选择--',
+            	        editable:false,//不可编辑，只能选择
+            	        width:'100',
+            	        onSelect:function(){
+            	        	var province = $(this).combobox('getValue');
+            	            $('#city').combobox({
+            	            valueField:'cityId', 
+            	            textField:'cityName',
+            	            url:'areaController/getCityByProvinceIdAll?provinceId='+province,
+            	            required:true,
+            	            editable:false//不可编辑，只能选择
+            	          }); 
+            	        },
+            	     });
+            		$('#city').combobox({
+            	        editable:false,
+            	        width:'100',
+            	        value:'请先选择省份',
+            	       	onSelect:function(){
+            	        	var city = $(this).combobox('getValue');
+            	            $('#area').combobox({
+            	            valueField:'areaId', 
+            	            textField:'areaName',
+            	            url:'areaController/getAreaByCityIdAll?cityId='+city,
+            	            required:true,
+            	            editable:false//不可编辑，只能选择
+            	           });
+            	       	},
+            	     	onLoadSuccess:function(){
+            	       		$('#area').combobox({
+            			 		width:'100',
+            			 		editable:false,
+            	       			value:'请先选择城市',
+            	       			
+            				});
+            	    	}
+            	     });
+            		$('#area').combobox({
+            		 		width:'100',
+            		 		editable:false,
+            		 		value:'请先选择城市',
+            	        	onSelect:function(){
+            	        	var areaId = $(this).combobox('getValue');
+            	        }
+            			});
+            	$('#w').dialog('open');
+            	$('#itemsdg').datagrid({
+        	        width: "100%", 
+        	    	height: 130,
+        	        nowrap: true,
+        	        url: '',
+        	        autoRowHeight: false,
+        	        striped: true,
+        	        collapsible: true,
+        	        remoteSort: false,
+        	        rownumbers:true,
+        	        checkOnSelect: true,
+        	        frozenColumns: [[
+        	            { field: 'ck', checkbox: true ,width:100},
+        	        ]],
+        	        columns: [[
+        	              {field:'areaName',title:'区域',width:380},
+        	              {field:'areaId',title:'区域Id',width:100}
+        	              
+        	        ]],
+        	        pagination: false
+        	   });
+            	$('#form').form('clear');
+            }
+		});
+	}
+	
+	if(verification('organization','update')){
+		toolbar.push({
+
+            id: 'btnedit',
+            text: '编辑',
+            iconCls: 'icon-edit',
+            handler: function () {
+            	$('#form').form('clear');
+            	var rows = $('#dg').datagrid('getSelections');
+            	if(rows.length>1 || rows.length==0){
+            		$.messager.alert('提示','请先选择一行!','info');
+            		return;
+            	}
+            	
+                for (var i = 0; i < rows.length; i++) {
+                	orgId =rows[i].orgId;
+                    $("#parentOrgName").combobox('setValue',rows[i].parentOrgId)
+                    $("#moneySide").combobox('setValue',rows[i].paymentCardId)
+     	            $("#orgName").textbox('setValue',rows[i].orgName)
+     	        	$("#employee").textbox('setValue',rows[i].employee)
+     	        	$('#tel').textbox('setValue',rows[i].tel);
+     	        	$('#address').textbox('setValue',rows[i].address);
+     	        	$('#description').textbox('setValue',rows[i].description);
+     	        	$('#orgId').val(orgId);
+                }
+                
+            	$('#employee').textbox('textbox').css('background','#EBEBE4');
+            	$('#tel').textbox('textbox').css('background','#EBEBE4');
+            	$('#moneySide').combogrid('textbox').css('background','#EBEBE4');
+                $('#employee').textbox('textbox').attr('readonly',true); 
+            	$('#tel').textbox('textbox').attr('readonly',true); 
+            	
+            	 $('#moneySide').combogrid('disable');
+            	 $('#itemsdg').datagrid({
+                    	        width: "100%", 
+                    	    	height: 130,
+                    	        nowrap: true,
+                    	        autoRowHeight: false,
+                    	        striped: true,
+                    	        collapsible: true,
+                    	        remoteSort: false,
+                    	        rownumbers:true,
+                    	        checkOnSelect: true,
+                    	        url: 'organizationController/getOrgAreaById?orgId='+orgId,
+                    	        frozenColumns: [[
+                    	            { field: 'ck', checkbox: true ,width:100},
+                    	        ]],
+                    	        columns: [[
+                    	              {field:'areaName',title:'区域',width:380},
+                    	              {field:'areaId',title:'区域Id',width:150}
+                    	              
+                    	        ]],
+                    	        pagination: false
+                });        		       
+             $('#w').dialog('open').dialog('setTitle','修改'); 
+            }
+		});
+	}
+	
+	if(verification('organization','delete')){
+		toolbar.push({
+
+            id: 'btndelete',
+            text: '删除',
+            iconCls: 'icon-cancel',
+            handler: function () {
+                var ids = getSelections();
+                if (ids == "") {
+                	$.messager.alert('提示','请至少选择一项！','info');
+                    return;
+                }
+                var rows = $('#dg').datagrid('getSelections');
+                if (rows.length>0) {
+                	$.messager.confirm('提示', '您已选择'+rows.length+'条数据，是否删除？', function(r){
+                		if (r){
+                			var orgId;
+                            for (var i = 0; i < rows.length; i++) {
+                            	orgId =rows[i].orgId;
+                            }
+                            
+                            $.ajax({
+                                url: 'organizationController/deleteOrg?orgId='+orgId,
+                                data: { data: ids },
+                                type: "post",
+                                success: function (result) {
+                                	if (result.msgCode =='Y') {
+                                		$.messager.alert('提示','操作成功!','info');
+                        				$('#dg').treegrid('reload'); 
+                                	} else if(result.msgCode =='N'){
+                        				$.messager.alert('提示',result.msg,'error');
+                        			}
+                                },
+                                error: function (jqXHR, textStatus, errorThrown) {
+                                	$.messager.show({
+                        				title: 'Error',
+                        				msg: jqXHR.responseText
+                        			});
+                                }
+                            }); 
+                		}else {
+							return;
+						}
+                	});
+				}
+            }
+		});
+	}
+	
+	var tableH = Math.max(document.documentElement.scrollHeight,document.body.scrollHeight)-($('#dg').offset().top+30);
+    $('#dg').treegrid({
+        iconCls: 'icon-save',
+        width: "100%",
+    	height: tableH,
+    	fitColumns:true,
+        nowrap: true,
+        autoRowHeight: false,
+        striped: true,
+        collapsible: true,
+        url: 'organizationController/getOrganization',
+        remoteSort: false,
+        rownumbers:true,
+        idField: "orgId",
+        treeField:'orgName',
+        frozenColumns: [[
+            { field: 'ck', checkbox: true },
+        ]],
+        columns: [[
+        	 { field: 'orgName',title:'组织',width:180,align:'left'},  
+        	 { field: 'orgId', title: '组织Id',align:'center',hidden:true},
+             { field: 'employee', title: '负责人', width: 80,align:'left'},
+             { field: 'tel', title: '联系电话', width: 100 ,align:'center'},
+             { field: 'address', title: '地址', width: 150,align:'left'},
+             { field: 'description', title: '描述', width: 100,align:'left'},
+             { field: 'createTime', title: '创建时间',width:100 ,align:'center'},
+             { field: 'createUser', title: '创建人ID', width: 80,hidden:true},
+             { field: 'createUserName', title: '创建人', width: 80 ,align:'left'},
+             { field: 'updateTime', title: '修改时间',width:100 ,align:'center'},
+             { field: 'updateUser', title: '修改人ID', width: 80,hidden:true },
+             { field: 'updateUserName', title: '修改人', width: 80 ,align:'left'}
+        ]],
+        toolbar: toolbar
+    });
+
+});
+
+//获取多个选中行
+function getSelections() {
+    var ids = [];
+    var rows = $('#dg').datagrid('getSelections');
+    for (var i = 0; i < rows.length; i++) {
+        ids.push(rows[i].orgId);
+    }
+    return ids.join(',');
+}
+
+function addArea(){
+	var province = $('#province').combobox('getValue');
+	var city = $('#city').combobox('getValue');
+	var area = $('#area').combobox('getValue');	
+	var areaId;
+	if(city == "--请选择--" || city == "请先选择省份" ||  city == ""){
+		$.messager.alert('提示','操作失败!添加组织必须到市级','error');
+		return;
+	}
+	if (province == "--请选择--" || province == "") {
+		province = "isEmpty";
+	} else {
+		areaId = province;
+	}
+	if (city != "--请选择--" && city != "请先选择省份" && city != "") {
+		areaId = city;
+	}
+	if (area != "--请选择--" && area != "请先选择城市" && area != "") {
+		areaId = area;
+	}
+	
+	var rows=$('#itemsdg').datagrid('getRows');
+	for(i=0;i<rows.length;i++){
+		if(rows[i].areaId==areaId||rows[i].areaId==areaId.substring(0,2)||rows[i].areaId==areaId.substring(0,4)){
+			$.messager.alert('提示','操作失败!该区域已添加','error');
+			return;
+		}
+	}	
+	
+	var province = $('#province').combobox('getText');
+	var city = $('#city').combobox('getText');
+	var area = $('#area').combobox('getText');	
+	var areaName="";
+	if (province != "--请选择--" && province != "") {
+		areaName +=province ;
+	} 
+	if (city != "--请选择--" && city != "请先选择省份" && city != "") {
+		areaName +=city;
+	}
+	if (area != "--请选择--" && area != "请先选择城市" && area != "") {
+		areaName +=area;
+	}
+
+	$('#itemsdg').datagrid('appendRow',{
+		areaName: areaName,
+		areaId: areaId
+	});
+}
+
+function saveMark(){
+	var orgName=$('#orgName').textbox("getValue");
+	if(orgName==null || orgName==""){
+		$.messager.alert('提示','操作失败!请填写组织名称','error');
+		return;
+	}  
+	var moneySide=$('#moneySide').combobox("getValue");
+	if(moneySide==null || moneySide==""||moneySide=="--请选择--"){
+		$.messager.alert('提示','操作失败!请选择资金方！','error');
+		return;
+	}
+	var employee=$('#employee').textbox("getValue");
+	if(employee==null || employee==""){
+		$.messager.alert('提示','操作失败!请选择负责人','error');
+		return;
+	}
+	var tel=$('#tel').textbox("getValue");
+	if(tel==null || tel==""){
+		$.messager.alert('提示','操作失败!请选择联系电话','error');
+		return;
+	}
+	var address=$('#address').textbox("getValue");
+	if(address==null || address==""){
+		$.messager.alert('提示','操作失败!请选择联系地址','error');
+		return;
+	}
+	var description=$('#description').textbox("getValue");
+	var parentOrgId=$('#parentOrgName').combobox("getValue");
+	
+	
+	var json=getJsonDate();
+	/* $('#form').form('submit',{
+		url:'organizationController/saveOrganization' ,
+		onSubmit: function(){
+		},
+		queryParams:{
+			data:json,
+			moneySide:moneySide,
+			orgName:orgName,
+			employee:employee,
+			tel:tel,
+			address:address,
+			description:description,
+			parentOrgId:parentOrgId,
+			orgId:orgId
+		},
+		success: function(result){
+			$('#saveButton').linkbutton('enable');
+			var result = eval('('+result+')');
+			if (result.msgCode =='Y'){
+				$.messager.alert('提示','操作成功!','info');
+				$('#form').form('clear');
+				$('#dg').treegrid('reload'); 
+				$('#saveButton').linkbutton('enable');
+				$('#w').dialog('close');	
+			} else {
+				$.messager.alert('提示',result.msg,'error');
+			}
+		}
+	});  */
+	var orgId =$('#orgId').val();
+	if(orgId == "" || orgId == null){
+		orgId = "isnull";
+	}
+	if(orgId != "isnull"){
+		$.ajax({
+			url : 'organizationController/updateOrganization',
+			type : "post",
+			data : {
+				data:json,
+				moneySide:moneySide,
+				orgName:orgName,
+				employee:employee,
+				tel:tel,
+				address:address,
+				description:description,
+				parentOrgId:parentOrgId,
+				orgId:orgId
+			},
+			dataType : "json",
+			success: function(result){
+				$('#saveButton').linkbutton('enable');
+				if (result.msgCode =='Y'){
+					$.messager.alert('提示','操作成功!','info');
+					$('#form').form('clear');
+					$('#dg').treegrid('reload'); 
+					$('#saveButton').linkbutton('enable');
+					$('#w').dialog('close');	
+				} else {
+					$.messager.alert('提示',result.msg,'error');
+				}
+			}
+		});
+	}else{
+		$.ajax({
+			url : 'organizationController/saveOrganization',
+			type : "post",
+			data : {
+				data:json,
+				moneySide:moneySide,
+				orgName:orgName,
+				employee:employee,
+				tel:tel,
+				address:address,
+				description:description,
+				parentOrgId:parentOrgId,
+				orgId:orgId
+			},
+			dataType : "json",
+			success: function(result){
+				$('#saveButton').linkbutton('enable');
+				if (result.msgCode =='Y'){
+					$.messager.alert('提示','操作成功!','info');
+					$('#form').form('clear');
+					$('#dg').treegrid('reload'); 
+					$('#saveButton').linkbutton('enable');
+					$('#w').dialog('close');	
+				} else {
+					$.messager.alert('提示',result.msg,'error');
+				}
+			}
+		});
+	}
+	
+}
+
+//构造json数据传送到服务器  
+function getJsonDate(){
+    var rowsData = $('#itemsdg').datagrid('getRows');  
+	var json = [];  
+	var loc;  	
+	 $.each(rowsData, function (i) {  
+	     loc= { 
+			     "areaId": rowsData[i].areaId 
+	     };  	 
+	     json.push(loc);  
+	     });  
+	     json = JSON.stringify(json); //转换成json数据  
+	    return json;
+}
+
+ function deleteArea(){
+	var rows = $('#itemsdg').datagrid('getSelections');
+	for (var i = rows.length - 1; i >= 0; i--) {  
+	    var index = $('#itemsdg').datagrid('getRowIndex',rows[i]); 
+	    var areaId =rows[i]['areaId'];
+	    //判断该区域是否有用户
+	    $.ajax({
+            url: 'organizationController/getDeleteAreaId',
+            data: { areaId:areaId,
+            	    orgId:orgId
+            	},
+            type: "post",
+            success: function (result) {
+            	console.log(result);
+            	if (result.msgCode =='Y') {
+            		$.messager.alert('提示','操作成功!','info');
+            		 $('#itemsdg').datagrid('deleteRow', index);
+            	} else if(result.msgCode =='N'){
+    				$.messager.alert('提示','该区域下有用户，不能删除！','error');
+    			}
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+            	$.messager.show({
+    				title: 'Error',
+    				msg: jqXHR.responseText
+    			});
+            }
+        }); 
+	} 
+	//清除所有选择的行。
+	$('#itemsdg').datagrid('clearSelections');
+} 
+
+</script>
+</head>
+<body>
+<div>
+   <div id="tb" style="padding: 3px; margin-left: auto; margin-right: auto">
+		<form method="post" id="form">
+			<span>组织：</span>
+			<input type="text" class="easyui-textbox" id="transferNo"  name = "transferNo"   style="width: 140px">
+			&nbsp;&nbsp;
+			<a onclick="doSearch()" class="easyui-linkbutton" data-options="iconCls:'icon-search'" style="padding-left: 5px;padding-right: 5px">查询</a>
+		    <a class="easyui-linkbutton" data-options="iconCls:'icon-clear'" style="padding-left: 5px; padding-right: 5px" onclick="$('#form').form('clear');">清空</a>  
+		</form>				
+	</div>  
+	<div style="margin-top:10px;">
+		<table id="dg" style="align:center"> 
+		</table> 
+	</div>
+	<div id="w"  style="margin:0 auto;">
+		<form  method="post" id="form1">
+		<input type="hidden" id="orgId" name="orgId" value="">
+		<div style="margin: 0px auto;" align="center">
+			 <div style="margin:0 auto;width:500px;line-height: 40px;">
+				  <div class="inputArea3">
+				    <label>父组织</label>：<input id="parentOrgName" name="parentOrgName" type="text"  class="easyui-textbox" /> <font color="red" style="opacity:0;">*</font>
+				  </div>
+				  <div class="inputArea3">
+				    <label>组织名称</label>：<input id="orgName" name="orgName" type="text"  class="easyui-textbox" data-options="required:true" />
+						<font color="red">*</font>
+				  </div>
+				  <div class="inputArea3">
+				    <label>资金方</label>：<input id="moneySide" name="moneySide" type="text" data-options="required:true" />
+						<font color="red">*</font>
+				  </div>
+				  <div class="inputArea3">
+				    <label>负责人</label>：<input id="employee" type="text" name="employee" class="easyui-textbox" data-options="required:true" />
+					<font color="red">*</font>
+				  </div>
+				  <div class="inputArea3">
+				    <label>联系电话</label>：<input id="tel" name="tel"  class="easyui-textbox" data-options="required:true" >
+						<font color="red">*</font>
+				  </div>
+				  <div class="inputArea3">
+				    <label>联系地址</label>：<input id="address" type="text" name="address" class="easyui-textbox" data-options="required:true" />
+					   <font color="red">*</font>
+				  </div>
+				  <div class="inputArea3">
+				    <label>描述</label>：<input id="description" name="description" class="easyui-textbox" data-options="multiline:true"/> <font color="red" style="opacity:0;">*</font>
+				  </div>
+			  </div> 
+			  
+			  <fieldset style="margin:20px auto 0;width:600px">
+			  <legend >负责区域</legend> 
+			  	  <div class="inputArea">
+				    <label>省</label>： <input id="province" name="province" >
+				    <label>市</label>： <input id="city" name="city">
+				    <label>区</label>： <input id="area" name="area">
+				  </div>
+  		     <div>
+  		     <table style="margin-top: 20px;width:200px" class="trans">
+				  <tr>
+						<td><a class="easyui-linkbutton" onclick="addArea();">新增区域</a></td>
+						<td><a class="easyui-linkbutton" onclick="deleteArea();">删除区域</a></td>
+				  </tr>
+			</table>
+			<div  id="itemsdgDiv" style="margin-top: 5px" align="center">
+	  			<table id="itemsdg"></table> 
+	  		</div>						
+  		    </div>
+			</fieldset> 
+			
+			<div align="center">
+				<a class="easyui-linkbutton window-submitBtn" id ="saveButton"  onclick="saveMark()">提交</a>
+			</div>
+		</div>
+	</form>
+	</div>
+	</div> 
+	<div id="upCharge" align="center">
+		<input type="hidden" id="grid">
+		<input id="updateCharge"><br>
+		<a id="btn2"  class="easyui-linkbutton" data-options="iconCls:'icon-save'" onclick="submitUpdateCharge();" >确定</a>
+	</div> 
+    <script type="text/javascript">
+     
+        function doSearch() {
+        	$('#dg').datagrid('clearSelections');
+            $('#dg').datagrid('load',{
+            	code: $("#code_cond").val(),
+            	name: $("#name_cond").val(),
+            	type: $('#type_cond').combobox('getValue')
+            });
+        }
+        function onKeyEnter(e) {
+        	doSearch();
+        }
+        function ChargeArea(gid,gName){
+        	var groupN = encodeURI(encodeURI(gName));
+        	$('#dd').html('<iframe src="ChargeArea?gId='+gid+'&gName='+groupN+'" style="width:100%;height:97%;"frameborder="0"></iframe>');
+            $('#dd').window('open');
+        } 
+    </script>
+</body>
+</html>

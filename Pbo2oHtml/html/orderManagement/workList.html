@@ -1,0 +1,390 @@
+
+<!DOCTYPE HTML>
+<html>
+<head>
+<base href="<%=basePath%>">
+<link rel="stylesheet" type="text/css" href="../../themes/default/easyui.css">
+<link rel="stylesheet" type="text/css" href="../../themes/icon.css">
+<link rel="stylesheet" type="text/css" href="../../themes/demo.css">
+<script type="text/javascript" src="../../js/jquery.min.js"></script>
+<script type="text/javascript" src="../../js/jquery.easyui.min.js"></script>
+<script type="text/javascript" src="../../js/locale/easyui-lang-zh_CN.js"></script>
+<script type="text/javascript" src="../global.js"></script>
+<script type="text/javascript">
+var hig=0;
+var url;
+/*这是注释*/
+$(function () {		
+	$('#province').combobox({
+        valueField:'provinceId', //值字段
+        textField:'provinceName', //显示的字段
+        url:'areaController/getAllProvince',
+        value:'--请选择--',
+        editable:false,//不可编辑，只能选择
+        width:'100',
+        onSelect:function(){
+        	var province = $(this).combobox('getValue');
+            $('#city').combobox({
+            valueField:'cityId', 
+            textField:'cityName',
+            url:'areaController/getCityByProvinceId?provinceId='+province,
+            required:true,
+            editable:false//不可编辑，只能选择
+          }); 
+        },
+     });
+	$('#city').combobox({
+        editable:false,
+        width:'100',
+        value:'请先选择省份',
+       	onSelect:function(){
+        	var city = $(this).combobox('getValue');
+            $('#area').combobox({
+            valueField:'areaId', 
+            textField:'areaName',
+            url:'areaController/getAreaByCityId?cityId='+city,
+            required:true,
+            editable:false//不可编辑，只能选择
+           });
+       	},
+     	onLoadSuccess:function(){
+       		$('#area').combobox({
+		 		width:'100',
+		 		editable:false,
+       			value:'请先选择城市',
+       			
+			});
+    	}
+     });
+	$('#area').combobox({
+	 		width:'100',
+	 		editable:false,
+	 		value:'请先选择城市',
+        	onSelect:function(){
+        	var areaId = $(this).combobox('getValue');
+        }
+	});
+	$('#start').datebox({    
+	    width:'100px',
+	    onSelect:function(start){
+	    	var now = new Date();
+	    	if(start > now){
+	    		$.messager.alert('提示','操作失败!日期不能超过当前时间','error');
+	    		$('#start').datebox('setValue','');
+	    	}
+ 		}
+	});
+	$('#end').datebox({    
+	    width:'100px',
+	    onSelect:function(date){
+	    	var start = $('#start').datebox('getValue');
+	    	var end = $('#end').datebox('getValue');
+	    	if(start>end){
+	    		$.messager.alert('提示','操作失败!起始时间不能晚于结束时间','error');
+	    		$('#end').datebox('setValue','');
+	    	}
+ 		}
+	});
+	
+	$('#sendType').combobox({
+ 		width:'100',
+        valueField:'value', //值字段
+        textField:'label', //显示的字段
+        editable:false,//不可编辑，只能选择
+        value:'--请选择--',
+        data: [{
+			label: '限时单',
+			value: '1'
+		},{
+			label: '非限时单',
+			value: '0'
+		}]
+     });
+	$('#sendState').combobox({
+ 		width:'100',
+        valueField:'value', //值字段
+        textField:'label', //显示的字段
+        editable:false,//不可编辑，只能选择
+        value:'--请选择--',
+        data: [{
+			label: '已派单',
+			value: '10'
+		},{
+			label: '已回收',
+			value: '20'
+		},{
+			label: '已作废',
+			value: '99'
+		}]
+     });
+	
+	var tableH = Math.max(document.documentElement.scrollHeight,document.body.scrollHeight)-($('#dg').offset().top+30);
+    $('#dg').datagrid({
+        iconCls: 'icon-save',
+        width: "100%",
+    	height: tableH,
+        nowrap: true,
+        onDblClickRow:function(index, field, value){ 
+        	if(0==hig){
+        		hig=tableH/2
+        	}
+  			check(index);
+  		},
+        autoRowHeight: false,
+        striped: true,
+        collapsible: true,
+        url: 'sendOrderDetials/searchWorkList',  	    
+        remoteSort: false,
+        rownumbers:true,
+    	singleSelect:true,
+    	idField: "workOrderId",
+        columns: [[
+        	 {field:'workOrderId',title:'ID',width:100,align:'center',hidden:true},    
+             {field:'workOrderNo',title:'工单号',width:220,align:'center'},   
+             {field:'areaName',title:'区域名',width:150,align:'center'},
+             {field:'workOrderDate',title:'工单日',width:150,align:'center'}, 
+             {field:'predictRecyclesDay',title:'指定回收日',width:150,align:'center'}, 
+             {field:'isRequired',title:'是否限时单',width:80,align:'center'}, 
+             {field:'areaId',title:'区域ID',width:100,align:'center'},
+             {field:'status',title:'状态',width:100,align:'center'},
+             {field:'createTime',title:'创建时间',width:150,align:'center'},
+             {field:'createUserName',title:'创建人',width:100,align:'center'},
+             {field:'createUser',title:'创建人ID',width:100,align:'center',hidden:true},            
+             {field:'updateUser',title:'修改人ID',width:100,align:'center',hidden:true},
+             {field:'sendCustNum',title:'共派单客户数',width:100,align:'center'},
+             {field:'completeCustNum',title:'已完成客户数',width:100,align:'center'},
+             {field:'completeRate',title:'完成比率(%)',width:100,align:'center'},
+         	 {field : 'operational',title : '操作',width : 100,
+					formatter : function(value, row,index) {
+						if(row.status!='已作废'){
+                                return (verification("dispatchDetails","deteleDispatch")?  '<a href="javascript:deleteWorkOrder(\''+index+'\');">作废</a>':'');
+						}
+                  }
+              },
+              {field:'updateTime',title:'更改时间',width:150,align:'center'},
+              {field:'updateUserName',title:'更改人',width:100,align:'center'}
+        ]],
+        pagination : true,
+    	pageSize : 40, 
+    	pageList : [ 40, 80, 120] 
+    });
+
+});
+
+
+function deleteWorkOrder(index) {
+	
+		var row = $('#dg').datagrid("getRows")[index];
+		var workOrderNo = row.workOrderNo;
+		var status =row.Status;
+		if(status=="已作废"){
+			$.messager.alert('提示',"此订单已作废！",'info');
+			return;
+		}
+		$.messager.confirm('确认','您确认作废此派单吗？',function(r){    
+		    if (r){    
+				$.ajax({
+			        url: "sendOrderDetials/deleteWorkOrder",
+			        data: { 
+			        	workOrderNo : workOrderNo
+			        },
+			        type: "post",
+			        success: function (text) {
+			        	if (text.success == "Y") {
+							$.messager.alert('提示',"此派单作废成功！",'info',function () {
+								$('#dg').datagrid('reload');    // 重新载入当前页面数据  
+					        });
+						}else{
+							$.messager.alert('提示',text.errorMsg,'info');
+						}
+			        },
+			        error: function (jqXHR, textStatus, errorThrown) {
+			        	$.messager.show({
+							title: 'Error',
+							msg: jqXHR.responseText
+						});
+			        }
+			    }); 
+		    }    
+		}); 
+	}
+
+
+//作废详情
+function deleteWorkDetailOrder(index){
+	var row = $('#bankInfo').datagrid("getRows")[index];
+	var workOrderDetailId = row.workOrderDetailId;
+	var workOrderNo = row.workOrderNo;
+	var status =row.Status;
+	if(status=="已作废"){
+		$.messager.alert('提示',"此详情已作废！",'info');
+		return;
+	}
+	$.messager.confirm('确认','您确认作废此详情吗？',function(r){    
+	    if (r){    
+			$.ajax({
+		        url: "sendOrderDetials/deleteWorkDetail",
+		        data: { 
+		        	workOrderDetailId : workOrderDetailId,
+		        	workOrderNo:workOrderNo
+		        },
+		        type: "post",
+		        success: function (text) {
+		        	if (text.success == "Y") {
+						$.messager.alert('提示',"此详情作废成功！",'info',function () {
+							$('#bankInfo').datagrid('reload');    // 重新载入当前页面数据  
+							$('#dg').datagrid('reload');    // 重新载入当前页面数据  
+				        });
+					}else{
+						$.messager.alert('提示',text.errorMsg,'info');
+					}
+		        },
+		        error: function (jqXHR, textStatus, errorThrown) {
+		        	$.messager.show({
+						title: 'Error',
+						msg: jqXHR.responseText
+					});
+		        }
+		    }); 
+	    }    
+	}); 
+}
+
+function check(index){
+	$('#dg').datagrid('resize',{
+        height: hig,
+	});
+	$('#tt').panel('open');
+	$('#tt').tabs({
+        width: "100%",
+		height:hig,
+	    border:false,   
+	    onSelect:function(title){     
+	    }   
+	});
+	
+	$('#bankInfo').datagrid({
+	    iconCls: 'icon-save',
+	    width: "100%",
+		height: hig-50,
+		//fitColumns:true,
+	    url: 'sendOrderDetials/searchWorkDetailList?workOrderNo='+$('#dg').datagrid("getRows")[index].workOrderNo,
+	    nowrap: true,
+	    autoRowHeight: false,
+	    striped: true,
+	    collapsible: true,
+	    remoteSort: false,
+	    rownumbers:true,
+	    checkOnSelect: true,
+	    idField: "workOrderDetailId",
+	    columns: [[
+	    	 {field:'workOrderDetailId',title:'ID',align:'center',hidden:true},
+	         {field:'workOrderNo',title:'工单号',width:200,align:'center',hidden:true},
+	         {field:'custName',title:'客户名',width:80,align:'center'},
+	         {field:'shopName',title:'店铺名',width:150,align:'center'},
+	         {field:'custAddress',title:'店铺地址',width:180},
+	         {field:'custPhone',title:'客户号码',width:140,align:'center'},
+	         {field:'custId',title:'客户ID',width:120,align:'center',hidden:true},
+	         {field:'custOrderDate',title:'客户下单日',width:150,align:'center'},
+	         {field:'recyclesDay',title:'实际回收日',width:150,align:'center'},
+	         {field:'status',title:'状态',width:100,align:'center'},              
+	         {field:'createTime',title:'创建时间',width:150,align:'center'},
+	         {field:'createUser',title:'创建人ID',width:100,hidden:true},
+	         {field:'createUserName',title:'创建人',width:100},
+	         {field:'updateTime',title:'更改时间',width:150,align:'center'},
+	         {field:'updateUser',title:'修改人ID',width:100,hidden:true},
+	         {field:'updateUserName',title:'修改人',width:80},
+	         {field:'orderReceivingTime',title:'接单时间',width:150,align:'center'},
+	         {field:'orderReceivingUserName',title:'接单人',width:80},
+	         {field : 'operational',title : '操作',width : 100,
+				formatter : function(value, row,index) {
+					if(row.status!='已回收'&&row.status!='已作废'){
+				         return (verification("dispatchDetails","deteleDispatchDetials")? '<a href="javascript:deleteWorkDetailOrder(\''+index+'\');">作废</a>':"");
+					}
+	           }
+	       	},
+	    ]],
+	    pagination: false
+	});
+}
+function doSearch() {
+	var province = $('#province').combobox('getValue');
+	var city = $('#city').combobox('getValue');
+	var area = $('#area').combobox('getValue');
+	var sendType = $('#sendType').combobox('getValue');
+	var sendState = $('#sendState').combobox('getValue');	
+	var start = $('#start').datebox('getValue');
+	var end = $('#end').datebox('getValue');
+	var createUser= $('#createUser').textbox('getValue');
+	
+	var areaId;
+	if (province == "--请选择--" || province == "") {
+		province = "isEmpty";
+	} else {
+		areaId = province;
+	}
+	if (city != "--请选择--" && city != "请先选择省份" && city != "") {
+		areaId = city;
+	}
+	
+	if (sendType != "--请选择--" &&  sendType != "") {
+		sendType = sendType;
+	}else{
+		sendType ="isEmpty";
+	}
+	if (sendState != "--请选择--" &&  sendState != "") {
+		sendState = sendState;
+	}else{
+		sendState ="isEmpty";
+	}
+	
+	if (area != "--请选择--" && area != "请先选择城市" && area != "") {
+		areaId = area;
+	}
+	
+	$('#dg').datagrid({
+		url : 'sendOrderDetials/searchWorkList',
+		queryParams : {
+			areaId : areaId,
+			start : start,
+			end : end,
+			sendType:sendType,
+			sendState:sendState,
+			createUser:createUser
+		}
+	});
+}
+	
+
+</script>
+<title>客户帐号</title>
+</head>
+<body>
+	<div id="tb" style="padding: 3px; margin-left: auto; margin-right: auto">
+		<form method="post" id="form">
+			 <div class="inputArea1">
+			  	<label>省份</label>：<input id="province" name="province" >
+			  	<label>城市</label>：<input id="city" name="city">
+			  	<label>区域 </label>：<input id="area" name="area">
+			  	<label>派单类型</label>：<input type="text" class="easyui-textbox" id="sendType"  name = "sendType">
+			  </div>
+			  <div class="inputArea1">
+			  	<label>派单状态</label>：<input type="text" class="easyui-textbox" id="sendState"  name = "sendState">
+			  	<label>创建人</label>：<input type="text" class="easyui-textbox" id="createUser"  name = "createUser">
+			  	<label>创建时间</label>：<input id="start" type="text"></input>
+			  	<label style="text-align:center;text-align-last:center;margin-right:14px;">至</label><input id="end" type="text"></input>
+			  	<a onclick="doSearch()" class="easyui-linkbutton" data-options="iconCls:'icon-search'" style="padding-left: 5px;padding-right: 5px">查询</a>
+			    <a class="easyui-linkbutton" data-options="iconCls:'icon-clear'" style="padding-left: 5px; padding-right: 5px" onclick="$('#form').form('clear');">清空</a> 
+			  </div>  
+		</form>				
+	</div>
+	<table id="dg" style="align: center"></table>
+	
+	<div id="tt" class="easyui-panel" style="margin-top:5px;margin-left:0px;"closed='true'>  
+	    <div title="派单详情页面">  
+	        <table id=bankInfo ></table> 
+	    </div> 
+	</div>
+
+</body>
+</html>

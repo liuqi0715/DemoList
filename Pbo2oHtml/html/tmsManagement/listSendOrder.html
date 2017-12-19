@@ -1,0 +1,1504 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<link rel="stylesheet" type="text/css" href="../../themes/default/easyui.css">
+	<link rel="stylesheet" type="text/css" href="../../themes/icon.css">
+	<link rel="stylesheet" type="text/css" href="../../themes/demo.css">
+	<script type="text/javascript" src="../../js/jquery.min.js"></script>
+	<script type="text/javascript" src="../../js/jquery.easyui.min.js"></script>
+	<script type="text/javascript" src="../../js/locale/easyui-lang-zh_CN.js"></script>
+	<script type="text/javascript" src="../../js/datagrid-detailview.js"></script>
+	<script type="text/javascript" src="../global.js"></script>
+	<script type="text/javascript">
+		var url;
+		var num = 0;
+		var hig = 0,tableH = 0;
+		var comboboxWidth = 0;
+		$(function () {
+			setTimeout(function(){
+				$('body').css("overflow","hidden");
+			},100);
+			tableH = $(window).height()-($('#dg').offset().top+20);	
+			if (comboboxWidth == 0) {
+				comboboxWidth = document.body.scrollWidth * 0.08;
+			}
+			$('#province').combobox({
+				valueField: 'provinceId', //值字段
+				textField: 'provinceName', //显示的字段
+				url: 'areaController/getAllProvince',
+				editable: false,//不可编辑，只能选择
+				value: '--请选择--',
+				onSelect: function () {
+					/* push(); */
+					var province = $(this).combobox('getValue');
+					$('#city').combobox({
+						valueField: 'cityId',
+						textField: 'cityName',
+						url: 'areaController/getCityByProvinceId?provinceId=' + province,
+						required: true,
+						editable: false,//不可编辑，只能选择
+						value: '--请选择--'
+					});
+					 $('#dg').datagrid('loadData', { total: 0, rows: [] }); 
+				},
+			});
+			$('#city').combobox({
+				editable: false,
+				value: '请先选择省份',
+				onSelect: function () {
+					var city = $(this).combobox('getValue');
+					$('#area').combobox({
+						valueField: 'areaId',
+						textField: 'areaName',
+						url: 'areaController/getAreaByCityId?cityId=' + city,
+						required: true,
+						editable: false,//不可编辑，只能选择
+						value: '--请选择--'
+					});
+					 $('#dg').datagrid('loadData', { total: 0, rows: [] }); 
+				},
+				onLoadSuccess: function () {
+					$('#area').combobox({
+						editable: false,
+						value: '请先选择城市',
+
+					});
+				}
+			});
+			$('#area').combobox({
+				editable: false,
+				value: '请先选择城市',
+				onSelect: function () {
+					/* push(); */
+					var areaId = $(this).combobox('getValue');
+					$('#street').combobox({
+						valueField: 'stId',
+						textField: 'stName',
+						url: 'areaController/getStreetByArea?areaId=' + areaId,
+						required: true,
+						editable: false,//不可编辑，只能选择
+						value: '--请选择--'
+					});
+					 $('#dg').datagrid('loadData', { total: 0, rows: [] }); 
+				},
+				onLoadSuccess: function () {
+					$('#street').combobox({
+						editable: false,
+						value: '请先选择区/县',
+
+					});
+				}
+			});
+
+			$('#street').combobox({
+				editable: false,
+				value: '请先选择区/县',
+				onSelect: function () {
+					/* push(); */
+					var streetId = $(this).combobox('getValue');
+					$('#country').combobox({
+						valueField: 'countryId',
+						textField: 'countryName',
+						url: 'areaController/getCountryByStreet?streetId=' + streetId,
+						required: true,
+						editable: false,//不可编辑，只能选择
+						value: '--请选择--'
+					});
+					 $('#dg').datagrid('loadData', { total: 0, rows: [] }); 
+				},
+				onLoadSuccess: function () {
+					$('#country').combobox({
+						editable: false,
+						value: '请先选择街道/镇',
+
+					});
+				}
+			});
+
+			$('#country').combobox({
+				editable: false,
+				value: '请先选择街道/镇',
+
+			});
+
+			$('#custLevel').combobox({
+				valueField: 'config_id', //值字段
+				textField: 'config_name', //显示的字段
+				url: 'customer/searchCustLevel',
+				editable: false,//不可编辑，只能选择
+				value: '--请选择--'
+			});
+
+			$('#sendOrderTime').datetimebox({
+				required: false,
+				onShowPanel: function () {
+					$(this).datetimebox("spinner").timespinner("setValue", "20:00:00");
+				},
+				onSelect: function (date) {
+					//var ss=$("#sendOrderTime").datetimebox('spinner').timespinner('getValue');  
+					//var orderTime =$('#sendOrderTime').datetimebox('getValue');
+					var nowTime = new Date();
+					if (date < nowTime) {
+						$.messager.alert('提示', '操作失败!日期不能小于当前时间!', 'error');
+						$('#sendOrderTime').datebox('setValue', '');
+					}
+				}
+			});
+
+			$('#orderState').combobox({
+				valueField: 'stateId', //值字段
+				textField: 'stateName', //显示的字段
+				url: 'declaration/searchAllOrderState',
+				editable: false,//不可编辑，只能选择
+				value: '--请选择--'
+			});
+
+			$('#custType').combobox({
+				valueField: 'custLabelId', //值字段
+				textField: 'custLabelName', //显示的字段
+				url: 'declaration/searchCustType',
+				editable: false,//不可编辑，只能选择
+				value: '--请选择--'
+			});
+
+
+			win = $('#w').window({
+				title: '新增报单',
+				width: 500,
+				height: 300,
+				closed: true
+			});
+			win2 = $('#w2').window({
+				title: '修改报单',
+				width: 500,
+				height: 300,
+				closed: true
+			});
+
+
+			$('#imgWin').dialog({
+				title: '查看图片',
+				width: 700,
+				height: 600,
+				resizable: false,
+				closed: true,
+				minimizable: false,
+				maximizable: false,
+				collapsible: false
+			});
+			$('#smsClient').dialog({
+				title: '查看图片',
+				width: 400,
+				height: 300,
+				resizable: false,
+				closed: true,
+				minimizable: false,
+				maximizable: false,
+				collapsible: false
+			});
+			$('#custOperationWin').dialog({
+				title: '取消订单',
+				width: 250,
+				height: 200,
+				resizable: false,
+				closed: true,
+				minimizable: false,
+				maximizable: false,
+				collapsible: false
+			});
+			win = $('#mark2').window({
+				title: '修改标识',
+				width: 600,
+				height: 400,
+				resizable: false,
+				closed: true,
+				minimizable: false,
+				maximizable: false,
+				collapsible: false
+			});
+			$('#print').window({
+				title: '打印订单',
+				resizable: false,
+				closed: true,
+				minimizable: false,
+				maximizable: false,
+				collapsible: false,
+				maximized: true
+
+			});
+			win = $('#opCustOrder').window({
+				title: '新增订单',
+				width: '1030',
+				height: '400',
+				resizable: true,
+				top: 0,
+				left: 0,
+				closed: true,
+				minimizable: false,
+				maximizable: false,
+				collapsible: false,
+				fit: true,
+				onBeforeClose: function () { //当面板关闭之前触发的事件
+					location.reload();
+				}
+			});
+
+			/* 预付窗口 */
+			win = $('#offline').dialog({
+				title: '预付信息',
+				width: 600,
+				height: 300,
+				closed: true
+			});
+
+
+			sendOrderWin = $('#sendOrderWin').dialog({
+				title: '派单信息',
+				width: 400,
+				height: 200,
+				closed: true
+			});
+
+
+			win1 = $('#confirmWin').dialog({
+				title: '预付信息确认页面',
+				width: 400,
+				height: 300,
+				closed: true,
+				closable: true
+			});
+
+
+			form = win.find('form2');
+
+			$('#dg').datagrid(
+				{
+
+					iconCls: 'icon-save',
+					width: "100%",
+					height: tableH,
+					nowrap: true,
+					fitColumns: true,
+					autoRowHeight: false,
+					striped: true,
+					singleSelect:true,
+					collapsible: true,
+					url: 'listSendOrder/addDec',
+					queryParams: {
+						op : "searchDec",
+						manner : 2,
+						custOrderState:1,
+						isSend:0,
+						start:null,
+						end:null,
+						areaId : null,
+						custType : null,
+						custPhone : null,
+						startWeight : null,
+						custLevel:null,
+						endWeight : null,
+						remove : null,
+						reminderOrder : false,
+						sendOrder : false
+
+					},
+					onDblClickRow: function (index, field, value) {
+
+					},
+					remoteSort: false,
+					singleSelect: false,
+					rownumbers: true,
+					checkOnSelect: false,
+					idField: "custId",
+					frozenColumns: [[{
+						field: 'ck',
+						checkbox: true
+					},]],
+					columns: [[
+						{ field: 'custId', title: '客户id', hidden: true, width: 100,align:'left'},
+						{ field: 'custName', title: '联系人', width: 50,align:'left'},
+						{ field: 'custPhone', title: '联系方式', width: 80,align:'left'},
+						{ field: 'shopName', title: '店名', width: 90,align:'left'},
+						{ field: 'custLabelName', title: '客户类型', width: 60,align:'left'},
+						{ field: 'configName', title: '会员等级', width: 70,align:'left'},
+						{ field: 'custAddress', title: '地址', width: 160,align:'left'},
+						{ field: 'areaName', title: '区域', width: 170,align:'left'},
+						{ field: 'reminderTime', title: '催单时间', width: 120,align:'center'},
+						{ field: 'loginNum', title: '登陆次数', width: 50,align:'right'},
+						{ field: 'sumTotalWeight', title: '总重量', width: 60,align:'right'},
+						{ field: 'isReminder', title: '是否催单', width: 60,
+							formatter: function (value, row, index) {
+								if (value == 2) {
+									return "未催单";
+								}
+								return "<img src='../../images/cuidang.png'  width='22'  height='20'>&nbsp;<a style='position:relative;top:-5px;'>催单</a>";
+							}
+						},
+						{ field: 'isSend', title: '是否派单', width: 60,
+							formatter: function (value, row, index) {
+								if (value == 0) {
+									return "未派单";
+								}
+								return "<img src='../../images/sendOrders.png'  width='15'  height='20'>&nbsp;<a style='position:relative;top:-5px;'>已派单</a>";
+							}
+						},
+					]],
+					pagination: true,
+					pageSize: 40,
+					pageList: [40, 80, 120],
+					toolbar: [{
+						id: 'btndelete', text: '派单', iconCls: 'icon-edit',
+						handler: function () {
+							var ids = getSendSelections();
+							if (ids == "") {
+								$.messager.alert('提示', '请至少选择一项！！', 'info');
+								return;
+							}
+							var flag = getIsSend();
+							if (flag == false) {
+								$.messager.alert('提示', '包含已派单客户，请重新选择！！', 'info');
+								return;
+							}
+							var areaId = "isEmpty";
+							var province = $('#province').combobox('getValue');
+							var city = $('#city').combobox('getValue');
+							var area = $('#area').combobox('getValue');
+							var stId = $('#street').combobox('getValue');
+							var countryId = $('#country').combobox('getValue');
+
+							if (province == "--请选择--" || province == "") {
+								areaId = "isEmpty";
+							}
+							if (area != "--请选择--" && area != "请先选择城市" && area != "") {
+								areaId = area;
+							}
+							if (stId != "--请选择--" && stId != "请先选择区/县" && stId != "") {
+								areaId = stId;
+							}
+							if (countryId != "--请选择--" && countryId != "请先选择街道/镇" && countryId != "") {
+								areaId = countryId;
+							}
+
+							if (areaId == "isEmpty") {
+								$.messager.alert('提示', '请选择区域并筛选数据后再派单，区域至少选择到区级！', 'info');
+								return;
+							}
+
+							var rows = $('#dg').datagrid('getSelections');
+							alert(rows);
+							if (rows.length > 0) {
+								$('#sendOrderWin').dialog('open');
+								$("#sendCustId").val(ids);
+								$("#sendAreaId").val(areaId);
+								$('#sendOrderType').combobox({
+									width: '180',
+									valueField: 'value', //值字段
+									textField: 'label', //显示的字段
+									editable: false,//不可编辑，只能选择
+									value: '--请选择--',
+									data: [{
+										label: '限时单',
+										value: '1'
+									}, {
+										label: '非限时单',
+										value: '0'
+									}]
+								});
+
+							}
+						}
+					}],
+					view: detailview,
+					detailFormatter: function (index, row) {//注意2  
+						return '<div style="padding:2px"><table id="ddv-' + index + '"></table></div>';
+					},
+					onExpandRow: function (index, row) {//注意3 
+						var i = index;
+						$('#ddv-' + index).datagrid({
+							url: 'listSendOrder/getCustOrderByCust',
+							queryParams: {
+								custId: row.custId,
+								orderState: 1
+							},
+							fitColumns: false,
+							singleSelect: true,
+							width:'100%',
+							height: 'auto',
+							nowrap: true,
+							/* onDblClickRow:function(index, field, value){
+									check(field);
+								}, */
+							striped: true,
+							collapsible: true,
+							remoteSort: false,
+							singleSelect: true,
+							rownumbers: true,
+							idField: "custOrderHeadId",
+							onLoadSuccess:function(){
+								$('#dg').datagrid('fixDetailRowHeight',index);
+							},
+							columns: [[
+								/* {
+									field: 'markId', title: '标识', width: 50, align: 'left',hidden: true,
+									formatter: function (value, row, index) {//使用formatter格式化刷子
+										return '<img onclick ="javascript:domark(' + value + ',' + index + ');" src="../../images/' + value + '.png">';
+									}
+								}, */
+								{ field: 'custOrderHeadId', title: '订单Id', hidden: true, width: 40 },
+								{field: 'custOrderNo', title: '单号', width: 130, sortable: true,align:'left'},
+								{ field: 'shopName', title: '店名', width: 130, sortable: true,align:'left'},
+								{ field: 'custPhone', title: '手机', width: 100,align:'left'},
+								{ field: 'custId', title: '联系人ID', hidden: true, width: 50 },
+								{ field: 'custName', title: '联系人', width: 60,align:'left'},
+								{ field: 'custAddress', title: '地址', width: 250,align:'left'},
+								{ field: 'areaId', title: '地区Id', hidden: true, width: 110 },
+								{ field: 'custAreaId', title: '地区Id', hidden: true, width: 110 },
+								{ field: 'areaName', title: '区域', width: 250,align:'left'},
+								{
+									field: 'orderImage', title: '图片', width: 60,
+									formatter: function (value, row, index) {
+										if (value == "" || value == undefined) {
+											return value;
+										}
+										return "<img onclick=\"javascript:img1('" + value + "');\" src=\"../../images/Image_Ok.png\">";
+									}
+								},
+								{ field: 'custOrderHeadType', title: '订单类型', hidden: true, width: 110 },
+								{ field: 'totalQuantity', title: '总数', width: 60,align:'right'},
+								{ field: 'predictTotalPrice', title: '总金额', width: 90,align:'right'},
+								{ field: 'custOrderState', title: '订单状态Id', hidden: true, width: 60 },
+								{ field: 'stateName', title: '订单状态', width: 60,align:'left'},
+								{ field: 'channelId', title: '渠道Id', hidden: true, width: 90 },
+								{ field: 'channelName', title: '渠道', width: 60,align:'left'},
+								{ field: 'sendOrders', title: '调度单号', hidden: true, width: 90,align:'left'},
+								{ field: 'createTime', title: '订单生成时间', width: 90, sortable: true,align:'center'},
+								{ field: 'custCreatTime', title: '客户创建时间', width: 90, sortable: true,align:'center'},
+								{ field: 'Memo', title: '标识备注', hidden: true, width: 60},
+								{ field: 'toOrderNo', title: '对应回收单单号', width: 130,align:'left'},
+								{ field: 'Remark', title: '备注', width: 90,align:'left'},
+								{ field: 'Operatey', title: '确认', hidden: true, width: 100 },
+								{ field: 'Operateystate', title: '确认状态', hidden: true, width: 100 },
+								{ field: 'Operaten', title: '取消', hidden: true, width: 100 },
+								{ field: 'Operatenstate', title: '取消状态', hidden: true, width: 100 }
+							]],
+							pagination: true,
+							pageSize: 40,
+							pageList: [40, 80, 120]
+						});
+						$('#dg').datagrid('fixDetailRowHeight',index);
+						
+					}
+
+				});
+		});
+
+		function clearForm1(){
+			 $("#reminderOrder").attr("checked",false)
+	         $("#sendOrder").attr("checked",false)//未选中
+	            
+			$("#remove").textbox("setValue", "");
+			$("#startWeight").textbox("setValue", "");
+			$("#endWeight").textbox("setValue", "");
+			$("#custPhone").textbox("setValue", "");
+			 
+			$('#province').combobox({
+				valueField: 'provinceId', //值字段
+				textField: 'provinceName', //显示的字段
+				url: 'areaController/getAllProvince',
+				editable: false,//不可编辑，只能选择
+				value: '--请选择--',
+				});
+			$('#city').combobox({
+				data:  [],
+				value: '请先选择省份',
+				valueField:'id',
+				textField:'text'
+				});
+			$('#area').combobox({
+				data:  [],
+				value: '请先选择城市',
+				valueField:'id',
+				textField:'text'
+				});
+			$('#street').combobox({
+				data:  [],
+				value: '请先选择区/县',
+				valueField:'id',
+				textField:'text'
+				});
+			$('#country').combobox({
+				data:  [],
+				value: '请先选择街道/镇',
+				valueField:'id',
+				textField:'text'
+				});
+			
+
+			$('#custLevel').combobox({
+				editable: false,//不可编辑，只能选择
+				value: '--请选择--'
+			});
+
+			$('#orderState').combobox({
+				editable: false,//不可编辑，只能选择
+				value: '--请选择--'
+			});
+
+			$('#custType').combobox({
+				editable: false,//不可编辑，只能选择
+				value: '--请选择--'
+			});
+			
+			 
+			
+
+		}
+		
+		function img1(src) {
+			$('#img').attr("src", src);
+			$('#imgWin').dialog('open');
+
+		}
+
+		function advanceCheck(index) {
+			$('#payBill').datagrid({
+				url: 'declaration/getPayBill?paySnNo=' + $('#advancePayBill').datagrid("getRows")[index].PAY_SN_NO,
+			});
+		}
+
+		//获取选中行
+		function getSelected() {
+			var selected = $('#user').datagrid('getSelected');
+			if (selected) {
+				alert(selected.code + ":" + selected.name + ":" + selected.addr + ":" + selected.col4);
+				return selected.id;
+			}
+		}
+
+
+		//获取多个选中行
+		function getSelections() {
+			var ids = [];
+			var rows = $('#dg').datagrid('getSelections');
+			for (var i = 0; i < rows.length; i++) {
+				ids.push(rows[i].custOrderNo);
+
+			}
+			return ids.join(',');
+		}
+
+
+		//获取多个选中行:派单
+		function getSendSelections() {
+			var ids = [];
+			var rows = $('#dg').datagrid('getSelections');
+			for (var i = 0; i < rows.length; i++) {
+				ids.push(rows[i].custId);
+			}
+			return ids.join(',');
+		}
+
+		//获取多个选中行:派单
+		function getIsSend() {
+			var ids = [];
+			var rows = $('#dg').datagrid('getSelections');
+			for (var i = 0; i < rows.length; i++) {
+				if (rows[i].isSend == 1) {
+					return false;
+				}
+			}
+			return true;
+		}
+
+		function domark(er, index) {
+			$('#mark2').dialog('open');
+			var markId = $("input[type=radio][name=markId]");
+			for (var i = 0; i < markId.length; i++) {
+				if (markId[i].value == er) {
+					markId[i].checked = true;
+				} else {
+					markId[i].checked = false;
+				}
+			}
+			var custOrderNo = $('#dg').datagrid("getRows")[index].custOrderNo;
+			var Memo = $('#dg').datagrid("getRows")[index].Memo;
+			$("input[name='OrderNo']").val(custOrderNo);
+			$("textarea[name='memo']").val(Memo);
+		}
+		function saveMark() {
+
+			$('#markfrom').form('submit', {
+				url: "declaration/saveMark",
+				onSubmit: function () {
+					return $(this).form('validate');
+				},
+				success: function (result) {
+					var result = eval('(' + result + ')');
+					if (result.code == 1) {
+						$('#mark2').dialog('close');		// close the dialog
+						/* $('#dg').datagrid('reload'); */	// reload the user data
+						$('#markfrom').form('clear');
+						$.messager.alert('提示', result.msg, 'info', function () {
+							$('#dg').datagrid('reload');
+						});
+
+					} else {
+						$.messager.alert('提示', result.msg, 'info');
+					}
+				}
+			});
+		}
+		
+		function d_close() {
+			$('#mark').window('close');
+			$('#receive').window('close');
+			doSearch();
+		}
+		function o_close() {
+			$('#opCustOrder').window('close');
+			location.reload();
+		}
+
+		function submitSendOrderForm() {
+
+			var sendOrderType = $('#sendOrderType').combobox('getValue');//派单类型
+			var sendOrderTime = $('#sendOrderTime').datetimebox('getValue');//指定回收时间
+			var sendAreaId = $('#sendAreaId').val();
+			var sendCustId = $('#sendCustId').val();
+
+			if (sendAreaId == "isEmpty") {
+				$.messager.alert('提示', '只能按区级派单！', 'info');
+				return;
+			}
+
+			if (sendOrderType == "" || sendOrderType == "--请选择--") {
+				$.messager.alert('提示', '请选择派单类型', 'info');
+				return;
+			}
+			if (sendOrderTime == "") {
+				$.messager.alert('提示', '请指定派出单的回收时间！', 'info');
+				return;
+			}
+
+			if (Date.parse(new Date(sendOrderTime)) < Date.parse(new Date())) {
+				$.messager.alert('提示', '回收时间不能小于当前时间！', 'info');
+				return;
+			}
+			$.ajax({
+				url: "listSendOrder/submitSendOrder",
+				data: {
+					sendOrderType: sendOrderType,
+					sendOrderTime: sendOrderTime,
+					sendAreaId: sendAreaId,
+					sendCustId: sendCustId
+
+				},
+				type: "post",
+				success: function (result) {
+					if (result.success == 'Y') {
+						$('#sendOrderWin').dialog('close');
+						$.messager.alert('提示', '派单成功!', 'info');
+						$('#dg').datagrid('reload');
+						$('#sendOrderForm').form('clear');
+						$('#dg').datagrid('unselectAll');
+						return
+					} else if (result.success == 'N') {
+						$.messager.alert('提示', result.errorMsg, function () {
+							$('#dg').datagrid('unselectAll');
+							$('#dg').datagrid('reload');
+						});
+					} else {
+						$.messager.show({
+							title: 'Error',
+							msg: result.errorMsg
+						});
+					}
+				},
+				error: function (jqXHR, textStatus, errorThrown) {
+					$.messager.show({
+						title: 'Error',
+						msg: jqXHR.responseText
+					});
+				}
+			});
+		}
+
+		var url;
+		function searchCust() {
+			var cust_phone = $("input", $("#cust_phone").next("span")).val();
+			$("#custID").val("");
+			$("#cust_name").html("");
+			$("#area1").html("");
+			$("#cust_address").html("");
+			$("#commodity").html("");
+			$("#local_price").html("");
+			$("#pecPrice").val("");
+			$.ajax({
+				url: "declaration/addDec?op=searchCust",
+				data: {
+					cust_phone: cust_phone
+				},
+				type: "post",
+				success: function (text) {
+					if (text.code == "1") {
+						var json = text.customer;
+						var cust = eval('(' + json + ')');
+						$("#custID").val(cust.ID);
+						$("#cust_name").html(cust.CUST_NAME);
+						$("#area1").html(text.areaname);
+						$("#cust_address").html(cust.CUST_ADDRESS);
+					} else if (text.code == "2") {
+						$.messager.alert('提示', text.msg, 'info');
+					}
+				},
+				error: function (jqXHR, textStatus, errorThrown) {
+					$.messager.show({
+						title: 'Error',
+						msg: jqXHR.responseText
+					});
+				}
+			});
+			$('#commodity').combobox(
+				{
+					url: 'config/getAllcommType',
+					valueField: 'CONFIG_ID',
+					textField: 'CONFIG_NAME',
+					width: '150',
+					editable: false,
+					value: '--请选择--',
+					onSelect: function () {
+						var commodity_id = $(this).combobox('getValue');
+						var cust_phone = $("input",
+							$("#cust_phone").next("span")).val();
+						$
+							.ajax({
+								url: "declaration/addDec?op=searchPrice",
+								data: {
+									commodity_id: commodity_id,
+									cust_phone: cust_phone
+								},
+								type: "post",
+								success: function (text) {
+									if (text.code == "1") {
+										//$("#commodity").html(cust.CUSTOMER_TYPE_NAME);
+										$("#local_price").html(
+											text.price + "元/kg");
+										$("#pecPrice").val(text.price);
+									} else if (text.code == "2") {
+										$.messager.alert('提示', text.msg,
+											'info');
+									}
+								},
+								error: function (jqXHR, textStatus,
+									errorThrown) {
+									$.messager.show({
+										title: 'Error',
+										msg: jqXHR.responseText
+									});
+								}
+							});
+
+					},
+				});
+		}
+		function modifyMark(lineId) {
+			$('#mark')
+				.html(
+				"<iframe src='alreadyApprovedOrderForm.do?actionCode=viewMark&lineId="
+				+ lineId
+				+ "'style='width:100%;height:100%;'frameborder='0'></iframe>");
+			$('#mark').window('open');
+		}
+
+		function doSearch() {
+			$('#tt').panel('close');
+			var areaId = "isEmpty";
+			var province = $('#province').combobox('getValue');
+			var manner = $('#manner').combobox('getValue');
+			var city = $('#city').combobox('getValue');
+			var area = $('#area').combobox('getValue');
+			var stId = $('#street').combobox('getValue');
+			var countryId = $('#country').combobox('getValue');
+			var orderState = $('#orderState').combobox('getValue');
+			var custPhone = $('#custPhone').val();
+			var custType = $('#custType').combobox('getValue');
+			var remove = $('#remove').val();
+			var startWeight = $('#startWeight').textbox('getValue');
+			var endWeight = $('#endWeight').textbox('getValue');
+			var custLevel = $('#custLevel').combobox('getValue');
+			if (custLevel == "" || custLevel == "--请选择--") {
+				custLevel = "isEmpty";
+			}
+
+			if (startWeight == "") {
+				startWeight = "isEmpty";
+			}
+			if (endWeight == "") {
+				endWeight = "isEmpty";
+			}
+			if (remove == "") {
+				remove = "isEmpty";
+			}
+			if (custType == "" || custType == "--请选择--") {
+				custType = "isEmpty";
+			}
+
+			if (province == "--请选择--" || province == "") {
+				province = "isEmpty";
+			} else {
+				areaId = province;
+			}
+			if (city != "--请选择--" && city != "请先选择省份" && city != "") {
+				areaId = city;
+			}
+			if (area != "--请选择--" && area != "请先选择城市" && area != "") {
+				areaId = area;
+			}
+			if (stId != "--请选择--" && stId != "请先选择区/县" && stId != "") {
+				areaId = stId;
+			}
+			if (countryId != "--请选择--" && countryId != "请先选择街道/镇"
+				&& countryId != "") {
+				areaId = countryId;
+			}
+			if (orderState == "" || orderState == "--请选择--") {
+				orderState = "isEmpty";
+			}
+
+			if (custPhone == "") {
+				custPhone = "isEmpty";
+			}
+
+			if (manner == 1) {
+				try {
+					$('#dg').datagrid('hideColumn', '_expander');
+				} catch (e) {
+				}
+				$('#dg')
+					.datagrid(
+					{
+						iconCls: 'icon-save',
+						width: "100%",
+						height: tableH,
+						nowrap: true,
+						autoRowHeight: false,
+						striped: true,
+						fitColumns: false,
+						singleSelect:true,
+						collapsible: true,
+						url: 'listSendOrder/addDec',
+						onDblClickRow: function (index, field, value) {
+							check(field);
+						},
+						queryParams: {
+							op: "searchDec",
+							areaId: areaId,
+							manner: manner,
+							custOrderState: 1,
+							custType: custType,
+							custPhone: custPhone,
+							startWeight: startWeight,
+							endWeight: endWeight,
+							custLevel:custLevel,
+							remove: remove,
+							reminderOrder: $('#reminderOrder').is(':checked'),
+							sendOrder: $('#sendOrder').is(':checked')
+						},
+						remoteSort: false,
+						singleSelect: true,
+						rownumbers: true,
+						checkOnSelect: true,
+						/* rowStyler : function(index, row) {
+							if (row.isReminder == 1
+									&& (orderState == "isEmpty"
+											|| orderState == '1' || orderState == '2')) {
+								return 'background-color:pink;color:blue;font-weight:bold;';
+							}
+						}, */
+						idField: "custOrderHeadId",
+						columns: [[
+							{field: 'markId', title: '标识', width: 50, align: 'left',
+								formatter: function (value, row,index) {//使用formatter格式化刷子
+									return '<img onclick="javascript:domark(' + value + ',' + index + ');" src="../../images/' + value + '.png">';
+								}
+							},
+							{ field: 'custOrderHeadId', title: '订单Id', hidden: true, width: 40 },
+							{ field: 'custOrderNo', title: '单号', width: 120, sortable: true },
+							{ field: 'shopName', title: '店名', width: 110, sortable: true },
+							{ field: 'custPhone', title: '手机', width: 100 },
+							{ field: 'custId', title: '联系人ID', hidden: true, width: 90 },
+							{ field: 'custName', title: '联系人', width: 50 ,align:'left'},
+							{ field: 'custAddress', title: '地址', width: 160 },
+							{ field: 'areaId', title: '地区Id', hidden: true, width: 110 },
+							{ field: 'custAreaId', title: '地区Id', hidden: true, width: 110 },
+							{ field: 'areaName', title: '区域', width: 130 },
+							{
+								field: 'orderImage', title: '图片', width: 110,
+								formatter: function (value, row, index) {
+									if (value == "" || value == undefined) {
+										return value;
+									}
+									return "<img onclick=\"javascript:img1('" + value + "');\" src=\"../../images/Image_Ok.png\">";
+								}
+							},
+							{ field: 'custOrderHeadType', title: '订单类型', hidden: true, width: 110 },
+							{ field: 'totalQuantity', title: '总数', width: 110 },
+							{ field: 'predictTotalPrice', title: '总金额', width: 70 },
+							{ field: 'totalWeight', title: '总重量', width: 70 },
+							{ field: 'custOrderState', title: '订单状态Id', hidden: true, width: 60 },
+							{ field: 'stateName', title: '订单状态', width: 60 },
+							{ field: 'isReminder', title: '是否催单', width: 90,
+								formatter: function (value, row, index) {
+									if (value == 2) {
+										return "未催单";
+									}
+									return "<img src='../../images/cuidang.png'  width='22'  height='20'>&nbsp;<a style='position:relative;top:-5px;'>催单</a>";
+								}
+							},
+							{ field: 'reminderTime', title: '催单时间', width: 90 },
+							{ field: 'channelId', title: '渠道Id', hidden: true, width: 90 },
+							{ field: 'channelName', title: '渠道', width: 90 },
+							{ field: 'sendOrders', title: '调度单号', hidden: true, width: 90 },
+							{ field: 'createTime', title: '订单生成时间', width: 90, sortable: true },
+							{ field: 'custCreatTime', title: '客户创建时间', width: 90, sortable: true },
+							{ field: 'Memo', title: '标识备注', hidden: true, width: 60 },
+							{ field: 'toOrderNo', title: '对应回收单单号', width: 120 },
+							{ field: 'Remark', title: '备注', width: 90 },
+							{ field: 'Operatey', title: '确认', hidden: true, width: 100 },
+							{ field: 'Operateystate', title: '确认状态', hidden: true, width: 100 },
+							{ field: 'Operaten', title: '取消', hidden: true, width: 100 },
+							{ field: 'Operatenstate', title: '取消状态', hidden: true, width: 100 },
+							{ field: 'op', title: '操作', width: 90,
+								formatter: function (value, row,index) {
+									var Operaten = row.Operaten;
+									var Operatey = row.Operatey;
+									//var predictTotalPrice = row.predictTotalPrice
+									if (Operatey == null) {
+										Operatey = "";
+									}
+									if (Operaten == null) {
+										Operaten = "";
+									}
+									return '<a href="javascript:prepay(\'' + index + '\');">' + Operatey + '</a>&nbsp;&nbsp;&nbsp;<a href="javascript:cancelOrder(\'' + row.custOrderNo
+										+ '\',' + row.Operatenstate + ',' + row.custOrderState + ');">' + Operaten + '</a>';
+								}
+							},]],
+						toolbar: [
+							{ id: 'btnadd', text: '新增', iconCls: 'icon-add',
+								handler: function () {
+									$('#opCustOrder')
+										.html(
+										'<iframe src="CustOrderManagement" style="width:100%;height:97%;" frameborder="0"></iframe>');
+									$('#opCustOrder')
+										.window('open');
+								}
+							},
+							{ id: 'btnadd', text: '导出为Excel',
+								handler: function () {
+									var areaId = "isEmpty";
+									var province = $('#province').combobox('getValue');
+									var city = $('#city').combobox('getValue');
+									var area = $('#area').combobox('getValue');
+									var stId = $('#street').combobox('getValue');
+									var countryId = $('#country').combobox('getValue');
+
+									var orderState = $('#orderState').combobox('getValue');
+									var custPhone = $('#custPhone').val();
+									var remove = $('#remove').val();
+									var startWeight = $('#startWeight').val();
+									var endWeight = $('#endWeight').val();
+
+									var reminderOrder = $('#reminderOrder').is(':checked');
+									var sendOrder = $('#sendOrder').is(':checked');
+
+
+									if (province == "--请选择--" || province == "") {
+										areaId = "isEmpty";
+									} else {
+										areaId = province;
+									}
+									if (city != "--请选择--" && city != "请先选择省份" && city != "") {
+										areaId = city;
+									}
+									if (area != "--请选择--" && area != "请先选择城市" && area != "") {
+										areaId = area;
+									}
+									if (stId != "--请选择--" && stId != "请先选择区/县" && stId != "") {
+										areaId = stId;
+									}
+									if (countryId != "--请选择--" && countryId != "请先选择街道/镇" && countryId != "") {
+										areaId = countryId;
+									}
+									if (orderState == "" || orderState == "--请选择--") {
+										orderState = "isEmpty";
+									}
+									if (custPhone == "") {
+										custPhone = "isEmpty";
+									}
+									if (remove == "") {
+										remove = "isEmpty";
+									}
+									if (startWeight == "") {
+										startWeight = "isEmpty";
+									}
+									if (endWeight == "") {
+										startWeight = "isEmpty";
+									}
+									if (areaId == "isEmpty") {
+										$.messager.alert('提示', '请选择区域！', 'info');
+										return;
+									} else {
+										window.location.href = "declaration/exportExcle?areaId=" + areaId + "&orderState=" + orderState
+											+ "&custPhone=" + custPhone + "&remove=" + remove + "&reminderOrder="
+											+ reminderOrder + "&sendOrder=" + sendOrder + "&start=" + start + "&end=" + end + "&startWeight="
+											+ startWeight + "&endWeight=" + endWeight;
+									}
+								}
+							}]
+					});
+			} else {
+				try {
+					$('#dg').datagrid('showColumn', '_expander');
+				} catch (e) {
+				}
+				$('#dg')
+					.datagrid(
+					{
+						iconCls: 'icon-save',
+						width: "100%",
+						height: tableH,
+						nowrap: true,
+						fitColumns: true,
+						autoRowHeight: false,
+						striped: true,
+						collapsible: true,
+						singleSelect:true,
+						url: 'listSendOrder/addDec',
+						queryParams: {
+							op: "searchDec",
+							areaId: areaId,
+							manner: manner,
+							custOrderState: 1,
+							custPhone: custPhone,
+							startWeight: startWeight,
+							endWeight: endWeight,
+							reminderOrder: $('#reminderOrder').is(':checked'),
+							sendOrder: $('#sendOrder').is(':checked') == true ? true : false,
+							remove: remove,
+							custType: custType,
+							custLevel: custLevel
+						},
+						onDblClickRow: function (index, field, value) { },
+						remoteSort: false,
+						singleSelect: false,
+						rownumbers: true,
+						checkOnSelect: false,
+						idField: "custId",
+						frozenColumns: [[{
+							field: 'ck',
+							checkbox: true
+						},]],
+						columns: [[
+							{ field: 'custId', title: '客户id', hidden: true, width: 100,align:'left'},
+							{ field: 'custName', title: '联系人', width: 50,align:'left'},
+							{ field: 'custPhone', title: '联系方式', width: 80,align:'left'},
+							{ field: 'shopName', title: '店名', width: 90,align:'left'},
+							{ field: 'custLabelName', title: '客户类型', width: 60,align:'left'},
+							{ field: 'configName', title: '会员等级', width: 70,align:'left'},
+							{ field: 'custAddress', title: '地址', width: 160,align:'left'},
+							{ field: 'areaName', title: '区域', width: 170,align:'left'},
+							{ field: 'reminderTime', title: '催单时间', width: 120,align:'center'},
+							{ field: 'loginNum', title: '登陆次数', width: 50,align:'right'},
+							{ field: 'sumTotalWeight', title: '总重量', width: 60,align:'right'},
+							{ field: 'isReminder', title: '是否催单', width: 60,
+								formatter: function (value, row, index) {
+									if (value == 2) {
+										return "未催单";
+									}
+									return "<img src='../../images/cuidang.png'  width='22'  height='20'>&nbsp;<a style='position:relative;top:-5px;'>催单</a>";
+								}
+							},
+							{
+								field: 'isSend', title: '是否派单', width: 60,
+								formatter: function (value, row, index) {
+									if (value == 0) {
+										return "未派单";
+									}
+									return "<img src='../../images/sendOrders.png'  width='15'  height='20'>&nbsp;<a style='position:relative;top:-5px;'>已派单</a>";
+								}
+							},
+						]],
+						toolbar: [{
+							id: 'btndelete',
+							text: '派单',
+							iconCls: 'icon-edit',
+							handler: function () {
+								var ids = getSendSelections();
+								if (ids == "") {
+									$.messager.alert('提示', '请至少选择一项！！', 'info');
+									return;
+								}
+
+								var flag = getIsSend();
+								if (flag == false) {
+									$.messager.alert('提示', '包含已派单客户，请重新选择！！', 'info');
+									return;
+								}
+
+								/* 判断是否选择了区域 */
+								var areaId = "isEmpty";
+								var province = $('#province').combobox('getValue');
+								var city = $('#city').combobox('getValue');
+								var area = $('#area').combobox('getValue');
+								var stId = $('#street').combobox('getValue');
+								var countryId = $('#country').combobox('getValue');
+
+								if (province == "--请选择--" || province == "") {
+									areaId = "isEmpty";
+								}
+								if (area != "--请选择--" && area != "请先选择城市" && area != "") {
+									areaId = area;
+								}
+								if (stId != "--请选择--" && stId != "请先选择区/县" && stId != "") {
+									areaId = stId;
+								}
+								if (countryId != "--请选择--" && countryId != "请先选择街道/镇" && countryId != "") {
+									areaId = countryId;
+								}
+
+								if (areaId == "isEmpty") {
+									$.messager.alert('提示', '区域必须选择到区级！', 'info');
+									return;
+								}
+
+								var rows = $('#dg').datagrid('getSelections');
+								if (rows.length > 0) {
+									$('#sendOrderWin').dialog('open');
+									$("#sendCustId").val(ids);
+									$("#sendAreaId").val(areaId);
+									$('#sendOrderType').combobox({
+										width: '180',
+										valueField: 'value', //值字段
+										textField: 'label', //显示的字段
+										editable: false,//不可编辑，只能选择
+										value: '--请选择--',
+										data: [{
+											label: '限时单',
+											value: '1'
+										}, {
+											label: '非限时单',
+											value: '0'
+										}]
+									});
+
+								}
+							}
+						}],
+						view: detailview,
+						detailFormatter: function (index, row) {//注意2  
+							return '<div style="padding:2px"><table id="ddv-' + index + '"></table></div>';
+						},
+						onExpandRow: function (index, row) {//注意3 
+							var i = index;
+							$('#ddv-' + index).datagrid({
+								url: 'listSendOrder/getCustOrderByCust',
+								queryParams: {
+									custId: row.custId,
+									orderState: 1
+								},
+								fitColumns: false,
+								singleSelect: true,
+								height: 'auto',
+								nowrap: true,
+								onDblClickRow: function (index, field, value) {
+									check(field);
+								},
+								striped: true,
+								collapsible: true,
+								remoteSort: false,
+								singleSelect: true,
+								rownumbers: true,
+								idField: "custOrderHeadId",
+								onLoadSuccess:function(){
+									$('#dg').datagrid('fixDetailRowHeight',index);
+								},
+								columns: [[
+								/* {
+									field: 'markId', title: '标识', width: 50, align: 'left',hidden: true,
+									formatter: function (value, row, index) {//使用formatter格式化刷子
+										return '<img onclick ="javascript:domark(' + value + ',' + index + ');" src="../../images/' + value + '.png">';
+									}
+								}, */
+								{ field: 'custOrderHeadId', title: '订单Id', hidden: true, width: 40 },
+								{field: 'custOrderNo', title: '单号', width: 130, sortable: true,align:'left'},
+								{ field: 'shopName', title: '店名', width: 130, sortable: true,align:'left'},
+								{ field: 'custPhone', title: '手机', width: 100,align:'left'},
+								{ field: 'custId', title: '联系人ID', hidden: true, width: 50 },
+								{ field: 'custName', title: '联系人', width: 60,align:'left'},
+								{ field: 'custAddress', title: '地址', width: 250,align:'left'},
+								{ field: 'areaId', title: '地区Id', hidden: true, width: 110 },
+								{ field: 'custAreaId', title: '地区Id', hidden: true, width: 110 },
+								{ field: 'areaName', title: '区域', width: 250,align:'left'},
+								{
+									field: 'orderImage', title: '图片', width: 60,
+									formatter: function (value, row, index) {
+										if (value == "" || value == undefined) {
+											return value;
+										}
+										return "<img onclick=\"javascript:img1('" + value + "');\" src=\"../../images/Image_Ok.png\">";
+									}
+								},
+								{ field: 'custOrderHeadType', title: '订单类型', hidden: true, width: 110 },
+								{ field: 'totalQuantity', title: '总数', width: 60,align:'right'},
+								{ field: 'predictTotalPrice', title: '总金额', width: 90,align:'right'},
+								{ field: 'custOrderState', title: '订单状态Id', hidden: true, width: 60 },
+								{ field: 'stateName', title: '订单状态', width: 60,align:'left'},
+								{ field: 'channelId', title: '渠道Id', hidden: true, width: 90 },
+								{ field: 'channelName', title: '渠道', width: 60,align:'left'},
+								{ field: 'sendOrders', title: '调度单号', hidden: true, width: 90,align:'left'},
+								{ field: 'createTime', title: '订单生成时间', width: 90, sortable: true,align:'center'},
+								{ field: 'custCreatTime', title: '客户创建时间', width: 90, sortable: true,align:'center'},
+								{ field: 'Memo', title: '标识备注', hidden: true, width: 60},
+								{ field: 'toOrderNo', title: '对应回收单单号', width: 130,align:'left'},
+								{ field: 'Remark', title: '备注', width: 90,align:'left'},
+								{ field: 'Operatey', title: '确认', hidden: true, width: 100 },
+								{ field: 'Operateystate', title: '确认状态', hidden: true, width: 100 },
+								{ field: 'Operaten', title: '取消', hidden: true, width: 100 },
+								{ field: 'Operatenstate', title: '取消状态', hidden: true, width: 100 }
+							]],
+								pagination: true,
+								pageSize: 40,
+								pageList: [40, 80, 120]
+							});
+						}
+					});
+			}
+
+		}
+
+		function smsClient(index) {
+			if (!isNaN(index)) {
+				var row = $('#dg').datagrid("getRows")[index];
+				$('#smsCustId').val(row.custId);
+				$('#smsClient').dialog('open');
+			} else {
+				var smsContent = $.trim($('#smsContent').val());
+				if ($('#smsCustId').val() == '') {
+					$.messager.alert('提示', '请关闭窗口重试', 'info');
+					return;
+				}
+				if (smsContent == '') {
+					$.messager.alert('提示', '请输入内容', 'info');
+					return;
+				}
+				$.ajax({
+					url: "declaration/smsClient",
+					data: {
+						custId: $('#smsCustId').val(),
+						smsContent: smsContent
+					},
+					type: "post",
+					success: function (text) {
+						if (text.success == "Y") {
+							$.messager.alert('提示', "发送成功！", 'info', function () {
+								$('#smsClient').dialog('close');
+							});
+						} else {
+							$.messager.alert('提示', text.msg, 'info');
+						}
+					},
+					error: function (jqXHR, textStatus, errorThrown) {
+						$.messager.show({
+							title: 'Error',
+							msg: jqXHR.responseText
+						});
+					}
+				});
+			}
+
+		}
+		function onKeyEnter(e) {
+			doSearch();
+		}
+
+		function print(orderNo) {
+			$('#print').html('<iframe src="print/custPrint?orderNo=' + orderNo + '" style="width:100%;height:100%;"frameborder="0"></iframe>');
+			$('#print').window('open');
+		}
+		$(function () {
+			$("body").css("overflow", "scroll");
+		});
+
+	</script>
+	<title>订单管理</title>
+</head>
+
+<body style="padding: 12px;">
+	<div>
+	   <form action="delivery.do" method="post" id="form1" style="margin-bottom:10px;">
+		  <div class="inputArea1">
+		  	<label>省份</label>：<input id="province" />
+		  	<label>城市</label>：<input id="city" />
+		  	<label>区域 </label>：<input id="area" />
+		  	<label>镇名</label>：<input id="street" name="street">
+		  	<label>村名</label>：<input id="country" name="country">
+		  </div>
+		  
+		  <div class="inputArea1">
+		  	<span id="lsd0"><label>下单距今</label>：<input id="remove" name="remove" class="easyui-textbox" /> 天以上 </span>
+		  	<label style="margin-left:14px;">客户类型</label>：<input id="custType" name="custType" />
+		  	<label>会员等级</label>：<input id="custLevel" name="custLevel" />
+		  	<span style="display: none;"><label>订单状态 </label>：<input id="orderState" name="orderState" class="easyui-combobox"></span>
+		  	<label>重量(KG)</label>：<input id="startWeight" class="easyui-textbox"></input>
+		  	<label style="text-align:center;text-align-last:center;margin-right:14px;">至</label><input id="endWeight" class="easyui-textbox"></input>
+		  </div>
+		  
+		  <div class="inputArea1">
+		  	<label>手机号</label>：<input type="text" class="easyui-textbox" id="custPhone" />
+			<input type="checkbox" id="reminderOrder" value="1" style="position:relative;top:1px;">
+			<span>已催单</span>
+			<input type="checkbox" id="sendOrder" value="1" style="position:relative;top:1px;">
+			<span>已派单</span>
+			&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+			<a class="easyui-linkbutton" iconCls="icon-search" onclick="doSearch()">查询</a>
+			<a class="easyui-linkbutton" iconCls="icon-clear" onclick="clearForm1()">清空</a>
+			<span style="display: none;"><label>查询方式 </label>：<input id="manner" class="easyui-combobox" data-options="valueField: 'id',  textField: 'text',
+    			 data:[{id:2,text:'按客户'}],value:2,editable: false,onChange : function(newValue, oldValue){}" /></span>
+		  </div>
+
+		</form>
+		<table id="dg">
+		</table>
+	</div>
+	<div id="tt" class="easyui-panel" style="margin-top: 10px; margin-left: 20px;" closed='true'>
+		<div title="订单明细">
+			<table id="dge"></table>
+		</div>
+		<div title="订单操作流水">
+			<table id="CustOperationDg"></table>
+		</div>
+		<div title="预付记录">
+			<table id="advancePayBill"></table>
+			<table id="payBill"></table>
+		</div>
+	</div>
+	<div style="margin-left: auto; margin-right: auto;"></div>
+	<div id="mark2">
+		<form id="markfrom" action="" method="post" style="padding: 50px">
+			<input type="hidden" name="OrderNo">
+			<table>
+				<tr>
+					<td align="right" width="100px;">
+						<font color="red">*</font>
+						<span style="font-weight: 600;">标记:</span>
+					</td>
+					<td align="left" width="300px;">
+						<label>
+							<input name="markId" type="radio" value="1" />
+							<img src="../../images/1.png">
+						</label>
+						<label>
+							<input name="markId" type="radio" value="2" />
+							<img src="../../images/2.png"> </label>
+						<label>
+							<input name="markId" type="radio" value="3" />
+							<img src="../../images/3.png"> </label>
+						<label>
+							<input name="markId" type="radio" value="4" />
+							<img src="../../images/4.png">
+						</label>
+						<label>
+							<input name="markId" type="radio" value="5" />
+							<img src="../../images/5.png"> </label>
+						<label>
+							<input name="markId" type="radio" value="6" />
+							<img src="../../images/6.png"> </label>
+					</td>
+				</tr>
+				<tr>
+					<td align="right" width="100px;">
+						<font color="red">*</font>
+						<span style="font-weight: 600;">标记信息:</span>
+					</td>
+					<td align="left" width="300px;">
+						<textarea name="memo" style="width: 300px; height: 200px; max-width: 300px; max-height: 200px;"></textarea>
+					</td>
+				</tr>
+				<tr>
+					<td align="center" colspan="2">
+						<div align="center">
+							<a class="easyui-linkbutton" data-options="iconCls:'icon-save'" onclick="saveMark()">提交</a>
+						</div>
+					</td>
+				</tr>
+			</table>
+		</form>
+	</div>
+
+	<div id="sendOrderWin">
+		<form action="" method="post" id="sendOrderForm">
+			 <!-- <input id="sendOrderToken" name="sendOrderToken"  value="${sendOrderToken}" /> -->
+				<div style="margin-top: 20px;" align="center">
+					<span> 派单类型：</span>
+					<input id="sendOrderType" name="sendOrderType" class="easyui-combobox" style="width: 180px;">
+					<p>
+						<div id="sendOrderDiv">
+							<span>回收时间：</span>
+							<input id="sendOrderTime" name="sendOrderTime" class="easyui-datetimebox" data-options="required:true,editable:false"
+							 style="width: 180px;">
+							<input id="sendCustId" name="sendCustId" type="hidden" />
+							<input id="sendAreaId" name="sendAreaId" type="hidden" />
+						</div>
+				</div>
+
+
+				<div align="center" style="text-align: center; clear: both;">
+					<br />
+					<a id="sendOrderBtn" class="easyui-linkbutton" data-options="iconCls:'icon-save'" onclick="submitSendOrderForm();">提交</a>
+				</div>
+		</form>
+
+	</div>
+
+	<div id="imgWin">
+		<img id="img" src="" width="100%" height="100%">
+	</div>
+	<div id="opCustOrder" class="easyui-window" title="分配区域" closed="true" style="width: 480px; height: 480px;"></div>
+	<div id="print"></div>
+	<div id="smsClient">
+		<form>
+			<table align="center" width="90%">
+				<tr>
+					<td>
+						<input id="smsCustId" hidden="true">
+					</td>
+				</tr>
+				<tr>
+					<td>短信内容：</td>
+				</tr>
+				<tr>
+					<td>
+						<textarea id="smsContent" style="height: 100px; width: 300px">尊敬的客户！我们将于**月**日上门回收废电池，请您耐心等待，保持手机通话畅通。</textarea>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<a class="easyui-linkbutton" data-options="iconCls:'icon-save'" onclick="smsClient('发送');">确定</a>
+					</td>
+				</tr>
+			</table>
+		</form>
+	</div>
+	<div id="custOperationWin" align="center">
+		&nbsp;请选择原因：
+		<input id="operationReason">
+		<br>
+		<br> 请输入备注：
+		<textarea id="operationRemark" cols="20" rows="5"></textarea>
+		<br>
+		<br>
+		<a id="btn1" class="easyui-linkbutton" data-options="iconCls:'icon-save'" onclick="submitCancelOrder();">确定</a>
+	</div>
+</body>
+
+</html>

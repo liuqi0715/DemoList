@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<link rel="stylesheet" type="text/css" href="../../themes/default/easyui.css">
+<link rel="stylesheet" type="text/css" href="../../themes/icon.css">
+<link rel="stylesheet" type="text/css" href="../../themes/demo.css">
+<script type="text/javascript" src="../../js/jquery.min.js"></script>
+<script type="text/javascript" src="../../js/jquery.easyui.min.js"></script>
+<script type="text/javascript" src="../../js/locale/easyui-lang-zh_CN.js"></script>
+<script type="text/javascript" src="../global.js"></script>
+<script type="text/javascript">
+$(function () {
+	$('#permissionId').textbox('textbox').css('background','#EBEBE4');
+	$('#menuId').textbox('textbox').css('background','#EBEBE4');
+    $('#parentMenu').combobox({
+        valueField:'menuId', 
+        textField:'menuDesc',
+        url:'menuController/getParentMenu',
+        required:true,
+        editable:false,//不可编辑，只能选择
+        value:'--请选择--'
+   });
+    
+   $('#tree').tree({
+	   url:'menuController/getMenuList',
+	   method: 'GET', 
+	   checkbox: true, 
+	   animate: true,  
+	   cascadeCheck:true,//层叠选中  
+	   lines:true,//显示虚线效果  
+	  
+	   onSelect:function(node)  
+	   {  
+	       var cknodes = $('#tree').tree("getChecked");
+           for (var i = 0; i < cknodes.length; i++) {
+               if (cknodes[i].id != node.id) {
+                   $('#tree').tree("uncheck", cknodes[i].target);
+               }
+           }
+           if (node.checked) {
+               $('#tree').tree('uncheck', node.target);
+
+           } else {
+               $('#tree').tree('check', node.target);
+           }
+           $("#permissionId").textbox('setValue',node.permissionId)
+           $("#menuId").textbox('setValue',node.menuId)
+           $("#parentMenu").combobox('setValue',node.fatherMenuId)
+           $("#menuName").textbox('setValue',node.menuName)
+           $("#menuDesc").textbox('setValue',node.menuDesc)
+           $("#menuNum").textbox('setValue',node.orderNum)
+           
+           var qualificationAble=$(".qualificationAble");
+           for(var x = 0 ;x < qualificationAble.length;x++){
+   			if(qualificationAble[x].value==node.qualificationAble){
+   				qualificationAble[x].checked=true;
+   			}else{
+   				qualificationAble[x].checked=false;
+   			}
+   		    } 
+       },
+       onLoadSuccess: function (node, data) {
+           $(this).find('span.tree-checkbox').unbind().click(function () {
+               $('#tree').tree('select', $(this).parent());
+               return false;
+           }); 
+	  }
+    });
+
+   if(verification("menuList","save")){
+		$("#addButton").css("display","");
+   }
+   if(verification("menuList","add")){
+	 	$("#saveButton").css("display","");
+   }
+});
+
+function saveMenu(){	
+	var menuName=$('#menuName').textbox("getValue");
+	if(menuName==null || menuName==""){
+		$.messager.alert('提示','操作失败!菜单名不能为空！','error');
+		return;
+	}
+	var menuDesc=$('#menuDesc').textbox("getValue");
+	if(menuDesc==null || menuDesc==""){
+		$.messager.alert('提示','操作失败!菜单描述不能为空！','error');
+		return;
+	}	
+	
+	var menuNum=$('#menuNum').textbox("getValue");
+	if(menuNum==null || menuNum==""){
+		$.messager.alert('提示','操作失败!菜单排序不能为空！','error');
+		return;
+	}	
+	
+	
+	var qualificationAble=$('input:radio[name="qualificationAble"]:checked').val();
+	if (qualificationAble == null) {
+			$.messager.alert('提示','请选择[资质商是否可见]!','info');
+			return;
+		}
+	
+	var fatherMenuId=$('#parentMenu').combobox("getValue");
+	if(fatherMenuId==null || fatherMenuId==""||fatherMenuId=="--请选择--"){
+		fatherMenuId="";
+	}
+	console.log("hi");
+	var menuId = $('#menuId').val();
+	if(menuId == null || menuId == ""){
+		menuId = "isnull";
+	}
+	if(menuId != "isnull"){
+		$.ajax({  
+	         type:'post',
+       	 	 url:'menuController/saveMenu',  
+	         data:{
+	 			menuName:menuName,
+				menuDesc:menuDesc,
+				fatherMenuId:fatherMenuId,
+				menuNum:menuNum,
+				qualificationAble:qualificationAble,
+				menuId:menuId
+			 },
+	         dataType:'json',  
+	         success: function(result){
+	 			$('#saveButton').linkbutton('enable');
+	 			/* var result = eval('('+result+')'); */
+	 			if (result.msgCode =='Y'){
+	 				$.messager.alert('提示','操作成功!','info');
+	 				$('#form').form('clear');
+	 				$('#saveButton').linkbutton('enable');
+	 				$('#tree').tree('reload'); 
+	 			} else {
+	 				$.messager.alert('提示',result.msg,'error');
+	 			}
+	 		  },
+	       	  error : function() {  
+	    	            // view("异常！");  
+	       		$.messager.alert('提示','操作失败!','error'); 
+	    	  }
+	     });
+	}else{
+		$.ajax({  
+	         type:'post',
+       	 	 url:'menuController/addMenu',  
+	         data:{
+	 			menuName:menuName,
+				menuDesc:menuDesc,
+				fatherMenuId:fatherMenuId,
+				menuNum:menuNum,
+				qualificationAble:qualificationAble
+			 },
+	         dataType:'json',  
+	         success: function(result){
+	 			$('#saveButton').linkbutton('enable');
+	 			/* var result = eval('('+result+')'); */
+	 			if (result.msgCode =='Y'){
+	 				$.messager.alert('提示','操作成功!','info');
+	 				$('#form').form('clear');
+	 				$('#saveButton').linkbutton('enable');
+	 				$('#tree').tree('reload'); 
+	 			} else {
+	 				$.messager.alert('提示',result.msg,'error');
+	 			}
+	 		  },
+	       	  error : function() {  
+	    	            // view("异常！");  
+	       		$.messager.alert('提示','操作失败!','error'); 
+	    	  }
+	     });
+	}
+	 
+	
+	/* $('#form').form('submit',{
+		url:'menuController/saveMenu' ,
+		onSubmit: function(){
+		},
+		queryParams:{
+			menuName:menuName,
+			menuDesc:menuDesc,
+			fatherMenuId:fatherMenuId,
+			menuNum:menuNum,
+			qualificationAble:qualificationAble
+		},
+		success: function(result){
+			$('#saveButton').linkbutton('enable');
+			var result = eval('('+result+')');
+			if (result.msgCode =='Y'){
+				$.messager.alert('提示','操作成功!','info');
+				$('#form').form('clear');
+				$('#saveButton').linkbutton('enable');
+				$('#tree').tree('reload'); 
+			} else {
+				$.messager.alert('提示',result.msg,'error');
+			}
+		}
+	});  */
+}
+
+function addMenu(){
+	$('#form').form('clear');
+}
+</script>
+</head>
+<body>
+<div class="inner-center" style="width:980px;">
+	<div style="float:left;width:400px;height: 560px;">
+	    <div id="treeDiv" class="easyui-panel" title="菜单列表" style="width:100%;height:100%;background:#E5E5E5;" data-options="closable:false, collapsible:false,minimizable:false,maximizable:false">   
+			 <ul id="tree" class="easyui-tree"></ul>  
+		</div> 
+	</div>
+	
+    <div id="w" style="float:left;margin-left:40px;">
+	     <fieldset style="margin:0 auto;padding:20px 20px 30px 20px;" >
+		    <legend>相关操作</legend>
+			<form method="post" id="form">
+			  <div style="padding:1px;">
+				<div id="menu0" style="float:left;height:450px;"> 
+					<div class="inputArea1" style="margin-bottom:10px;">
+					  	<label>权限编号</label>：<input id="permissionId" name="permissionId" type="text"  class="easyui-textbox"  data-options="readonly:true"/>
+					</div>
+					<div class="inputArea1" style="margin-bottom:10px;">
+					  	<label>菜单编号</label>：<input id="menuId" type="text" name="menuId" class="easyui-textbox" data-options="readonly:true"/>
+					</div>
+					<div class="inputArea1" style="margin-bottom:10px;">
+					  	<label>父菜单</label>：<input id="parentMenu" name="parentMenu" type="text" data-options="required:true" />
+					</div>
+					<div class="inputArea1" style="margin-bottom:10px;">
+					  	<label>菜单名 </label>：<input id="menuName" name="menuName" class="easyui-textbox" data-options="required:true" /><font color="red">*</font>
+					</div>
+					<div class="inputArea1" style="margin-bottom:10px;">
+					  	<label>菜单排序</label>：<input id="menuNum" name="menuNum" class="easyui-textbox" data-options="required:true" /><font color="red">*</font>
+					</div>
+					<div class="inputArea1" style="margin-bottom:10px;">
+					    <label>资质商是否可见</label>：
+					    <input class="qualificationAble" name="qualificationAble" type="radio" value="1">是
+					    <input class="qualificationAble" name="qualificationAble" type="radio" value="0"  style="margin-left:50px;"> <span>否</span>
+					</div>
+					<div class="inputArea1" id="menu1">
+					  	<label>菜单描述</label>：<input id="menuDesc" name="menuDesc" class="easyui-textbox" data-options="multiline:true"/>
+					</div>
+				 </div> 
+				  
+	  		     <div style="width:100%;text-align:center;">
+	  		    	 <a class="easyui-linkbutton window-submitBtn" data-options="iconCls:'icon-add'"  id="addButton" onclick="$('#form').form('clear');" style="display:none;">新增菜单</a>
+		  			 <a class="easyui-linkbutton window-submitBtn" data-options="iconCls:'icon-save'" id="saveButton" onClick="saveMenu();" style="display:none;">保存</a>
+			         <a class="easyui-linkbutton window-submitBtn" data-options="iconCls:'icon-reload'" onClick="refreshFeature();">刷新</a>
+			    </div>	
+			   </div>			
+			</form>
+		 </fieldset>
+    </div>
+</div>
+</body>
+</html>

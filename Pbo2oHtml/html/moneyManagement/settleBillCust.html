@@ -1,0 +1,537 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<link rel="stylesheet" type="text/css" href="../../themes/default/easyui.css">
+<link rel="stylesheet" type="text/css" href="../../themes/icon.css">
+<link rel="stylesheet" type="text/css" href="../../themes/demo.css">
+<script type="text/javascript" src="../../js/jquery.js"></script>
+<script type="text/javascript" src="../../js/jquery.easyui.min.js"></script>
+<script type="text/javascript" src="../../js/datagrid-detailview.js"></script>
+<script type="text/javascript" src="../../js/locale/easyui-lang-zh_CN.js"></script>
+<script type="text/javascript" src="../global.js"></script>
+<script type="text/javascript">
+var url;
+var tableH = 0,hig = 0;
+/*这是注释*/
+$(function () {
+	
+	if($(window).width()>1500){
+		$(".baine").addClass("bainePos");
+	}
+	$('#province').combobox({
+		valueField:'provinceId', //值字段
+        textField:'provinceName', //显示的字段
+        url:'areaController/getAllProvince',
+        editable:false,//不可编辑，只能选择
+        width:'100',
+        value:'--请选择--',
+        onSelect:function(){
+        	/* push(); */
+        	var province = $(this).combobox('getValue');
+            $('#city').combobox({
+            valueField:'cityId', 
+            textField:'cityName',
+            url:'areaController/getCityByProvinceId?provinceId='+province,
+            required:true,
+            editable:false,//不可编辑，只能选择
+            value:'--请选择--' 
+          }); 
+        },
+     });
+	
+	
+	
+	
+	
+	
+	
+	$('#city').combobox({
+        editable:false,
+        width:'100',
+        value:'请先选择省份',
+       	onSelect:function(){
+        	var city = $(this).combobox('getValue');
+            $('#area').combobox({
+            valueField:'areaId', 
+            textField:'areaName',
+            url:'areaController/getAreaByCityId?cityId='+city,
+            required:true,
+            editable:false,//不可编辑，只能选择
+            value:'--请选择--'
+           });
+       	},
+     	onLoadSuccess:function(){
+       		$('#area').combobox({
+		 		width:'100',
+		 		editable:false,
+       			value:'请先选择城市',
+       			
+			});
+    	}
+     });
+	$('#area').combobox({
+	 		width:'100',
+	 		editable:false,
+	 		value:'请先选择城市',
+        onSelect:function(){
+        	/* push(); */
+        	var areaId = $(this).combobox('getValue');
+            $('#street').combobox({
+                valueField:'ST_ID', 
+                textField:'ST_NAME',
+                url:'getStreetByArea?areaId='+areaId,
+                required:true,
+                editable:false,//不可编辑，只能选择
+                value:'--请选择--' 
+          }); 
+        },
+     	onLoadSuccess:function(){
+       		$('#street').combobox({
+		 		width:'100',
+		 		editable:false,
+       			value:'请先选择区/县',
+       			
+			});
+    	}
+		});
+		
+	$('#paytype').combobox({
+ 		width:'80',
+        valueField:'value', //值字段
+        textField:'label', //显示的字段
+        editable:false,//不可编辑，只能选择
+        value:'--请选择--',
+        data: [{
+			label: '现金',
+			value: '1'
+		},{
+			label: '电子支付',
+			value: '2'
+		},{
+			label: '汇款',
+			value: '3'
+		}]
+        
+     });
+	
+	$('#state').combobox({
+ 		width:'80',
+        valueField:'value', //值字段
+        textField:'label', //显示的字段
+        editable:false,//不可编辑，只能选择
+        value:'--请选择--',
+        data: [{
+			label: '支付中',
+			value: '1'
+		},{
+			label: '支付失败',
+			value: '2'
+		},{
+			label: '支付成功',
+			value: '3'
+		}]
+     });
+	
+	$('#start').datebox({    
+	    width:'100px',
+	    onSelect:function(start){
+	    	var now = new Date();
+	    	if(start > now){
+	    		$.messager.alert('提示','操作失败!日期不能超过当前时间','error');
+	    		$('#start').datebox('setValue','');
+	    	}
+	    	
+ 		}
+	});
+
+	$('#end').datebox({    
+	    width:'100px',
+	    onSelect:function(date){
+	    	var now = new Date();
+	    	if(date > now){
+	    		$.messager.alert('提示','操作失败!日期不能超过当前时间','error');
+	    		$('#end').datebox('setValue','');
+	    	}
+	    	var start = $('#start').datebox('getValue');
+	    	var end = $('#end').datebox('getValue');
+	    	if(start>end){
+	    		$.messager.alert('提示','操作失败!起始时间不能晚于结束时间','error');
+	    		$('#end').datebox('setValue','');
+	    	}
+ 		}
+	});
+	tableH = Math.max(document.documentElement.scrollHeight,document.body.scrollHeight)-($('#dg').offset().top+20);
+    $('#dg').datagrid({
+    	iconCls: 'icon-save',
+    	width: "100%",
+    	height: tableH,
+        nowrap: true,
+        autoRowHeight: false,
+        striped: true,
+        collapsible: true,
+        url: 'settleBill/searchsettleBillCust',
+        remoteSort: false,
+        rownumbers:true,
+    	singleSelect:true,
+    	idField: "sn",
+    	onClickCell:function(index, field, value){
+    		if(hig==0){
+    			hig=document.body.scrollHeight*0.85/2;
+    		}
+    		$('#dg').datagrid('resize',{
+	        	height: hig,
+    		});
+  			check(index);
+  		},
+        columns: [[         
+        	{field: 'orderNo', title: '客户订单编号', width: 130, align:'center'},
+			{field: 'State', title: '状态', width: 65, align:'center'  ,
+        		formatter : function(value,row,index) {
+            		if (value=='支付中') {return "<font color='bule'>"+value+"</font>" ;}
+            		else if(value=='支付失败'){return "<font color='red'>"+value+"</font>";}
+            		else if(value=='支付成功'){return "<font color='green'>"+value+"</font>";}
+        		} 
+			},
+			{field: 'custId', title: '客户ID', width: 100, align:'center',hidden:true },
+            {field: 'custName', title: '客户名', width: 80, align:'center' },
+            {field: 'custPhone', title: '电话', width: 100, align:'center'},
+            {field:'bankCardName',title:'收款方户名',width:100,align:'center'},  
+            {field: 'advanceAmount', title: '预付金额', width: 80, align:'center' ,formatter: function (value, row, index) {
+                if (row != null) {
+                    return (parseFloat(value).toFixed(2) + '').replace(/\d{1,3}(?=(\d{3})+(\.\d*)?$)/g, '$&,');
+              }
+              } },
+            {field: 'settleAmount', title: '结算金额', width: 80, align:'center' ,formatter: function (value, row, index) {
+                if (row != null) {
+                    return (parseFloat(value).toFixed(2) + '').replace(/\d{1,3}(?=(\d{3})+(\.\d*)?$)/g, '$&,');
+              }
+              }},
+            {field:'bankCardNo',title:'收款方账号',width:180,align:'center'},
+            {field: 'operUserName', title: '操作人', width: 100, align:'center'  },           
+            {field: 'operUser', title: '操作人账号', width: 70,hidden:true, align:'center'  }, 
+            {field: 'payCount', title: '支付次数', width: 60, align:'center',
+            	formatter : function(value,row,index) {
+            		 if(value>1) {return "<font color='red'>"+value+"</font>";}
+            		 else if(value=1) {return "<font color='green'>"+value+"</font>";}
+        		} 
+            },  
+            {field: 'Sn', title: '结算交易流水号', width: 200, align:'center'  },
+            {field: 'paySnNo', title: '支付方式流水号', width: 200, align:'center'  },
+            {field: 'payType', title: '支付类型', width: 80, align:'center'  },
+            {field: 'createTime', title: '创建时间', width: 150, align:'center'  },
+            {field: 'lastUpdateTime', title: '最新修改时间', width: 150, align:'center'  },                     
+        ]],
+        pagination: true,
+    	pageSize : 40, 
+    	pageList : [ 40, 80, 120],
+    	toolbar: [
+			{
+    			id: 'total',
+   				text: '<div>预付总金额(元)：<input  style="display:none;border:0px;" readonly="readonly" id="advanceTotal"></div>',
+			},
+			{
+				id: 'total',
+					text: '<div>结算总金额(元)：<input  style="display:none;border:0px;" readonly="readonly" id="settleAmount"></div>',
+			}
+		   ],
+			onLoadSuccess: function(data){
+				if(data.settleAmountTotal!=null){
+				document.getElementById("settleAmount").style.display= "";
+				     $('#settleAmount').val(data.settleAmountTotal);
+				}
+				if(data.advanceTotal!=null){
+				document.getElementById("advanceTotal").style.display= "";
+				     $('#advanceTotal').val(data.advanceTotal);
+				}
+				if(data.cashAmount!=null){
+					$('#cashAmount').textbox('setValue',data.cashAmount);
+				}
+			}
+    });
+    
+    surMoney();
+});
+function doSearch() {
+	var province = $('#province').combobox('getValue');
+	var city = $('#city').combobox('getValue');
+	var area = $('#area').combobox('getValue');
+	//var paytype = $('#paytype').combobox('getValue');
+	var custName = $('#custName').textbox("getValue");
+	var custPhone = $('#custPhone').textbox("getValue");
+	var orderNo = $('#orderNo').textbox("getValue");
+	var state = $('#state').combobox('getValue');
+	var start = $('#start').datebox('getValue');
+	var end = $('#end').datebox('getValue');
+	var areaId;
+	if (province == "--请选择--" || province == "") {
+		province = "isEmpty";
+	}else{
+		areaId = province;
+	}
+	if (city != "--请选择--" && city != "请先选择省份" && city != "") {
+		areaId = city;
+	}
+	if (area != "--请选择--" && area != "请先选择城市" && area != "") {
+		areaId = area;
+	}
+	if (custName =="") {
+		custName = "isEmpty";
+	} else {
+		custName = custName;
+	}
+	if (custPhone =="") {
+		custPhone = "isEmpty";
+	} else {
+		custPhone = custPhone;
+	}
+	if (orderNo =="") {
+		orderNo = "isEmpty";
+	} else {
+		orderNo = orderNo;
+	}
+	if (state != "--请选择--" &&  state != "") {
+		state = state;
+	}else{
+		state ="isEmpty";
+	}
+	$('#dg').datagrid('load',{
+			areaId : areaId,
+			custName:custName,
+			custPhone:custPhone,
+			orderNo:orderNo,
+			state:state,
+			start:start,
+	    	end:end
+	})	
+}
+function check(index){
+	var payType= $('#dg').datagrid("getRows")[index].payType;
+	var paySnNo= $('#dg').datagrid("getRows")[index].paySnNo;
+	if (payType=="现金") {payType="1";}
+	else if (payType=="汇款") {payType="3";}
+	else {payType="2";}
+	if (payType=="2") {
+		/* 收款方 */ 
+		$('#dg2').datagrid({
+			iconCls: 'icon-save',
+			width: "100%",
+        	height: hig,
+        	fitColumns:true,
+	        nowrap: true,
+	        autoRowHeight: false,
+	        striped: true,
+	        collapsible: true,
+	        url: 'settleBill/searchOfflineadjpayway',
+	        remoteSort: false,
+	        rownumbers:true,
+	    	singleSelect:true,
+	    	idField: "Sn",
+	    	queryParams: {
+	    		payType : payType,
+	    		paySnNo : paySnNo,		
+			},	
+	    	columns: [[
+				{ field: 'Sn', title: '交易流水', hidden:true,width: 200 }, 	    		
+	    		{field : 'channelType',title : '支付渠道类型',width : 100,align:'center',
+	    			formatter : function(value,row,index) {
+		    			if (value== 0) {return "<font color='green'>银行卡</font>";
+			    		} else if (value== 1) {return "<font color='blue'>第三方支付</font>";}
+	    		}},	    
+	        	{ field: 'Amount', title: '支付金额', width: 100,align:'center' ,formatter: function (value, row, index) {
+	                if (row != null) {
+	                    return (parseFloat(value).toFixed(2) + '').replace(/\d{1,3}(?=(\d{3})+(\.\d*)?$)/g, '$&,');
+	              }
+	              }},
+	        	{ field: 'orderNo', title: '订单号', width: 140,align:'center' },
+	        	{ field: 'srcCustId', title: '付款方id', hidden:true,width: 200 ,align:'center'}, 
+	    		{ field: 'payerAccountId', title: '付款方账号ID',hidden:true, width: 120,align:'center'	},		   		
+	        	{ field: 'paymentChannelId', title: '付款方支付渠道id',hidden:true, width: 120 ,align:'center'},
+	        	{ field: 'toCustId', title: '收款方id',hidden:true, width: 133 ,align:'center'},
+	        	{ field: 'payeeAccountId', title: '收款方账号ID',hidden:true, hidden:true,width: 120 ,align:'center'}, 
+	    		{ field: 'toPaymentChannelId', title: '收款方支付渠道id',hidden:true, width: 120,align:'center' },
+	        	{ field: 'Fee', title: '手续费', width: 100 ,align:'center'},
+	        	{ field: 'feeCustId', title: '付手续费方Id', width: 100,  hidden:true,align:'center'},
+	        	{ field: 'feeCustName', title: '付手续费方', width: 100 ,align:'center'},
+	        	{ field: 'State', title: '交易状态', width: 100,align:'center',
+	        	  formatter : function(value,row,index) {
+	        		  switch(value){
+		        		  case 1:status="<font color='blue'>待支付</font>";break;
+		        		  case 2:status="<font color='blue'>支付中</font>";break;
+		        		  case 3:status="<font color='green'>支付成功</font>";break;
+		        		  case 4:status="<font color='red'>支付失败</font>";break;
+	        		  }
+	        		  return status;
+	        	  }
+	        	},
+	        	{ field: 'expireTime', title: '未支付失效时间',hidden:true, width: 150 },	
+	        	{ field: 'undoState', title: '撤销状态', width: 100,align:'center',
+		        	  formatter : function(value,row,index) {
+		        		  switch(value){
+			        		  case 1:status="<font color='red'>未撤销</font>";break;
+			        		  case 2:status="<font color='blue'>申请撤销</font>";break;
+			        		  case 3:status="<font color='green'>已被撤销</font>";break;
+			        		  case 4:status="<font color=''>支付失败</font>";break;
+		        		  }
+		        		  return status;
+		        	  }
+		        },
+		        { field: 'bankResultCode', title: '银行返回码', width: 100 ,align:'center'},	
+		        { field: 'bankResultNote', title: '银行备注', width: 150 ,align:'center'},	
+		        { field: 'bankTime', title: '银行回执更新时间', width: 155 ,align:'center'},	
+	        	{ field: 'createTime', title: '创建时间', width: 155 },	
+	        	{ field: 'lastUpdateTime', title: '最新修改时间', width: 155 },	
+	    	]],
+	    	view: detailview,
+        	detailFormatter : function(index,row){//注意2  
+        		return '<div style="padding:2px"><table id="ddv1-' + index + '"></table></div>';  
+            },
+            onExpandRow:function(index,row){//注意3 
+            	var i = index;
+	            if (payType=="2" && row.channelType==0 ) {
+	            	$('#ddv1-'+index).datagrid({  
+	                    url:'settleBill/channelTypeDetile',
+	                    queryParams : {
+	                    	channelType:row.channelType,
+	                    	paymentChannelId : row.toPaymentChannelId
+	                    },
+	                    singleSelect:true,
+	                    height:'auto',
+	                    width:'100%',
+	                    columns:[[  
+	                    	{field:'Id',title:'卡ID', hidden:true},  
+	                        {field:'custId',title:'客户编号',hidden:true,align:'center'},
+	                        {field:'IsFouriemchecked',title:'是否四要素',width:90,align:'center'},
+	                        {field:'isDefault',title:'是否默认',width:80,align:'center',
+	                        	formatter : function(value,row,index) {
+	                        		if (value==0) {return "<font color='bule'>非默认</font>" ;}
+	                        		else {return "<font color='green'>默认</font>";}
+	      		        	  	}
+		                    },
+	                        {field:'accountId',title:'账号ID',hidden:true,align:'center'},
+	                        {field:'bankCardNo',title:'账号',width:170,align:'center'},
+	                        {field:'bankCardName',title:'户名',width:130,align:'center'},
+	                        {field:'State',title:'状态',width:80,align:'center',
+	                        	formatter : function(value,row,index) {
+	                        		if (value==1) {return "<font color='bule'>已解绑</font>" ;}
+	                        		else if (value==2) {return "<font color='green'>使用中</font>";}
+	                        		else {return "<font color='red'>已作废</font>";}
+	      		        	  	}
+	                        }, 
+	                        {field:'isOnline',title:'是否可支付',width:100,align:'center',
+	                        	formatter : function(value,row,index) {
+	                        		if (value==1) {return "<font color='green'>可以线上支付</font>" ;}
+	                        		else {return "<font color='bule'>不可以线上支付</font>";}
+	      		        	  	}
+		                    }, 
+		                    {field:'createTime',title:'创建时间',width:150,align:'center'},
+		                    {field:'atVankPhone',title:'银行预留手机号',width:105,align:'center'},
+	                        {field:'idCard',title:'身份证编号',width:100,align:'center'},
+		                    {field:'bankCode',title:'行号',width:100,align:'center'},
+	                        {field:'bankName',title:'开户行行名',width:100,align:'center'},
+	                        {field:'bankAddrNo',title:'开户行地区',width:100,align:'center'},
+	                       
+	                    ]],
+	                    //pagination: true
+	                });  
+				}else if(payType=="2" && row.channelType==1){
+					$('#ddv1-'+index).datagrid({  
+	                    url:'settleBill/channelTypeDetile',
+	                    queryParams : {
+	                    	channelType:row.channelType,
+	                    	paymentChannelId : row.toPaymentChannelId
+	                    },
+	                    width:1000,
+	                    //fitColumns:true,  
+	                    singleSelect:true,
+	                    height:'auto',  
+	                    columns:[[  
+	                        {field:'Id',title:'卡ID', hidden:true},  
+	                        {field:'custId',title:'客户编号',width:100},
+	                        {field:'accountId',title:'账号ID',width:100 },
+	                        {field:'Account',title:'第三方支付账号',width:100},
+	                        {field:'qrCode',title:'2维码',width:100},
+	                        {field:'Type',title:'类型',width:100,
+	          	        	  formatter : function(value,row,index) {
+	          	        		  switch(value){
+	          		        		  case 1 :types="<font color='green'>微信</font>";break;
+	          		        		  case 2 :types="<font color='blue'>支付宝</font>";break;
+	          		        		  case 3 :types="<font color='red'>QQ</font>";break;
+	          		        		  default :types=null;break;
+	          	        		  }
+	          	        		  return types;
+	          	        	  }
+	                        },
+	                        {field:'Account2',title:'第三方支付号',width:100},
+	                        {field:'Phone',title:'预留手机号',width:100},
+	                        {field:'State',title:'状态',width:100,
+	                        	formatter : function(value,row,index) {
+	                        		if (value==1) {return "<font color='bule'>已解绑</font>" ;}
+	                        		else if (value==2) {return "<font color='green'>使用中</font>";}
+	                        		else {return "<font color='red'>已作废</font>";}
+	      		        	  	}
+	                        }, 
+	                        {field:'createTime',title:'创建时间',width:150},
+	                    ]],
+	                    //pagination: true
+	                });  
+				}                
+            }, 
+    		pagination: true,
+    		pageSize : 40, 
+        	pageList : [ 40, 80, 120],
+        	 toolbar: [
+     			{
+         			id: 'total',
+        				text: '<div>收款方信息：</div>',
+     			}
+     		   ],
+		});
+	}	
+}
+
+
+function surMoney(){
+	$.ajax({
+		url: "/settleBill/surMoney",
+		type: "get",
+		dataType: "json",
+		success: function (data) {
+			var cashAmount = data.cashAmount;
+			if(cashAmount){
+				$("#surMoney").text(cashAmount);
+			}
+		}
+	});
+}
+
+</script>
+<title>结算交易流水</title>
+</head>
+<body>
+	<div id="tb" style="padding-bottom:5px;" >
+	   	<form action=" " method="post" id="form1">
+		  <div class="inputArea1" id="inputArea1" style="padding-bottom: 5px;">
+		  	<label>状态</label>：<input id="state" name="state" class="easyui-combobox">
+		  	<label>省份</label>：<input id="province" name="province" >
+		  	<label>城市</label>：<input id="city" name="city">
+		  	<label>区域</label>：<input id="area" name="area">
+		  	<label>客户名</label>：<input type="text" class="easyui-textbox" id="custName" name = "custName" />
+		  </div>
+		  <div class="inputArea1" id="inputArea2" style="padding-bottom: 5px;">
+		   	<label>操作时间</label>：<input id="start" type="text"></input> 
+			<label style="margin-right: 13px;text-align: center;text-align-last: center;">至</label><input id="end" type="text"></input>
+			<label>订单号</label>：<input type="text" class="easyui-textbox" id="orderNo" name = "orderNo"/>
+			<label style="">电话号</label>：<input type="text" class="easyui-textbox" id="custPhone" name = "custPhone" style="margin-right:20px;"/>
+			<a class="easyui-linkbutton" data-options="iconCls:'icon-search'" onclick="doSearch()" style="margin-right:10px;">查看</a>
+			<a class="easyui-linkbutton" data-options="iconCls:'icon-reload'" onclick="$('#form1').form('clear');">清空</a>
+		  </div>
+ 		 <div class="baine">		
+			<span class="notRe">账户剩余金额:</span><span id="surMoney">0</span>元
+	     </div>
+		</form>
+	</div>
+	<table id="dg" style="align:center"></table>
+	<table id="dg1" style="align:center"> </table>  
+	<table id="dg2" style="align:center"></table>
+</body>
+</html>

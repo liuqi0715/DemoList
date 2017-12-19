@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>登录找铅网系统</title>
+<meta name="keywords" content="登录找铅网系统">
+<meta name="description" content="登录找铅网系统">
+<script type="text/javascript" src="../js/jquery.js"></script>
+
+<link rel="shortcut icon" href="../images/favicon.ico" />
+<link type="text/css" href="../themes/css/style.css" rel="stylesheet"  />
+<script type="text/javascript" src="../js/jquery.validate.js"></script>
+<script type="text/javascript" src="global.js"></script>
+
+<script type="text/javascript">
+   /*  localStorage.setItem("dataUrlHead","http://127.0.0.1:8888");
+    console.log(localStorage.getItem("dataUrlHead"));
+    var dataUrlHead = localStorage.getItem("dataUrlHead"); */
+    var dataUrlHead = getDataUrlHead();
+	$(document).ready(function() {
+
+		// 隐藏Loading/登录失败 DIV
+		$(".loading").hide();
+		$(".login-error").hide();
+
+		// 输入框激活焦点、移除焦点
+		jQuery.focusblur = function(focusid) {
+			var focusblurid = $(focusid);
+			var defval = focusblurid.val();
+			focusblurid.focus(function() {
+				var thisval = $(this).val();
+				if (thisval == defval) {
+					$(this).val("");
+				}
+			});
+			focusblurid.blur(function() {
+				var thisval = $(this).val();
+				if (thisval == "") {
+					$(this).val(defval);
+				}
+			});
+
+		};
+		/* 下面是调用方法 */
+		$.focusblur("#loginName");
+		$.focusblur("#password");
+
+		// 获取表单验证对象[填写验证规则]
+		var validate = $("#signupForm").validate({
+			rules : {
+				loginName : {
+					required : true
+				},
+				password : {
+					required : true,
+					minlength : 4,
+					maxlength : 16
+				}
+			},
+			messages : {
+				loginName : {
+					required : "请输入用户名!"
+				},
+				password : {
+					required : "请输入密码!",
+					minlength : jQuery.format("密码长度在4~16位之间"),
+					maxlength : jQuery.format("密码长度在4~16位之间")
+				}
+			}
+		});
+
+		// 输入框激活焦点、溢出焦点的渐变特效
+		if ($("#loginName").val()) {
+			$("#loginName").prev().fadeOut();
+		}
+
+		if ($("#password").val()) {
+			$("#password").prev().fadeOut();
+		}
+		$("#loginName").focus(function() {
+			$(this).prev().fadeOut();
+		});
+		$("#loginName").blur(function() {
+			if (!$("#loginName").val()) {
+				$(this).prev().fadeIn();
+			}
+		});
+		$("#password").focus(function() {
+			$(this).prev().fadeOut();
+		});
+		$("#password").blur(function() {
+			if (!$("#password").val()) {
+				$(this).prev().fadeIn();
+			}
+		});
+
+		// ajax提交登录
+		$("#submit").bind("click", function() {
+			login(validate);
+		});
+
+		$("body").each(function() {
+			$(this).keydown(function() {
+				if (event.keyCode == 13) {
+					login(validate);
+				}
+			});
+		});
+	});
+
+	function login(validate) {
+		// 校验用户名, password，校验如果失败的话不提交
+		if (validate.form()) {
+			var password = $("#password").val();
+			var loginName = $("#loginName").val();
+			$.ajax({
+				url : "/login",
+				type : "post",
+				data : {
+					loginName : loginName,
+					password : password
+				},
+				dataType : "json",
+				beforeSend : function() {
+					$('.loading').show();
+				},
+				success : function(data) {
+					parent.parent.window.location.href = "./Home.html";
+				}
+			});
+		}
+	}
+</script>
+
+</head>
+<body class="loginbody" style="overflow: hidden;">
+	<div class="loginbody_l">
+		<img src="../images/system/login/beijing.png" width="100%"
+			height="100%" alt="bg" /> <img
+			src="../images/system/login/zqw.png"
+			style="position: absolute; top: 5%; left: 8%; z-index: 2;" alt="bg" />
+	</div>
+	<div class="loginbody_r">
+		<div class="loginbox login-center">
+			<div class="logo-a">
+				<img src="../images/system/login/logo.png" alt="logo" />
+			</div>
+			<div class="login-content">
+				<form id="signupForm">
+					<div class="login-error"></div>
+					<div class="row">
+						<img src="../images/system/login/wode.png" alt="wode" /> <label
+							class="field">用户名</label> <input type="text"
+							class="input-text-user input-click" name="loginName"
+							id="loginName" style="background: #F4F2F2; border: none;">
+					</div>
+					<div class="row" style="margin-top: 10px;">
+						<img src="../images/system/login/mima.png" alt="mima" /> <label
+							class="field">密码</label> <input type="password"
+							class="input-text-password input-click" name="password"
+							id="password" style="background: #F4F2F2; border: none;">
+					</div>
+					<div class="row btnArea">
+						<a class="login-btn" id="submit"></a>
+					</div>
+					<!-- <div class="row tips">
+				<a href="forget.jsp" class="link">忘记密码</a>
+			</div> -->
+				</form>
+			</div>
+		</div>
+	</div>
+
+	<div class="loading" style="display: none;">
+		<div class="mask">
+			<div class="loading-img">
+				<img src="../themes/images/loading.gif" width="31" height="31">
+			</div>
+		</div>
+	</div>
+</body>
+</html>
+
