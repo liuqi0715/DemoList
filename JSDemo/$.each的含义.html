@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="libs/jquery.js"></script>
+    <link rel="stylesheet" href="libs/animate.css">
+</head>
+<style>
+    body{
+        margin: 0;
+        padding: 0;
+    }
+    #box{
+        width: 200px;
+        height: 100px;
+        background-color: aqua;
+        transition: all .5s;
+        overflow-y: hidden;
+
+    }
+  
+    #box p{
+        height: 100px;
+        line-height: 100px;
+        text-align: center;
+        margin: 0;
+        padding: 0;
+    }
+    @keyframes disappear {
+        from{
+            height: 100px;
+            width: 200px;
+        }
+        to{
+            width: 0px;
+            height: 0px;
+        }
+    }
+</style>
+<body>
+        <button id="btn">
+            点击
+        </button>
+
+        <div id="box">
+            <p>1</p>
+            <p>2</p>
+            <p>3</p>
+            <p>21</p>
+            <p>22</p>
+            <p>23</p>
+        </div>
+</body>
+<script>
+    $(function () {
+        var flag = false;
+        var ph = $("#box p:first-child").height()
+        var pl = $("#box").children('p').length;
+
+        $("#btn").click(function () {
+            if (flag==false){
+                $("#box").css({"height":ph*pl+"px"})
+                flag = true;
+            } else {
+                $("#box").css({"height":"100px"})
+                flag = false
+            }
+        })
+
+        //$.each([],(item,value)=>{})       //item是index  value是每一个对象
+      /*  $.each(userInfo.data.trailList, function (item, value) {
+            var firstPoint = new BMap.Point(value.longitude, value.latitude);
+            if(value.orderNo==null){
+                var m1 = new BMap.Marker(firstPoint,{icon:myIcon});
+            }else {
+                var m1 = new BMap.Marker(firstPoint,{icon:orderIcon});
+
+            }
+            if (value.orderNo==null){
+                var content= "<span style='font-size: 10px;color: red'>"+ value.time+"</span>";
+            }else {
+                var content= "<span style='font-size: 10px;color: red'>"+ value.time+"订单号:"+value.orderNo+"</span>";
+            }
+
+            map.addOverlay(m1);
+            addClickHandler(content,m1);
+        });*/
+    })
+</script>
+</html>
