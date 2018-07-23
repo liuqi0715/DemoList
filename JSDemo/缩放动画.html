@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="libs/jquery.js"></script>
+    <link rel="stylesheet" href="libs/animate.css">
+</head>
+<style>
+    #box{
+        width: 200px;
+        height: 200px;
+        background-color: aqua;
+        transition: all 1s
+    }
+    #box :active{
+        animation:disappear 1s;
+
+    }
+    @keyframes disappear {
+        from{
+            height: 200px;
+            width: 200px;
+        }
+        to{
+            width: 0px;
+            height: 0px;
+        }
+    }
+</style>
+<body>
+        <button id="btn">
+            点击
+        </button>
+
+        <div id="box">
+
+        </div>
+</body>
+<script>
+    $(function () {
+        var flag = false;
+        $("#btn").click(function () {
+            if (flag==false){
+                $("#box").css({"transform":"scale(0,0)"})
+                flag = true;
+            } else {
+                $("#box").css({"transform":"scale(1,1)"})
+                flag = false
+            }
+        })
+    })
+</script>
+</html>

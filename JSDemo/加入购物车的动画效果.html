@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="libs/jquery.js"></script>
+    <link rel="stylesheet" href="libs/animate.css">
+</head>
+<style>
+    #box{
+        width: 600px;
+        height: 600px;
+        /*background-color: aqua;*/
+        transition: all 1s initial;
+        border: 1px solid red;
+        position: relative;
+    }
+    .goods,#cart{
+        position: absolute;
+        width: 30px;
+        height: 30px;
+        background: aqua;
+        border-radius: 50%;
+    }
+    .goods{
+        background: red;
+        width: 40px;
+        height: 40px;
+        position: absolute;
+        left: 95%;
+        top: 0;
+
+
+    }
+    #cart{
+        position: absolute;
+        top: 95%;
+        left: 0%;
+    }
+    @keyframes disappear {
+        0%{
+            left: 95%;
+            top: 0px;
+        }
+        25%{
+            left: 54%;
+            top: 27%;
+        }
+        50%{
+            left: 27%;
+            top: 54%;
+        }
+        100%{
+            left: 0%;
+            top: 95%;
+        }
+    }
+</style>
+<body>
+<button id="btn">
+    点击
+</button>
+
+<div id="box">
+    <div class="goods">
+
+    </div>
+    <div id="cart">
+
+    </div>
+</div>
+</body>
+<script>
+    $(function () {
+        var flag = false;
+        $("#btn").click(function () {
+            $(".goods").css({animation: "disappear 2s linear"})
+            if (flag==false){
+                $(".goods").css({animation: "disappear 2s linear"})
+                flag = true;
+            } else {
+                $(".goods").css({animation: "none"})
+                flag = false
+            }
+        })
+
+    })
+</script>
+</html>
