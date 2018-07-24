@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>数组去重</title>
+    <script src="libs/jquery.js"></script>
+    <link rel="stylesheet" href="libs/animate.css">
+</head>
+<style>
+    body{
+        margin: 0;
+        padding: 0;
+    }
+    #box{
+        width: 200px;
+        height: 100px;
+        background-color: aqua;
+        transition: all .5s;
+        overflow-y: hidden;
+
+    }
+
+    #box p{
+        height: 100px;
+        line-height: 100px;
+        text-align: center;
+        margin: 0;
+        padding: 0;
+    }
+    @keyframes disappear {
+        from{
+            height: 100px;
+            width: 200px;
+        }
+        to{
+            width: 0px;
+            height: 0px;
+        }
+    }
+</style>
+<body>
+<button id="btn">
+    点击
+</button>
+
+<div id="box">
+    <p>1</p>
+    <p>2</p>
+    <p>3</p>
+    <p>21</p>
+    <p>22</p>
+    <p>23</p>
+</div>
+</body>
+<script>
+    $(function () {
+        getSort(){
+            let arr = this.mockDataInfo.a;
+            var tmp = [];
+            for (var i = 0; i < arr.length; i++) {
+                if (tmp.indexOf(arr[i].filedidx)==-1) {
+                    tmp.push(arr[i].filedidx)
+                }else{
+                    //  console.log(arr[i])
+                }
+                //  tmp.push(arr[i].filedidx)
+            }
+            function unique(arr) {
+                return Array.from(new Set(arr));
+            }
+        }
+    })
+</script>
+</html>
