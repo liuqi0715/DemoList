@@ -1,0 +1,129 @@
+*{
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    text-decoration: none;
+    box-sizing: border-box;
+}
+body{
+    width: 100%;
+    height: 100%;
+    background-color: #eeeeee;
+    min-width: 1300px;
+}
+
+/*#allmap{*/
+/*width: 48%;*/
+/*height: 800px;*/
+/*margin: 50px auto;*/
+/*margin-right: 2%;*/
+/*float: left;*/
+
+/*}*/
+
+#r-result
+{
+    height: 800px;
+    width: 100%;
+    margin: 0 auto;
+    /*float: left;*/
+}
+.recyle{
+    width: 200px;
+    height: 30px;
+}
+.recyle,.time,.resave,.search{
+    width: 200px;
+    height:30px;
+    line-height: 30px;
+    float: left;
+    cursor: pointer;
+    margin-left: 50px;
+}
+.search{
+    color: white;
+    text-align: center;
+    border-radius: 2px;
+    /* background: white; */
+    margin-right: 50px;
+    background-color: #65C3DF;
+}
+.toplist{
+    width: 100%;
+    height: 40px;
+    margin-bottom: 20px;
+    margin-top: 5px;
+}
+#recyle{
+    width: 200px;
+    height: 30px;
+    line-height: 30px;
+}
+#time{
+    width: 100%;
+    height: 30px;
+    line-height: 30px;
+    text-indent: 10px;
+}
+.right{
+    float: right;
+}
+.saveImg,.savecont{
+    float: left;
+    height: 30px;
+    line-height: 30px;
+}
+.saveImg img{
+    vertical-align: text-bottom;
+}
+.savecont{
+    padding-left: 5px;
+    box-sizing: border-box;
+}
+
+.resave{
+    width: 100px;
+}
+
+.motai{
+    position: fixed;
+    left:0;
+    top:0;
+    width: 100%;
+    height: 100%;
+    background-color:rgba(201,201,201,0.5);
+    z-index: 999999;
+}
+.info{
+    width: 300px;
+    height: 150px;
+    background-color: white;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    -webkit-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+    border-radius: 4px;
+    padding: 20px;
+    text-align: center;
+}
+.info p{
+    margin-bottom: 20px;
+    font-size: 15px;
+}
+
+.confirm{
+    width: 200px;
+    color: white;
+    text-align: center;
+    border-radius: 2px;
+    /* background: white; */
+    background-color: #65C3DF;
+    height: 30px;
+    line-height: 30px;
+    /* margin: 0 auto; */
+    position: relative;
+    left: 30px;
+    bottom: 0px;
+    cursor: pointer;
+}
