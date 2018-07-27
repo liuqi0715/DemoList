@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/angular.js"></script>
+    <script src="js/jquery.js"></script>
+    <script src="js/echarts.js"></script>
+    <script type="text/javascript" src="laydate/laydate.js"></script>
+    <script type="text/javascript" src="http://api.map.baidu.com/getscript?v=2.0&ak=S2XBCnEYouwQYSpqxcpX2BP1"></script>
+    <script src="libs/linemap3.js"></script>
+</head>
+<body ng-app="myAppD" ng-controller="myCtrD">
+<div class="toplist">
+
+        <select name="" id="recyle" class="recyle" ng-init="recyleData[0].contact" ng-model="recyleId" ng-click="touchPro()"  ng-options="pro.contact  for pro in recyleData">
+            <option value="">--请选择回收员--</option>
+            <!-- <option value="1" ng-click="touchPro(pro.provinceId)"></option> -->
+        </select>
+
+    <div class="time">
+        <input type="text" id="time" placeholder="请选择时间" vlue="{{date}}" ng-model="date">
+    </div>
+    <div class="right">
+        <div class="resave" ng-click="saveData()">
+
+            <div class="saveImg">
+                <img src="images/nosave.png" alt="" ng-if="!hasSave">
+                <img src="images/hassave.png" alt="" ng-if="hasSave">
+            </div>
+            <div class="savecont">
+                保留数据
+            </div>
+        </div>
+        <div class="search" ng-click="search()">
+            查询
+        </div>
+    </div>
+
+</div>
+<!--<p class="" ng-click="delect()">删除覆盖物</p>-->
+
+<div id="r-result">
+</div>
+</body>
+</html>
