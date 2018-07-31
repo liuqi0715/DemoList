@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="libs/jquery.js"></script>
+    <link rel="stylesheet" href="libs/animate.css">
+</head>
+<style>
+    #box{
+        width: 200px;
+        height: 200px;
+        background-color: aqua;
+        transition: all 1s
+    }
+    #box :active{
+        animation:disappear 1s;
+
+    }
+    @keyframes disappear {
+        from{
+            height: 200px;
+            width: 200px;
+        }
+        to{
+            width: 0px;
+            height: 0px;
+        }
+    }
+</style>
+<body>
+<button id="btn">
+    点击
+</button>
+
+<div id="box">
+
+</div>
+</body>
+<script>
+    $(function () {
+        var arr = [1,2,3,4,5,6,7,8,9,10];
+
+        function Random(arr) {
+            var newArr = [];
+            // Math.random() = [0,1)
+            for (var i=0,len = arr.length;i<len;i++){
+                var ranIndex = parseInt(Math.random()*arr.length)
+                console.log(ranIndex,"len = arr.length")
+                newArr[i] = arr[ranIndex];
+                arr.splice(ranIndex,1)
+            }
+            return newArr;
+        }
+        console.log( Random(arr),"arr")
+
+        // var a = [1,2,3,4,5,6]
+        //
+        // var b=[];
+        // for (var i=0,len=a.length;i<len;i++){
+        //     var index = parseInt(Math.random()*a.length);
+        //     b[i]=a[index];
+        //     a.splice(index,1)
+        // }
+        // console.log(b,"b")
+
+
+        // var team = [1,2,3,4,5,6,7,8,9,10];
+        // var res = [];
+        // for (var i = 0, len = team.length; i < len; i++) {
+        //
+        //     // 随机叫个
+        //     var randomIndex = parseInt(Math.random() * team.length);
+        //     // 出列到新队伍
+        //     res[i] = team[randomIndex];
+        //     // 原来的队伍人越来越少，因此上面的 randomIndex 需要实时获取 team.length
+        //     team.splice(randomIndex, 1);
+        //     console.log(i)
+        // }
+        // console.log(res);
+
+
+    })
+</script>
+</html>
