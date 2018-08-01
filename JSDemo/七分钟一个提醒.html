@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="libs/jquery.js"></script>
+    <link rel="stylesheet" href="libs/animate.css">
+</head>
+<style>
+    #box{
+        width: 200px;
+        height: 200px;
+        background-color: aqua;
+        transition: all 1s
+    }
+    #box :active{
+        animation:disappear 1s;
+
+    }
+    @keyframes disappear {
+        from{
+            height: 200px;
+            width: 200px;
+        }
+        to{
+            width: 0px;
+            height: 0px;
+        }
+    }
+</style>
+<body>
+<button id="btn">
+    点击
+</button>
+
+<div id="box">
+
+</div>
+</body>
+<script>
+    $(function () {
+        setInterval(function () {
+            alert("时间到了大兄弟！！")
+        },25200)
+
+
+    })
+</script>
+</html>
