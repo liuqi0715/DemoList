@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>数组去重</title>
+    <script src="libs/jquery.js"></script>
+    <link rel="stylesheet" href="libs/animate.css">
+</head>
+<style>
+    body{
+        margin: 0;
+        padding: 0;
+    }
+    #box{
+        width: 200px;
+        height: 100px;
+        background-color: aqua;
+        transition: all .5s;
+        overflow-y: hidden;
+
+    }
+
+
+    @keyframes disappear {
+        from{
+            height: 100px;
+            width: 200px;
+        }
+        to{
+            width: 0px;
+            height: 0px;
+        }
+    }
+</style>
+<body>
+<button id="btn">
+    点击
+</button>
+
+<div id="box">
+
+</div>
+</body>
+<script>
+    $(function () {
+      $("#btn").click(function () {
+          console.log("??")
+          $.ajax({
+              url:"http://api.norra.cn/json/jsessionid",
+              type: "get",
+              // headers: {
+              //     Accept: "application/json;charset=utf-8"
+              // },
+              contentType:'application/json',
+              dataType : "json",
+              success: function (res) {
+                 alert(res)
+              },
+              error: function (returnValue) {
+                  alert("对不起！数据加载失败！");
+              }
+          })
+      })
+    })
+</script>
+</html>

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>仿淘宝抢购倒计时</title>
+</head>
+
+<body>
+  <div id="showTime"></div>
+  <script type="text/javascript">
+    function formatTime(ms) {
+      ms = new Date("2018/8/10 14:11:00").getTime() - Date.now();
+      if(ms <= 0){
+        document.getElementById("showTime").innerHTML = '已结束'
+        window.cancelAnimationFrame(animate);
+        return ;
+      }
+      var ss = 1000;
+      var mi = ss * 60;
+      var hh = mi * 60;
+      var dd = hh * 24;
+
+      var day = parseInt(ms / dd);
+      var hour = parseInt((ms - day * dd) / hh);
+      var minute = parseInt((ms - day * dd - hour * hh) / mi);
+      var second = parseInt((ms - day * dd - hour * hh - minute * mi) / ss);
+      var milliSecond = ms - day * dd - hour * hh - minute * mi - second * ss;
+
+      let sb = '';
+      if (day >= 0) {
+        sb += day + "天"
+      }
+      if (hour >= 0) {
+
+        sb = hour > 9 ? sb + hour + ":" : sb + '0' + hour + ":"
+      }
+      if (minute >= 0) {
+        sb = minute > 9 ? sb + minute + ":" : sb + '0' + minute + ":"
+      }
+      if (second >= 0) {
+        sb = second > 9 ? sb + second + ":" : sb + '0' + second + ":"
+      }
+      if (milliSecond >= 0) {
+        sb += parseInt(milliSecond / 100)
+      }
+      document.getElementById("showTime").innerHTML = '距结束' + sb
+      animate = window.requestAnimationFrame(formatTime);
+    }
+    // window.requestAnimationFrame(formatTime)
+    var animate;
+    formatTime();
+
+  </script>
+</body>
+
+</html>
