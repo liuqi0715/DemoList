@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+    <!-- jQuery (Bootstrap 的所有 JavaScript 插件都依赖 jQuery，所以必须放在前边) -->
+    <script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
+    <!-- 加载 Bootstrap 的所有 JavaScript 插件。你也可以根据需要只加载单个插件。 -->
+    <script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+
+    <title>分页的简单实现</title>
+    <style>
+        th{
+            border: 1px solid #cccccc;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<!--栅格布局-->
+<div class="row">
+    <div class="col-lg-3"></div>
+    <div class="col-lg-6" style="font-size: large" >
+        <br>
+        <!--查询-->
+        <input id="queryClassId" type="text" style="width: 78px">
+        <button id="queryButton" class="btn btn-primary">查询</button>
+        <!--添加表格-->
+        <!--条纹状表格-->
+        <table class="table table-hover table-responsive">
+            <!--表头-->
+            <thead>
+            <tr class="info">
+                <th>姓名</th>
+                <th>IP</th>
+                <th>浏览记录</th>
+            </tr>
+            </thead>
+
+            <tbody id="showStudentByPage">
+
+            </tbody>
+
+        </table>
+        <!--分页导航栏-->
+        <div>
+            共<span id="totalNumber" style="color: dodgerblue">0</span>条
+            当前第<span id="currentPage" style="color: black">1</span>/<span id="totalPage" style="color: black">1</span>页
+
+            <button id="Previous" class="btn btn-default">Previous</button>
+            <button id="Next" class="btn btn-default">Next</button>
+            跳至<input id="pageNumber" type="text" style="width: 78px">页
+            <button id="goPage" type="button" class="btn btn-primary">GO</button>
+        </div>
+
+
+    </div>
+    <div class="col-lg-3"></div>
+</div>
+
+
+
+<!--引入js-->
+<script >
+
+
+    $(document).ready(function () {
+
+//简单分页功能之查询
+        $("#queryButton").click(function () {
+
+            var classID = $("#queryClassId").val();
+            var pageNumber = $("#pageNumber").val().trim();
+            showStudentsByPage(classID,pageNumber);
+        });
+
+//简单分页功能之go
+        $("#goPage").click(function () {
+            var classID = $("#queryClassId").val();
+            var pageNumber = $("#pageNumber").val().trim();
+            showStudentsByPage(classID,pageNumber);
+        });
+
+//简单分页功能之上一页
+        $("#Previous").click(function(){
+            var classID = $("#queryClassId").val();
+            var pageNumber = $("#currentPage").text();
+            var nextPageNumber = parseInt(pageNumber)-1;
+            showStudentsByPage(classID,nextPageNumber);
+        });
+
+//简单分页功能之下一页
+        $("#Next").click(function(){
+            var classID = $("#queryClassId").val();
+            var pageNumber = $("#currentPage").text();
+            var nextPageNumber = parseInt(pageNumber)+1;
+            showStudentsByPage(classID,nextPageNumber);
+        });
+
+
+        function showStudentsByPage(classID,pageNumber) {
+
+//ajax请求
+            $.ajax({
+//请求方式
+                type: 'GET',
+//路径
+                url: 'http://localhost:8080/IP/callOn',
+//传递的参数
+                data: {classID:classID,pageNumber:pageNumber},
+                xhrFields: {
+                    withCredentials: true
+                },
+                crossDomain: true,
+//返回的数据类型
+                dataType: "json",
+//回调函数 ,成功时返回的数据存在形参data里
+                success: function(data){
+//拼写HTML代码
+                    var HTML_CODE="";
+                    for(var i=0;i<data.testStudents.length;i++) {
+                        HTML_CODE+=
+                            "<tr><td>" + data.testStudents[i].studentId + "</td>" +
+                            "<td>" + data.testStudents[i].studentName + "</td>" +
+                            "<td>" + data.testStudents[i].studentClassId + "</td></tr>"
+                    }
+                    $("#showStudentByPage").html(HTML_CODE);
+//显示总条数
+                    $("#totalNumber").text(data.page.totalNumber);
+//显示当前页数
+                    $("#currentPage").text(data.page.currentPage);
+//显示总页数
+                    $("#totalPage").text(data.page.totalPage);
+
+
+                },
+                error: function(){
+                    alert("连接失败");
+                }
+            });
+        }
+    });
+
+</script>
+</body>

@@ -51,20 +51,6 @@
         }
         var token = localStorage.getItem('token')
         originalOptions.url = 'http://192.168.0.156:8019'+originalOptions.url
-
-        /**
-         *
-         * @param name
-         * @returns {string | null}
-         * 这种方法要好一些
-         */
-        function getUrlKey(name){
-            return decodeURIComponent((new RegExp('[?|&]'+name+'='+'([^&;]+?)(&|#|;|$)').exec(location.href)||[,""])[1].replace(/\+/g,'%20'))||null;
-        }
-        var access_token = getUrlKey('access_token');
-        localStorage.setItem("token",access_token)
-        var url = location.search;
-
     })
 </script>
 </html>

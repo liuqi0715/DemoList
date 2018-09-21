@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<style>
+    #md1,#md2{
+        width: 70%;
+        height: 1500px;
+        margin-left: 30%;
+
+    }
+    #left{
+        width: 30%;
+        height: 3000px;
+        float: left;
+        position: fixed;
+        left: 0px;
+        top: 200px;
+    }
+</style>
+<body>
+<div id="left">
+    <p>
+        <a href="#method1">页面锚点方法一</a>
+    </p>
+    <p>
+        <a href="#method2">页面锚点方法二</a>
+    </p>
+</div>
+
+
+<div id="md1">
+    <a name="method1">方法一</a>
+    <p>使用锚标签的 href 和 name 属性</p>
+</div>
+
+<div id="md2">
+    <a name="method2">方法er</a>
+    <p>使用锚标签和 id 属性</p></div>
+
+</body>
+</html>
