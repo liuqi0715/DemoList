@@ -34,6 +34,9 @@
     <div id="box2">
 
     </div>
+    <canvas id="test-stock" width="300" height="200">
+        <p>Current Price: 25.51</p>
+    </canvas>
 </body>
 <script>
    var canvas = document.getElementById("tutorial");
@@ -46,9 +49,23 @@
    ctx.fillRect (10, 10, 55, 50);
 
    ctx.fillStyle = "rgba(0, 0, 200, 0.5)";
-   ctx.fillRect (30, 30, 55, 50);
+   ctx.fillRect (30, 30, 55, 50);       //在位置为  X轴  30 Y轴 30 的地方绘制一个  width:55    height:50 的矩形。
 
-   ctx.fillStyle = "rgb(220,20,80,0.8)";
-   ctx.fillRect (10, 10, 25, 20);
+   ctx.fillStyle = "rgb(1   22,20,80,0.8)";
+   ctx.fillRect (50, 50, 100, 120);   //  在canvas坐标中X轴：50 Y轴：50的位置绘制一个 width:25 height:20的矩形。
+
+   /**
+    * 利用canvas绘制复杂路径
+    */
+   var canvas2 = document.getElementById("test-stock");
+   var ctx2 = canvas2.getContext("2d");
+   ctx2.beginPath();                //beginPath()创建一条路径，或者重置当前的路径。
+   ctx2.moveTo(20,20);             //将路劲开始的点移动到画布的指定位置，但不创建线条。
+   ctx2.lineTo(50,80);             //创建一个新的点，然后再画布中创建该点到指定点的线条。
+   ctx2.lineTo(150,50)
+   ctx2.strokeStyle = "red";       //设置或返回笔触的颜色渐变或者返回。
+   ctx2.stroke();                  //绘制已经定义的路径。
+
+
 </script>
 </html>
