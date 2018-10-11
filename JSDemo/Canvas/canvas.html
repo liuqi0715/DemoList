@@ -79,12 +79,12 @@
    var canvas3 = document.getElementById("smlie");
    var ctx3 = canvas3.getContext("2d");
    ctx3.clearRect(0,0,200,200)                      //将位置为(0,0)位置为200的矩形透明度设置为0
-   ctx3.fillStyle="";                        //设置颜色。  默认为黑色  必须要在fillRect()函数前面设置颜色
+   ctx3.fillStyle="";                               //设置颜色。  默认为黑色  必须要在fillRect()函数前面设置颜色
    ctx3.fillRect(10,10,150,150);                    //在坐标（10，10）的位置设置一个150的矩形
 
    var path = new Path2D();                        //新实例化一个path2D对象
    path.arc(75, 75, 50, 0, Math.PI*2, true);       //arc绘制一个弧线，（x:number,y:numebr,radius:number,startAngle:number,endAngle:number,anticlockwise:boolean）
-   path.moveTo(110,75);                         //因为path绘制的是一整条线，因此要将多余的线位置移动到绘制第二个半圆的开始点
+   path.moveTo(110,75);                            //因为path绘制的是一整条线，因此要将多余的线位置移动到绘制第二个半圆的开始点
    path.arc(75, 75, 35, 0, Math.PI, false);
    path.moveTo(65, 65);
    path.arc(60, 65, 5, 0, Math.PI*2, true);
@@ -101,9 +101,6 @@
     *   moveTo(x,y)讲线迁移到某一个点，有点类似擦除线到一个点上。
     *
     */
-
-
-
     ctx3.stroke(path);
 
 </script>
