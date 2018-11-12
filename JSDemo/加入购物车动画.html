@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>加入购物车</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="libs/jquery.js"></script>
+</head>
+<style>
+    *{
+        margin: 0;
+        padding: 0;
+    }
+    li{
+        list-style: none;
+    }
+    #goods{
+        width: 100%;
+        height: 100%;
+        overflow-y: scroll;
+    }
+    #goodsmeau{
+        width: 20%;
+        height: auto;
+        float: left;
+    }
+    #goodsmeau ul{
+        width: 100%;
+    }
+    #goodsmeau ul li{
+        width: 100%;
+        height: 25px;
+        line-height: 25px;
+        text-align: center;
+
+    }
+    #goodlists{
+        width: 80%;
+        float: left;
+    }
+    #goodlists ul{
+        width: 100%;
+
+    }
+    #goodlists ul li{
+        height: 50px;
+        text-align: right;
+        padding-right: 20px;
+        line-height: 50px;
+        position: relative;
+    }
+    #goodlists ul li span{
+        display: block;
+        width: 16px;
+        height: 16px;
+        background: red;
+        position: absolute;
+        right: 20px;
+        bottom: 10px;
+        border-radius: 50%;
+    }
+    #shopCart{
+        width: 100%;
+        height: 40px;
+        line-height: 40px;
+        text-align: center;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        background: #ccc;
+        border-top: 1px solid red;
+    }
+    .pointPre {  /* 动画的小球 */
+        /*display: none;*/
+    }
+    .pointOuter {
+        position: absolute;
+        z-index: 114;
+        /* 当小球抛出时遵循贝塞尔曲线过渡 */
+        -webkit-transition: all 0.5s cubic-bezier(0.5,-0.29,0.9,0.49) 0s;
+        /*transition: all 0.5s cubic-bezier(0.39,-0.4,0.83,0.23) 0s;*/
+        /*transition: all 0.5s linear 0s;*/
+        /*-webkit-transition: all 0.5s linear 0s;*/
+    }
+
+    .point-inner {
+        width: 15px;
+        height: 15px;
+        border-radius: 50%;
+        background-color: #00a0dc;
+        /* 过渡属性名称 过渡时间 过渡曲线 延迟时间 */
+        transition: all 0.5s linear 0s;
+        -webkit-transition: all 0.5s linear 0s;
+    }
+</style>
+<body>
+    <div id="goods">
+        <div id="goodsmeau">
+            <ul>
+                <li class="goodmeau">1待审核</li>
+                <li class="goodmeau">2未通过审核</li>
+                <li class="goodmeau">3制作中</li>
+            </ul>
+        </div>
+        <div id="goodlists">
+            <ul>
+                <li>商品01 <span class="test"></span></li>
+                <li>商品01 <span  class="test"></span></li>
+                <li>商品01 <span  class="test"></span></li>
+                <li>商品01 <span  class="test"></span></li>
+                <li>商品01 <span  class="test"></span></li>
+            </ul>
+        </div>
+        <div id="shopCart">
+            购物车
+        </div>
+    </div>
+    <div id="points">
+        <div class="pointOuter pointPre">
+            <div class="point-inner"></div>
+        </div>
+        <!--其他n个小球-->
+        <div class="pointOuter pointPre">
+            <div class="point-inner"></div>
+        </div>
+        <div class="pointOuter pointPre">
+            <div class="point-inner"></div>
+        </div>
+        <div class="pointOuter pointPre">
+            <div class="point-inner"></div>
+        </div>
+        <div class="pointOuter pointPre">
+            <div class="point-inner"></div>
+        </div>
+        <div class="pointOuter pointPre">
+            <div class="point-inner"></div>
+        </div>
+        <div class="pointOuter pointPre">
+            <div class="point-inner"></div>
+        </div>
+    </div>
+
+</body>
+<script>
+    $(function () {
+        var i = 0;
+        $(".test").click(function (e) {
+            i++;
+            console.log(i,"当前商品的购买数量",e.clientX,e.clientY);
+            var top = e.clientY, // 小球降落起点
+                left = e.clientX,
+                endTop = window.innerHeight - 30,  // 小球降落终点
+                endLeft = 20;
+
+            var outer = $('#points .pointPre').first().removeClass("pointPre").css({
+                left: left + 'px',
+                top: top + 'px'
+            });
+            var inner = outer.find(".point-inner");
+
+            setTimeout(function() {
+                // 将jquery对象转换为DOM对象
+                    outer[0].style.webkitTransform = 'translate3d(0,' + (endTop - top) + 'px,0)';
+                    inner[0].style.webkitTransform = 'translate3d(' + (endLeft - left) + 'px,0,0)';
+                // 小球运动完毕恢复到原点
+                setTimeout(function() {
+                    // outer.removeAttr("style").addClass("pointPre");
+                    // inner.removeAttr("style");
+                }, 500);  //这里的延迟值和小球的运动时间相关
+            }, 1);
+
+        })
+    })
+</script>
+</html>
