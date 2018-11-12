@@ -1,0 +1,154 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>JQ轮播图</title>
+    <script src="libs/jquery.js"></script>
+    <style>
+        *{
+            margin: 0;
+            padding: 0;
+        }
+        .cantiner{
+            margin: 0 auto;
+            width: 600px;
+            height: 400px;
+            overflow: hidden;
+            position: relative;
+        }
+        .imgs{
+            width: 1000%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            font-size: 0;
+        }
+        .imgs>li{
+            width: 10%;
+            height: 100%;
+            display: inline-block;
+        }
+        .left,.right{
+            cursor: pointer;
+            display: block;
+            width: 50px;
+            height: 100px;
+            position: absolute;
+            top: 50%;
+            margin-top: -50px;
+            line-height: 100px;
+            text-align: center;
+            color: #fff;
+            font-size: 30px;
+            background-color: rgba(0,0,0,.6);
+        }
+        .left{
+            left: 0;
+
+        }
+        .right{
+            right: 0;
+        }
+        .point{
+            position: absolute;
+            width: 100%;
+            text-align: center;
+            height: 15px;
+            bottom: 40px;
+            font-size: 0;
+        }
+        .point>li{
+            display: inline-block;
+            width: 15px;
+            height: 15px;
+            background-color: #ccc;
+            border-radius: 50% 50%;
+            margin: 0 10px;
+            cursor: pointer;
+        }
+        .point>.on{
+            background-color: orange;
+        }
+    </style>
+</head>
+<body>
+<div class="cantiner">
+    <ul class="imgs">
+        <li>1<img src="img/timg.jpg" alt=""></li>
+        <li>2<img src="img/timg1.jpg" alt=""></li>
+        <li>3<img src="img/timg2.jpg" alt=""></li>
+        <li>4<img src="img/timg3.jpg" alt=""></li>
+        <li>5<img src="img/timg4.jpg" alt=""></li>
+        <li>6<img src="img/timg.jpg" alt=""></li>
+    </ul>
+    <span class="left"><</span>
+    <span class="right">></span>
+    <ul class="point">
+        <li class="on"></li>
+        <li></li>
+        <li></li>
+        <li></li>
+        <li></li>
+    </ul>
+</div>
+<script>
+    $(function(){
+        var timer;
+        var time;
+        var viewport = $(".cantiner")[0].clientWidth;
+        var index = 0;
+        var list = $(".point>li");
+        function run(){
+            var start = $(".imgs")[0].offsetLeft;
+            var end = index*viewport*(-1);
+            var range = start - end;
+            var loc = start+range*(-1);
+            $(".imgs").animate({"left":loc+"px"},200,function(){
+                if(index>=list.length){
+                    index = 0;
+                    $(".imgs").css("left","0px");
+                }
+            });
+            $(".point>li").removeClass("on");
+            if(index>=list.length){
+                $(".point>li").eq(0).addClass("on");
+            }else{
+                $(".point>li").eq(index).addClass("on");
+            }
+        }
+        timer = setInterval(function(){
+            index++;
+            run();
+        },1000);
+        $(".left").click(function(){
+            index++;
+            run();
+        });
+        $(".right").click(function(){
+            if(index==0){
+                index = list.length;
+                $(".imgs").css("left",index*viewport*(-1)+"px");
+            }
+            index--;
+            run();
+        })
+        $(".cantiner").mouseover(function(){
+            clearInterval(timer);
+        });
+        $(".cantiner").mouseout(function(){
+            timer = setInterval(function(){
+                index++;
+                run();
+            },1000);
+        });
+        $(".point>li").mouseover(function(){
+            index = $(this).index();
+            run();
+        })
+
+    })
+</script>
+</body>
+
