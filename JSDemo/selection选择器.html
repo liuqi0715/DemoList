@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>selection选择</title>
+    <script src="libs/jquery.js"></script>
+    <link rel="stylesheet" href="libs/animate.css">
+</head>
+<style>
+    body{
+        margin: 0;
+        padding: 0;
+    }
+    #box{
+        width: 200px;
+        height: 100px;
+        background-color: aqua;
+        transition: all .5s;
+        overflow-y: hidden;
+
+    }
+
+
+    @keyframes disappear {
+        from{
+            height: 100px;
+            width: 200px;
+        }
+        to{
+            width: 0px;
+            height: 0px;
+        }
+    }
+</style>
+<body>
+<select id="status">
+    <option value="待审核" >待审核</option>
+    <option value="1未通过审核" >未通过审核</option>
+    <option value="2制作中" >制作中</option>
+    <option value="3制作完成">制作完成</option>
+    <option value="4发布" >发布</option>
+    <option value="5暂停">暂停</option>
+    <option value="6删除">删除</option>
+</select>
+
+</body>
+<script>
+    $(function () {
+        $("#status").change(function () {
+
+             $(this).click(function () {
+                console.log($(this).val())
+
+             })
+        })
+    })
+</script>
+</html>
