@@ -71,7 +71,7 @@
         border-top: 1px solid red;
     }
     .pointPre {  /* 动画的小球 */
-        /*display: none;*/
+        display: none;
     }
     .pointOuter {
         position: absolute;
@@ -82,7 +82,6 @@
         /*transition: all 0.5s linear 0s;*/
         /*-webkit-transition: all 0.5s linear 0s;*/
     }
-
     .point-inner {
         width: 15px;
         height: 15px;
@@ -151,21 +150,19 @@
                 left = e.clientX,
                 endTop = window.innerHeight - 30,  // 小球降落终点
                 endLeft = 20;
-
             var outer = $('#points .pointPre').first().removeClass("pointPre").css({
                 left: left + 'px',
                 top: top + 'px'
             });
             var inner = outer.find(".point-inner");
-
             setTimeout(function() {
                 // 将jquery对象转换为DOM对象
                     outer[0].style.webkitTransform = 'translate3d(0,' + (endTop - top) + 'px,0)';
                     inner[0].style.webkitTransform = 'translate3d(' + (endLeft - left) + 'px,0,0)';
                 // 小球运动完毕恢复到原点
                 setTimeout(function() {
-                    // outer.removeAttr("style").addClass("pointPre");
-                    // inner.removeAttr("style");
+                    outer.removeAttr("style").addClass("pointPre");
+                    inner.removeAttr("style");
                 }, 500);  //这里的延迟值和小球的运动时间相关
             }, 1);
 
