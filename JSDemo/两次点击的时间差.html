@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="libs/jquery.js"></script>
+    <link rel="stylesheet" href="libs/animate.css">
+</head>
+<style>
+    body{
+        margin: 0;
+        padding: 0;
+    }
+    #box{
+        width: 200px;
+        height: 100px;
+        background-color: aqua;
+        transition: all .5s;
+        overflow-y: hidden;
+        cursor: pointer;
+    }
+
+    #box p{
+        height: 100px;
+        line-height: 100px;
+        text-align: center;
+        margin: 0;
+        padding: 0;
+
+    }
+    #img{
+        transition: all .5s;
+    }
+    #box p:nth-of-type(1){
+        background-color: red;
+    }
+    #box p:nth-of-type(1):hover{
+        background-color: aqua;
+    }
+    #box p:hover{
+        background-color: black;
+    }
+
+    @keyframes disappear {
+        from{
+            height: 100px;
+            width: 200px;
+        }
+        to{
+            width: 0px;
+            height: 0px;
+        }
+    }
+</style>
+<body>
+<button id="btn">
+    点击
+</button>
+
+<div id="box">
+    <p>1 <img  id="img" src="assets/arrow.png" alt=""></p>
+    <p>2</p>
+    <p>3</p>
+    <p>21</p>
+    <p>22</p>
+    <p>23</p>
+</div>
+<input type="button" value="click" onclick="test();"/>
+</body>
+<script>
+        var flag = true;
+        var	first = 0;
+        var second = 0;
+        function test(){
+            var date = new Date();
+            var one = date.getTime();
+            if(flag){
+                first = one;
+                flag = false;
+            } else {
+                second = one;
+                flag = true;
+            }
+            if(second > first){
+                var end = second - first ;
+                if(end < 10000){
+                    alert("时间间隔"+end+"毫秒——"+"2次点击时间小于10秒");
+                }
+            }
+        }
+</script>
+</html>
