@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <title>加入购物车</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" />
+    <meta content="yes" name="apple-mobile-web-app-capable">
+    <meta content="yes" name="apple-touch-fullscreen">
     <script src="libs/jquery.js"></script>
 </head>
 <style>
@@ -69,6 +71,7 @@
         left: 0;
         background: #ccc;
         border-top: 1px solid red;
+        z-index: 2;
     }
     .pointPre {  /* 动画的小球 */
         display: none;
@@ -91,6 +94,20 @@
         transition: all 0.5s linear 0s;
         -webkit-transition: all 0.5s linear 0s;
     }
+    #goods{
+        position: relative;
+    }
+    .shopCart{
+        width: 100%;
+        height: 300px;
+        background: red;
+        position: fixed;
+        left: 0;
+        bottom: 0;
+        transform: translate3d(0,100%,0);
+        transition: all 0.5s linear;
+        z-index: 1;
+    }
 </style>
 <body>
     <div id="goods">
@@ -110,8 +127,11 @@
                 <li>商品01 <span  class="test"></span></li>
             </ul>
         </div>
-        <div id="shopCart">
+        <div id="shopCart" >
             购物车
+        </div>
+        <div class="shopCart">
+            --------------------------
         </div>
     </div>
     <div id="points">
@@ -165,6 +185,19 @@
                     inner.removeAttr("style");
                 }, 500);  //这里的延迟值和小球的运动时间相关
             }, 1);
+
+        })
+        var TH = false;
+        $("#shopCart").click(function () {
+            if (TH==false){
+                TH=!TH;
+                $(".shopCart").css({"transform": "translate3d(0,0%,0)"})
+                console.log("14")
+            }else {
+                TH=!TH;
+                $(".shopCart").css({"transform": "translate3d(0,100%,0)"})
+                console.log("1")
+            }
 
         })
     })

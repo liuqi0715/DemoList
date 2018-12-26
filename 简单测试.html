@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+</body>
+<script>
+
+    function f() {
+        console.log(this.x);
+    }
+    f();   //undefind
+
+    var x = 2;
+    var a = {x: 1};
+    a.f = f;    //{x:1,f:2,}
+    var b = a.f;//2
+    a.f();  //
+    b();//2
+
+</script>
+</html>
