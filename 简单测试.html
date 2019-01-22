@@ -11,15 +11,34 @@
 
     function f() {
         console.log(this.x);
+        console.log(this,"===");
     }
     f();   //undefind
-
     var x = 2;
     var a = {x: 1};
-    a.f = f;    //{x:1,f:2,}
+    a.f = f;    //{x:1,f:2,}        //这里f的this指向了object
     var b = a.f;//2
     a.f();  //
     b();//2
+    var arr = [10,12,8,5,0,5]
+    var arr1 = [0,1]
+    var arr2 = [0];
+    function max(arr) {
+        if (arr.length>0){
+            var max=arr[0];
+            for (var i=0;i<arr.length;i++){
+                if (max>arr[i]){
+                    max = max;
+                }else if (max==arr[i]) {
+                    max = max;
+                }else {
+                    max = arr[i];
+                }
+            }
+        }
+        return max;
+    }
+   console.log(max(arr2)) ;
 
 </script>
 </html>
