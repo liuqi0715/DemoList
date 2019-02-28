@@ -17,7 +17,7 @@
             var head = window.document.getElementsByTagName('head')[0];
             head.appendChild(d);
             var defaultFontSize = parseFloat(window.getComputedStyle(d, null).getPropertyValue('width'));
-            console.log(defaultFontSize,"defaultFontSize")
+            console.log(defaultFontSize,window.innerWidth,window.innerHeight,"defaultFontSize")
             // d.remove();
             // document.documentElement.style.fontSize = window.innerWidth / designWidth * rem2px / defaultFontSize * 100 + '%';
             var st = document.createElement('style');
@@ -28,5 +28,8 @@
             return defaultFontSize
         };
         var defaultFontSize = adapt(640, 100);
+        window.onload=function () {
+            // var defaultFontSize = adapt(640, 100);
+        }
     </script>
 </html>
