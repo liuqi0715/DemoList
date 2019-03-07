@@ -84,7 +84,34 @@
     function fun() {
         console.log(NaN===NaN);
         console.log(+0===-0)
+        console.log(typeof (undefined))
+        console.log(typeof (null))
+        var k = new Number(11)
+        console.log(typeof (k))
+        var L =11
+        console.log(typeof (L))
+
         JSON.stringify()
+
+        let arr = [1, 1, 4, 2, 5, 3];
+        let obj = {}
+        for(let i in arr) {
+            obj[arr[i]] = arr[i];
+            console.log(arr[i])
+        }
+
+        console.log(Object.values(obj));//['1', '2', '3', '4', '5']
+        var arr0 = new Array(6)
+        arr0[0] = "10"
+        arr0[1] = "5"
+        arr0[2] = "40"
+        arr0[3] = "25"
+        arr0[4] = "1000"
+        arr0[5] = "1"
+        function aa(a,b) {
+            return a - b
+        }
+        console.log(arr0.sort(aa))
     }
     fun()
 </script>
