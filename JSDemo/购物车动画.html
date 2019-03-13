@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<style>
+    *{
+        margin: 0;
+        padding: 0;
+    }
+    #box{
+        width: 500px;
+        height: 500px;
+        margin: 0 auto;
+        border: 1px solid red;
+        position: relative;
+    }
+    #cricle{
+        width: 25px;
+        height: 25px;
+        border-radius: 50%;
+        background-color: #da4f49;
+        position: absolute;
+        left: 450px;
+        top: 0;
+    }
+    .criclehover{
+        animation: 1.5s move;
+        animation-iteration-count: 1;
+        animation-fill-mode: backwards;
+
+    }
+    @keyframes move {
+
+        from{
+            left: 400px;
+            top: 50px;
+        }
+        to{
+            left: 0;
+            top: 450px;
+        }
+
+    }
+</style>
+<body>
+    <div id="box">
+            <div id="cricle">
+
+            </div>
+    </div>
+</body>
+<script>
+    var cricle = document.getElementById("cricle");
+    cricle.onclick = function () {
+
+        cricle.setAttribute("class","criclehover")
+        setTimeout(()=>{
+            cricle.setAttribute("class","")
+        },1500)
+    }
+</script>
+</html>
