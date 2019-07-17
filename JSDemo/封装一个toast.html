@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+        <p style="cursor: pointer" onclick="test()">点击测试</p>
+</body>
+<script>
+
+    class MyReduce{
+        constructor(){
+        }
+        toast(info,time){
+            var span=document.createElement("span");
+            span.setAttribute('class','toast')
+            span.innerText = info;
+            document.body.appendChild(span)
+            setTimeout(()=>{
+                span.setAttribute('class','toastdis')
+            },time)
+        }
+    }
+    var T = new MyReduce()
+    function test(){
+        T.toast('测试',1000)
+    }
+
+</script>
+<style>
+    .toast{
+        width: 100px;
+        height: 28px;
+        text-align: center;
+        line-height: 28px;
+        display: inline-block;
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left:0;
+        right: 0;
+        margin: auto;
+        border: 1px solid #ccc;
+    }
+    .toastdis{
+        display: none;
+    }
+</style>
+</html>

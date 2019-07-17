@@ -7,16 +7,17 @@
     <title>Document</title>
 </head>
 <body>
-    
+        <p id="test" onclick="test()">测试</p>
 </body>
 <script>
-    var numberArr = [1, 2, 3, 4, 54, 6, 7, 8, 9]
-    /** es5*/
+    var arr = [1, 2, 3, 4, 54, 6, 7, 8, 9]  //94
+    var arrEqual = [1,2, 3, 4, 5, 6, 7, 8, 9,10]    //55
+    /** es5 非等差数列求和*/
     function sum(arr){
         if(Array.isArray(arr)){
             var arrSum = 0
             for(var i=0;i<arr.length;i++){
-                arrSum = arrSum+arr[i]
+                arrSum +=arr[i]
             }
             return arrSum  
         }
@@ -25,25 +26,95 @@
         if(Array.isArray(arr)){
             var arrSum = 0
             for(var i=0;i<arr.length;i++){
-                arrSum = arrSum+arr[i]+arr[arr.length-i-1]
+                arrSum += arr[i]+arr[arr.length-i-1]
             }
             return arrSum/2  
         }
     }
+    // var test = [0,8,10,2,33]
+    // console.log(sum2(test),'test')
+    // console.log(sum(test),'test2')
     function sum3(arr){
         if(Array.isArray(arr)){
+           let  arrSum = 0
+           arr.forEach((item,index) => {
+            arrSum+=item
+           })
+           return arrSum
+        } 
+    }   
+    function sum4(arr){
+        if(Array.isArray(arr)){
+           let  arrSum = 0
+           arrSum = eval(arr.join('+')) 
+           return arrSum
+        }  
+    }
+    console.log(sum4(arr))
+    /** 等差数列求和*/
+    function sum5(arr){
+        if(Array.isArray(arr)){
             var arrSum = 0
-            for(var i=0;i<arr.length;i++){
-                arrSum = arrSum+arr[i]+arr[arr.length-i-1]
-            }
-            return arrSum/2  
+            arrSum = (arr[0]+arr[arr.length-1])*arr.length/2
+            return arrSum  
         } 
     }
+
     /** es6 */
-    var sums = numberArr.reduce((a,b)=>{
+    // prev:上次调用函数的返回值
+    // current：当前元素
+    // index：当前元素的索引
+    // arr：当前被遍历的数组
+    var sumEqual = arr.reduce((prev,current,index,arr)=>{
+        return prev+current
+    })
+
+    var sums = arrEqual.reduce((a,b)=>{
         return a+b
     })
-    console.log(sums,'//')
-    console.log(sum(numberArr)) 
+    var summation = arr.map((item,index)=>{
+        let arrSum = 0
+        arrSum+=item
+    })
+    
+    class MyReduce{
+        constructor(){
+        }
+        toast(info,time){
+            var span=document.createElement("span");
+            span.setAttribute('class','toast')
+            span.innerText = info;
+            document.body.appendChild(span)
+            setTimeout(()=>{
+                span.setAttribute('class','toastdis')
+            },time)
+        }
+    }
+    var T = new MyReduce()
+    function test(){
+        T.toast('测试',2000)
+    }
+    /** 那么Array.reduce()内部做了什么呢 */
+
 </script>
+<style>
+    .toast{
+        width: 100px;
+        height: 28px;
+        text-align: center;
+        line-height: 28px;
+        display: inline-block;
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left:0;
+        right: 0;
+        margin: auto;
+        border: 1px solid #ccc;
+
+    }
+    .toastdis{
+        display: none;
+    }
+</style>
 </html>
