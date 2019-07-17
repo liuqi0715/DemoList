@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+    
+</body>
+<script>
+    var numberArr = [1, 2, 3, 4, 54, 6, 7, 8, 9]
+    /** es5*/
+    function sum(arr){
+        if(Array.isArray(arr)){
+            var arrSum = 0
+            for(var i=0;i<arr.length;i++){
+                arrSum = arrSum+arr[i]
+            }
+            return arrSum  
+        }
+    }
+    function sum2(arr){
+        if(Array.isArray(arr)){
+            var arrSum = 0
+            for(var i=0;i<arr.length;i++){
+                arrSum = arrSum+arr[i]+arr[arr.length-i-1]
+            }
+            return arrSum/2  
+        }
+    }
+    function sum3(arr){
+        if(Array.isArray(arr)){
+            var arrSum = 0
+            for(var i=0;i<arr.length;i++){
+                arrSum = arrSum+arr[i]+arr[arr.length-i-1]
+            }
+            return arrSum/2  
+        } 
+    }
+    /** es6 */
+    var sums = numberArr.reduce((a,b)=>{
+        return a+b
+    })
+    console.log(sums,'//')
+    console.log(sum(numberArr)) 
+</script>
+</html>

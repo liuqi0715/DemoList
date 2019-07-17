@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+<body>
+    
+</body>
+
+
+<script>
+window.onload = function(){
+    /**this in prototype */
+  /**  function Point(x,y){
+        this.x = x
+        this.y = y
+        console.log(this,'///')
+    }
+    Point()              //window调用的因此指向window  called by windw
+    Point.prototype.toString =function(){
+        console.log(this,'prototype')
+        return '123'
+    }
+    Point.toString()     //并没有执行 not executed
+    var p = new Point(1,2)
+    p.toString()        //new对象调用的因此指向new Ponit()  called by new Point() so this point to new Point()  
+*/
+    class Point{
+        constructor(x,y){
+            console.log(this,'constructor')    //called by  ? ==> 
+            this.x = x
+            this.y = y
+        }
+        toString(){
+            console.log(this,'toString')
+           return this.x+this.y
+        }
+    }
+    new Point(1,5)
+}
+</script>
+</html>
