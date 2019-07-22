@@ -10,12 +10,7 @@
     
 </body>
 <script>
-let namesSet =[...new Set(['a', 'b'])]
-console.log(namesSet)
-Array.from(namesSet) // ['a', 'b']
 
-console.log(Array.from(new Set(['a', 'b'])))
-//indexOf
 function unique(arr) {
     if (Array.isArray(arr)) {
         let res = []
@@ -28,7 +23,9 @@ function unique(arr) {
     }
 }
 const arr=[0,2,5,9,5,6,5,4,8,4,8]
-console.log(unique(arr))
+console.log(unique(arr),'/')
+console.log([...new Set(arr)],'set')
+console.log(Array.from(new Set(arr)),'set')
 
 </script>
 </html>
