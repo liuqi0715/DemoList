@@ -20,6 +20,7 @@
                 <el-select 
                 v-model="form.city" 
                 filterable 
+                value-key="id"
                 placeholder="请选择到站地点"  
                 @change="changeCity"
                 >
@@ -27,7 +28,7 @@
                     v-for="item in cityList" 
                     :label="item.name"  
                     :key="item.id" 
-                    :value="item.name">
+                    :value="item">
                     </el-option>
                 </el-select>
             </el-form-item>  
