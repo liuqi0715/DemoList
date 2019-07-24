@@ -24,7 +24,7 @@
                 placeholder="请选择到站地点"  
                 @change="changeCity"
                 >
-                    <el-option 
+                        <el-option 
                     v-for="item in cityList" 
                     :label="item.name"  
                     :key="item.id" 
@@ -38,6 +38,7 @@
                 filterable 
                 placeholder="请选择提货方式"
                 value-key="id"
+                @change="changePick"
                 >
                 <el-option 
                 :label="item.pickType"  
@@ -61,7 +62,10 @@
                 </el-select>
             </el-form-item> 
             <el-form-item label="运输货品重量" v-if="form.transType==='元/公斤'" prop="goodsWeight">
-                <el-select v-model="form.goodsWeight" filterable placeholder="请选择运输货品数量">
+                <el-select 
+                v-model="form.goodsWeight" 
+                filterable 
+                placeholder="请选择运输货品数量">
                     <el-option 
                         :label="item.goodsWeight"  
                         v-for="item in goodsWeightList"
@@ -71,7 +75,12 @@
                 </el-select>
             </el-form-item> 
             <el-form-item label="运输货品体积" v-if="form.transType==='元/方'" prop="goodsWeight">
-                <el-select v-model="form.goodsWeight" filterable placeholder="请选择运输货品体积">
+                <el-select 
+                v-model="form.goodsWeight" 
+                filterable 
+                placeholder="请选择运输货品体积"
+
+                >
                     <el-option 
                         :label="item.goodsWeight"  
                         v-for="item in goodsWeightList2"
@@ -138,6 +147,10 @@
                 deliveryType:'',
                 subsidyType:''
             },
+            pickCost:'',
+            weightCost:'',
+            deliveryCost:'',
+            subsidyCost:'',
             //到站地点
             cityList:cityData.cityListJson,
 
@@ -181,6 +194,13 @@
           console.log(cityData)
       },
       methods: {
+        keyOne(){
+
+        },
+        changePick(){
+            console.log(this.form.pickType)
+
+        },
         changeCity(){
             console.log(this.form.city)
         //    this.form =  {
