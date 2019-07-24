@@ -1,0 +1,238 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>质达零担冷链</title>
+<meta name="format-detection" content="telephone=no">
+<!-- <meta name="description" content="111">
+<meta name="keywords" content="111"> -->
+<meta name="viewport" content="initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+<script src="https://cdn.staticfile.org/angular.js/1.4.6/angular.min.js"></script>
+<style type="text/css">
+body{
+  margin: 0;
+}
+.trans-body {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  background: #0DAF90;
+  font-family: 'Roboto', sans-serif;
+  font-weight: 300;
+  height: 100%; /*Allow spacing based on window height*/
+  margin: 0;
+  min-height: 400px;
+}
+.inner-center{
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform:translate(-50%,-50%);
+  -webkit-transform:translate(-50%,-50%);
+}
+.trans-wrap{
+  width: 90%;
+}
+table{
+	margin:0 auto;
+}
+td{
+	height:35px;
+	font-family:"Helvetica Neue","Luxi Sans","DejaVu Sans",Tahoma,"Hiragino Sans GB","Microsoft Yahei",sans-serif;
+}
+select{
+     border-right: #000000 1px solid;
+     border-top: #ffffff 1px solid;
+     font-size: 12px; /*www.52css.com*/
+     border-left: #ffffff 1px solid;
+     color:#003366;
+     border-bottom: #000000 1px solid;
+     background-color: #f4f4f4;
+}
+.input{
+    width:100%;
+    box-sizing:border-box;
+    border:1px solid #ccc;
+    padding:5px;
+    border-radius:3px;
+    font-size:14;
+    font-family:"Helvetica Neue","Luxi Sans","DejaVu Sans",Tahoma,"Hiragino Sans GB","Microsoft Yahei",sans-serif;
+}
+#parent {
+    background-color: white;
+    width: 50%;
+    height: 25px;
+    overflow: hidden;
+}
+
+#parent select {
+    background: transparent;
+    border: none;
+    padding-left: 10px;
+    width: 100%;
+    height: 100%;
+}
+.button {
+  -webkit-border-radius: 28;
+  -moz-border-radius: 28;
+  border-radius: 28px;
+  text-shadow: 0px 1px 0px #86CEE0;
+  font-family: Arial;
+  color: #eef5f7;
+  font-size: 14px;
+  background: #86CEE0;
+  padding: 8px 25px 8px 25px;
+  border: solid #86CEE0 1px;
+  text-decoration: none;
+}
+
+.button:hover {
+  color: #eef5f7;
+  background: #5cbf2a;
+  text-decoration: none;
+}
+</style>
+</head>
+<body>
+<div class="trans-body" ng-app="myHome" ng-controller="myCtrl">
+	<div class="inner-center trans-wrap">
+		<table border="0">
+			<tr>
+				<!-- <td colspan="2" valign="middle"><h4>深圳市质达零担冷链运费测算</h4></td> -->
+			</tr>
+			<tr>
+				<td align="right">到站:</td>
+				<td><input id="arrive" class="input"></td>
+			</tr>
+			<tr>
+				<td align="right">提货方式:</td>
+				<td>
+					<div id="parent">
+					<select name="take">
+					    <option value="1">自寄</option>
+					    <option value="2">上门提货</option>
+					</select>
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<td align="right">计算方式:</td>
+				<td>
+					<div id="parent">
+					<select name="formula" onchange="changeForm(this.value)">
+					    <option value="1">按公斤</option>
+					    <option value="2">按体积</option>
+					</select>
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<td align="right"><label id="textcc">重量(元/公斤):</label></td>
+				<td><input id="weight" class="input"></td>
+			</tr>
+			<tr>
+				<td align="right">件数:</td>
+				<td><input id="count" class="input"></td>
+			</tr>
+			<tr>
+				<td align="right">配送方式:</td>
+				<td>
+					<div id="parent">
+					<select name="distribution" onchange="changeForm2(this.value)">
+					    <option value="1">自寄</option>
+					    <option value="2">上门提货</option>
+					</select>
+					</div>
+				</td>
+			</tr>
+			<tr id="hiddenSelect">
+				<td align="right">市区配送选择:</td>
+				<td>
+					<div id="parent">
+					<select name="distribution2">
+					    <option value="1">卖场</option>
+					    <option value="2">门店</option>
+					    <option value="2">终端</option>
+					</select>
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<td align='right' valign="middle"><a class="button" id="commit" type="button" onclick="compute()">计算</a>
+				<td align='center' valign="middle"><a class="button" id="clear" type="button"  onclick="remove()">清空</a>
+			</tr>
+		</table>
+  </div>
+</div>
+</body>
+</html>
+<script type="text/javascript" src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+<script type="text/javascript">
+$(function () {
+	$('#hiddenSelect').hide();
+});
+function compute(){
+	var arrive= $('#arrive').val();//目的地
+	var take=$('select[name="take"]').val();//提货方式(1.自寄 2.上门提货)
+	var count=$('#count').val();//件数
+	var formula=$('select[name="formula"]').val();//计算方式（1.按公斤 2.按体积）
+	var distribution=$('select[name="distribution"]').val();//配送方式(1.自寄 2.上门提货)
+	var weight=$('#weight').val();//重量
+	var distribution2=$('select[name="distribution2"]').val();//配送选择（1卖场 2门店 3终端）
+	if(arrive==""){
+		showAlert('请填写目的地');
+	}
+	if(count==""){
+		showAlert('请填写件数');
+	}
+	if(weight==""){
+		showAlert('请填写重量');
+	}
+	//console.log(arrive+","+take+","+count+","+formula+","+distribution+","+weight+","+distribution2);
+}
+function remove(){
+	$('#arrive').val("");
+	$('#take').val("");
+	$('#count').val("");
+	$('#weight').val("");
+	$('#take').val("");
+}
+function changeForm(val){
+	if(val=="1"){
+		$('#textcc').html("重量(元/公斤):");
+	}else if(val=="2"){
+		$('#textcc').html("体积(元/方):");
+	}
+}
+function changeForm2(val){
+	if(val=="2"){
+		$('#hiddenSelect').show();
+	}else if(val=="1"){
+		$('#hiddenSelect').hide();
+	}
+}
+
+
+var app = angular.module("myHome", []);
+app.controller("myCtrl", function ($scope,$http) {
+	$scope.arriveList=[
+		{id:0,key:0,area:'嘉鱼'},
+		{id:0,key:0,area:'通山'},
+		{id:0,key:0,area:'通城'},
+		{id:0,key:0,area:'崇阳'},
+		{id:0,key:0,area:'黄陂'},
+		{id:0,key:0,area:'新洲'},
+		{id:0,key:0,area:'红安'},
+		{id:0,key:0,area:'麻城'},
+		{id:0,key:1,area:'孝感'},
+		{id:0,key:1,area:'应城'},
+		{id:0,key:1,area:'安陆'},
+		{id:0,key:1,area:'汉川'}
+
+
+
+	]
+
+})
+</script>
