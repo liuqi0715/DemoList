@@ -48,13 +48,15 @@
                 </el-select>
             </el-form-item>  
             <el-form-item label="提货件数" v-if="form.pickType===0" prop='pickNum'>
-                <el-input v-model.number="form.pickNum"></el-input>
+                <el-input v-model.number="form.pickNum" ></el-input>
             </el-form-item>
             <el-form-item label="干线运输方式" prop="transType">
                 <el-select 
                 v-model="form.transType"   
                 filterable 
-                placeholder="请选择干线运输方式">
+                placeholder="请选择干线运输方式"
+                @change="transTypeChange"
+                >
                     <el-option 
                         :label="item.transType"
                         v-for="item in transTypeList" 
@@ -64,13 +66,18 @@
                 </el-select>
             </el-form-item> 
             <el-form-item label="运输货品重量" v-if="form.transType==='元/公斤'" prop="weightNum">
-                 <el-input v-model="form.weightNum" @keyup.native="formate()"></el-input>
+                 <el-input v-model="form.weightNum" @keyup.native="formate()" ></el-input>
             </el-form-item> 
-            <el-form-item label="运输货品体积" v-if="form.transType==='元/方'" prop="weightNum">
+            <el-form-item label="运输货品体积" v-if="form.transType==='元/方'" prop="weightNum" >
                 <el-input v-model="form.weightNum"></el-input>                
             </el-form-item>   
             <el-form-item label="配送方式" prop="deliveryType">
-                <el-select v-model="form.deliveryType" filterable placeholder="请选择配送方式" >
+                <el-select 
+                v-model="form.deliveryType" 
+                filterable 
+                placeholder="请选择配送方式"
+                @change="deliveryTypeChange"
+                >
                     <el-option 
                     :label="item.deliveryType" 
                     v-for="item in deliveryTypeList"
@@ -80,7 +87,12 @@
                 </el-select>
             </el-form-item> 
             <el-form-item label="远郊补贴方式" prop="subsidyType">
-                <el-select v-model="form.subsidyType" filterable placeholder="请选择远郊补贴方式">
+                <el-select 
+                v-model="form.subsidyType" 
+                filterable 
+                placeholder="请选择远郊补贴方式"
+                @change="subsidyChange"
+                >
                     <el-option 
                     :label="item.subsidyType" 
                     v-for="item in subsidyTypeList"
@@ -126,9 +138,9 @@
             form: {
                 city: '',
                 pickType: '',
-                pickNum:'',
+                pickNum:0,
                 transType:'',
-                weightNum:'',
+                weightNum:0,
                 deliveryType:'',
                 subsidyType:''
                 // /^\d+\.?\d{0,2}$/.test(obj.value)
@@ -182,6 +194,9 @@
       methods: {
           //淡蓝色数据
         keyOne(){
+            this.form.weightNum = Number(this.form.weightNum)
+            this.form.pickNum  = Number(this.form.pickNum)
+            console.log(this.form.weightNum)
             if(this.form.pickType==='1'){
                 this.pickCost=0
             }else{
@@ -192,18 +207,20 @@
                 }
             }
             if(this.form.transType==='元/公斤'){
-                var a,b,c
-                if(0<=this.form.weightNum<100){
+                if(0<=this.form.weightNum  && this.form.weightNum<100){
+                    console.log(this.form.weightNum)
                     this.weightCost = 100
-                }else if(100<=this.form.weightNum<1000){
+                }else if(100<=this.form.weightNum && this.form.weightNum<1000){
                     this.weightCost = 100+(this.form.weightNum-100)*0.55
-                }else if(this.form.weightNum>1000){
-                    this.weightCost = 100+(this.form.weightNum-100)*0.55+(this.form.weightNum-1000)*0.4
+                }else if(this.form.weightNum>=1000){
+                    this.weightCost = 100+(this.form.weightNum-100)*0.55+(this.form.weightNum-999)*0.4
+                    console.log(this.weightCost,this.form.weightNum,'/')
+                
                 }
             }else{
-                if(0<=this.form.weightNum<1){
+                if(0<=this.form.weightNum && this.form.weightNum<1){
                     this.weightCost = 120
-                }else if(1<=this.form.weightNum<10){
+                }else if(1<=this.form.weightNum && this.form.weightNum<10){
                     this.weightCost = 120+(this.form.weightNum-1)*100
                 }else if(this.form.weightNum>10){
                     this.weightCost = 120+(this.form.weightNum-1)*100+(this.form.weightNum-10)*85
@@ -243,17 +260,17 @@
             }
             if(this.form.transType==='元/公斤'){
                 var a,b,c
-                if(0<=this.form.weightNum<100){
+                if(0<=this.form.weightNum && this.form.weightNum<100){
                     this.weightCost = 100
-                }else if(100<=this.form.weightNum<1000){
+                }else if(100<=this.form.weightNum && this.form.weightNum<1000){
                     this.weightCost = 100+(this.form.weightNum-100)*0.6
-                }else if(this.form.weightNum>1000){
-                    this.weightCost = 100+(this.form.weightNum-100)*0.6+(this.form.weightNum-1000)*0.45
+                }else if(this.form.weightNum>=1000){
+                    this.weightCost = 100+(this.form.weightNum-100)*0.6+(this.form.weightNum-999)*0.45
                 }
             }else{
                 if(0<=this.form.weightNum<1){
                     this.weightCost = 120
-                }else if(1<=this.form.weightNum<10){
+                }else if(1<=this.form.weightNum && this.form.weightNum<10){
                     this.weightCost = 120+(this.form.weightNum-1)*100
                 }else if(this.form.weightNum>10){
                     this.weightCost = 120+(this.form.weightNum-1)*100+(this.form.weightNum-10)*85
@@ -294,17 +311,17 @@
             }
             if(this.form.transType==='元/公斤'){
                 var a,b,c
-                if(0<=this.form.weightNum<100){
+                if(0<=this.form.weightNum && this.form.weightNum<100){
                     this.weightCost = 100
-                }else if(100<=this.form.weightNum<1000){
+                }else if(100<=this.form.weightNum && this.form.weightNum<1000){
                     this.weightCost = 100+(this.form.weightNum-100)*0.65
-                }else if(this.form.weightNum>1000){
-                    this.weightCost = 100+(this.form.weightNum-100)*0.65+(this.form.weightNum-1000)*0.5
+                }else if(this.form.weightNum>=1000){
+                    this.weightCost = 100+(this.form.weightNum-100)*0.65+(this.form.weightNum-999)*0.5
                 }
             }else{
-                if(0<=this.form.weightNum<1){
+                if(0<=this.form.weightNum && this.form.weightNum<1){
                     this.weightCost = 120
-                }else if(1<=this.form.weightNum<10){
+                }else if(1<=this.form.weightNum && this.form.weightNum<10){
                     this.weightCost = 120+(this.form.weightNum-1)*100
                 }else if(this.form.weightNum>10){
                     this.weightCost = 100+(this.form.weightNum-1)*100+(this.form.weightNum-10)*85
@@ -344,17 +361,17 @@
             }
             if(this.form.transType==='元/公斤'){
                 var a,b,c
-                if(0<=this.form.weightNum<100){
+                if(0<=this.form.weightNum && this.form.weightNum<100){
                     this.weightCost = 100
-                }else if(100<=this.form.weightNum<1000){
+                }else if(100<=this.form.weightNum && this.form.weightNum<1000){
                     this.weightCost = 100+(this.form.weightNum-100)*0.5
-                }else if(this.form.weightNum>1000){
-                    this.weightCost = 100+(this.form.weightNum-100)*0.5+(this.form.weightNum-1000)*0.35
+                }else if(this.form.weightNum>=1000){
+                    this.weightCost = 100+(this.form.weightNum-100)*0.5+(this.form.weightNum-999)*0.35
                 }
             }else{
-                if(0<=this.form.weightNum<1){
+                if(0<=this.form.weightNum && this.form.weightNum<1){
                     this.weightCost = 120
-                }else if(1<=this.form.weightNum<10){
+                }else if(1<=this.form.weightNum && this.form.weightNum<10){
                     this.weightCost = 120+(this.form.weightNum-1)*90
                 }else if(this.form.weightNum>10){
                     this.weightCost = 120+(this.form.weightNum-1)*90+(this.form.weightNum-10)*80
@@ -394,17 +411,17 @@
             }
             if(this.form.transType==='元/公斤'){
                 var a,b,c
-                if(0<=this.form.weightNum<100){
+                if(0<=this.form.weightNum && this.form.weightNum<100){
                     this.weightCost = 100
-                }else if(100<=this.form.weightNum<1000){
+                }else if(100<=this.form.weightNum && this.form.weightNum<1000){
                     this.weightCost = 100+(this.form.weightNum-100)*0.75
-                }else if(this.form.weightNum>1000){
-                    this.weightCost = 100+(this.form.weightNum-100)*0.75+(this.form.weightNum-1000)*0.6
+                }else if(this.form.weightNum>=1000){
+                    this.weightCost = 100+(this.form.weightNum-100)*0.75+(this.form.weightNum-999)*0.6
                 }
             }else{
-                if(0<=this.form.weightNum<1){
+                if(0<=this.form.weightNum && this.form.weightNum<1){
                     this.weightCost = 120
-                }else if(1<=this.form.weightNum<10){
+                }else if(1<=this.form.weightNum && this.form.weightNum<10){
                     this.weightCost = 120+(this.form.weightNum-1)*120
                 }else if(this.form.weightNum>10){
                     this.weightCost = 120+(this.form.weightNum-1)*120+(this.form.weightNum-10)*100
@@ -444,17 +461,17 @@
             }
             if(this.form.transType==='元/公斤'){
                 var a,b,c
-                if(0<=this.form.weightNum<100){
+                if(0<=this.form.weightNum && this.form.weightNum<100){
                     this.weightCost = 100
-                }else if(100<=this.form.weightNum<1000){
+                }else if(100<=this.form.weightNum && this.form.weightNum<1000){
                     this.weightCost = 100+(this.form.weightNum-100)*0.45
-                }else if(this.form.weightNum>1000){
-                    this.weightCost = 100+(this.form.weightNum-100)*0.45+(this.form.weightNum-1000)*0.3
+                }else if(this.form.weightNum>=1000){
+                    this.weightCost = 100+(this.form.weightNum-100)*0.45+(this.form.weightNum-999)*0.3
                 }
             }else{
-                if(0<=this.form.weightNum<1){
+                if(0<=this.form.weightNum && this.form.weightNum<1){
                     this.weightCost = 120
-                }else if(1<=this.form.weightNum<10){
+                }else if(1<=this.form.weightNum && this.form.weightNum<10){
                     this.weightCost = 120+(this.form.weightNum-1)*70
                 }else if(this.form.weightNum>10){
                     this.weightCost = 120+(this.form.weightNum-1)*70+(this.form.weightNum-10)*60
@@ -494,17 +511,17 @@
             }
             if(this.form.transType==='元/公斤'){
                 var a,b,c
-                if(0<=this.form.weightNum<100){
+                if(0<=this.form.weightNum && this.form.weightNum<100){
                     this.weightCost = 100
-                }else if(100<=this.form.weightNum<1000){
+                }else if(100<=this.form.weightNum && this.form.weightNum<1000){
                     this.weightCost = 100+(this.form.weightNum-100)*0.5
-                }else if(this.form.weightNum>1000){
-                    this.weightCost = 100+(this.form.weightNum-100)*0.5+(this.form.weightNum-1000)*0.35
+                }else if(this.form.weightNum>=1000){
+                    this.weightCost = 100+(this.form.weightNum-100)*0.5+(this.form.weightNum-999)*0.35
                 }
             }else{
-                if(0<=this.form.weightNum<1){
+                if(0<=this.form.weightNum && this.form.weightNum<1){
                     this.weightCost = 120
-                }else if(1<=this.form.weightNum<10){
+                }else if(1<=this.form.weightNum && this.form.weightNum<10){
                     this.weightCost = 120+(this.form.weightNum-1)*70
                 }else if(this.form.weightNum>10){
                     this.weightCost = 120+(this.form.weightNum-1)*70+(this.form.weightNum-10)*60
@@ -533,30 +550,33 @@
         },
         changePick(val){
             console.log(val)
-            if(val.id===0){
-
-            }
-
+            this.form.pickNum = ''
+            this.costAll = ''
+        },
+        transTypeChange(){
+            this.form.weightNum = ''
+            this.costAll = ''
         },
         changeCity(){
             console.log(this.form.city)
-        //    this.form =  {
-        //         pickType: '',
-        //         transType:'',
-        //         goodsWeight:'',
-        //         deliveryType:'',
-        //         subsidyType:''
-        //     }
+            this.costAll = ''
+        },
+        deliveryTypeChange(){
+            this.costAll = ''
+        },
+        subsidyChange(){
+            this.costAll = ''
         },
         onSubmit(form) {
             this.$refs[form].validate((valid) => {
                 if (valid) {
-                    if(this.form.city.key===0){
-                        this.costAll = this.keyOne()
-                    }
+                    // if(this.form.city.key===0){
+                    //     this.costAll = this.keyOne()
+                    // }
                     switch(this.form.city.key){
                         case 0:
                             this.costAll = this.keyOne()
+                            console.log(this.keyOne())
                             break;
                         case 1:
                             this.costAll = this.keyTwo()
