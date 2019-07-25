@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <!-- import CSS -->
+  <meta name="viewport" content="initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+
+  <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+</head>
+<style>
+    #costTitle{
+        text-align: center;
+    }
+</style>
+<body>
+  <div id="app">
+        <p id="costTitle">测试demo</p>
+        <el-form ref="form" :model="form" :rules="rules" label-width="120px" >        
+            <el-form-item label="到站地点" prop="city">
+                <el-select 
+                v-model="form.city" 
+                filterable 
+                value-key="id"
+                placeholder="请选择到站地点"  
+                @change="changeCity"
+                >
+                    <el-option 
+                    v-for="item in cityList" 
+                    :label="item.name"  
+                    :key="item.id" 
+                    :value="item">
+                    </el-option>
+                </el-select>
+            </el-form-item>  
+            <el-form-item label="提货方式" prop="pickType">
+                <el-select 
+                v-model="form.pickType" 
+                filterable 
+                placeholder="请选择提货方式"
+                value-key="id"
+                @change="changePick(form.pickType)"
+                >
+                <el-option 
+                :label="item.pickType"  
+                v-for="item in pickTypeList" 
+                :key="item.pickType" 
+                :value="item.id"></el-option>
+                </el-select>
+            </el-form-item>  
+            <el-form-item label="提货件数" v-if="form.pickType===0" prop='pickNum'>
+                <el-input v-model.number="form.pickNum"></el-input>
+            </el-form-item>
+            <el-form-item label="干线运输方式" prop="transType">
+                <el-select 
+                v-model="form.transType"   
+                filterable 
+                placeholder="请选择干线运输方式">
+                    <el-option 
+                        :label="item.transType"
+                        v-for="item in transTypeList" 
+                        :key="item.transType" 
+                        :value="item.transType">
+                    </el-option>
+                </el-select>
+            </el-form-item> 
+            <el-form-item label="运输货品重量" v-if="form.transType==='元/公斤'" prop="weightNum">
+                 <el-input v-model="form.weightNum" @keyup.native="formate()"></el-input>
+            </el-form-item> 
+            <el-form-item label="运输货品体积" v-if="form.transType==='元/方'" prop="weightNum">
+                <el-input v-model="form.weightNum"></el-input>                
+            </el-form-item>   
+            <el-form-item label="配送方式" prop="deliveryType">
+                <el-select v-model="form.deliveryType" filterable placeholder="请选择配送方式" >
+                    <el-option 
+                    :label="item.deliveryType" 
+                    v-for="item in deliveryTypeList"
+                    :key="item.deliveryType"
+                    :value="item.id">
+                    </el-option>
+                </el-select>
+            </el-form-item> 
+            <el-form-item label="远郊补贴方式" prop="subsidyType">
+                <el-select v-model="form.subsidyType" filterable placeholder="请选择远郊补贴方式">
+                    <el-option 
+                    :label="item.subsidyType" 
+                    v-for="item in subsidyTypeList"
+                    :key="item.subsidyType"
+                    :value="item.id">
+                    </el-option>
+                </el-select>
+            </el-form-item> 
+            <el-form-item label="所需要的费用">
+               {{costAll}}
+            </el-form-item> 
+            <el-form-item>
+                <el-button type="primary" @click="onSubmit('form')">立即创建</el-button>
+                <el-button>取消</el-button>
+            </el-form-item>
+        </el-form>
+  </div>
+</body>
+  <!-- import Vue before Element -->
+  <script src="https://unpkg.com/vue/dist/vue.js"></script>
+  <!-- import JavaScript -->
+  <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+  
+  <script type="module">
+    import { cityData } from './libs/cityList.js'
+    new Vue({ 
+      el: '#app',
+      data: function() {
+        return {
+            rules:{
+                city:[
+                { required: true, message: '必选项', trigger: 'blur' }
+                ],
+                pickType:[{ required: true, message: '必选项', trigger: 'blur' }],
+                pickNum:[{ required: true, message: '必填项', trigger: 'blur' }],
+                transType:[{ required: true, message: '必选项', trigger: 'blur' }],
+                goodsWeight:[{ required: true, message: '必选项', trigger: 'blur' }],
+                deliveryType:[{ required: true, message: '必选项', trigger: 'blur' }],
+                subsidyType:[{ required: true, message: '必选项', trigger: 'blur' }],
+                weightNum:[{ required: true, message: '必选项', trigger: 'blur' }],
+
+            },
+            form: {
+                city: '',
+                pickType: '',
+                pickNum:'',
+                transType:'',
+                weightNum:'',
+                deliveryType:'',
+                subsidyType:''
+                // /^\d+\.?\d{0,2}$/.test(obj.value)
+            },
+            pickCost:'',
+            weightCost:'',
+            deliveryCost:'',
+            subsidyCost:'',
+            costAll:'',//总费用
+            //到站地点
+            cityList:cityData.cityListJson,
+
+            //根据寄货方式计算价格
+            pickTypeList:[
+                {id:0,pickType:'上门提货'},
+                {id:1,pickType:'自寄'},
+            ],
+            //干线运输方式
+            transTypeList:[
+                {id:0,transType:'元/公斤'},
+                {id:1,transType:'元/方'},
+            ],
+            //货品重量
+            goodsWeightList:[
+                {id:0,goodsWeight:'0≤X<100'},
+                {id:1,goodsWeight:'100≤X<1000'},
+                {id:2,goodsWeight:'X≥1000'},
+            ],
+            //货品体积
+            goodsWeightList2:[
+                {id:0,goodsWeight:'0-1'},
+                {id:1,goodsWeight:'1-10'},
+                {id:2,goodsWeight:'X>10'},
+            ],
+            //配送方式
+            deliveryTypeList:[
+                {id:0, deliveryType:'自提'},
+                {id:1, deliveryType:'卖场'},
+                {id:2, deliveryType:'门店'},
+                {id:3, deliveryType:'终端'},
+            ],
+            subsidyTypeList:[
+                {id:0, subsidyType:'公里数(KM)'},
+                {id:1, subsidyType:'配送费(元/票)'},
+            ]     
+        }
+      },
+      created() {
+          console.log(cityData)
+      },
+      methods: {
+          //淡蓝色数据
+        keyOne(){
+            if(this.form.pickType==='1'){
+                this.pickCost=0
+            }else{
+                if(this.form.pickNum<=5){
+                this.pickCost = 50
+                } else {
+                this.pickCost = 50+(this.form.pickNum-5)*2
+                }
+            }
+            if(this.form.transType==='元/公斤'){
+                var a,b,c
+                if(0<=this.form.weightNum<100){
+                    this.weightCost = 100
+                }else if(100<=this.form.weightNum<1000){
+                    this.weightCost = 100+(this.form.weightNum-100)*0.55
+                }else if(this.form.weightNum>1000){
+                    this.weightCost = 100+(this.form.weightNum-100)*0.55+(this.form.weightNum-1000)*0.4
+                }
+            }else{
+                if(0<=this.form.weightNum<1){
+                    this.weightCost = 120
+                }else if(1<=this.form.weightNum<10){
+                    this.weightCost = 120+(this.form.weightNum-1)*100
+                }else if(this.form.weightNum>10){
+                    this.weightCost = 120+(this.form.weightNum-1)*100+(this.form.weightNum-10)*85
+                }
+            }
+            if(this.form.deliveryType===0){
+                this.deliveryCost = 0
+            }else if(this.form.deliveryType===1){
+                this.deliveryCost = 120
+
+            }else if(this.form.deliveryType===2){
+                this.deliveryCost = 70
+
+            }else if(this.form.deliveryType===3){
+                this.deliveryCost = 20
+
+            }
+            if(this.form.subsidyType===0){
+                this.subsidyCost = this.form.city.kmSubsidy
+
+            }else if(this.form.subsidyType===1){
+                this.subsidyCost = this.form.city.pSubsidy
+            }
+            return this.pickCost+this.weightCost+this.deliveryCost+this.subsidyCost
+
+        },
+        //紫色数据
+        keyTwo(){
+            if(this.form.pickType==='1'){
+                this.pickCost=0
+            }else{
+                if(this.form.pickNum<=5){
+                this.pickCost = 50
+                } else {
+                this.pickCost = 50+(this.form.pickNum-5)*2
+                }
+            }
+            if(this.form.transType==='元/公斤'){
+                var a,b,c
+                if(0<=this.form.weightNum<100){
+                    this.weightCost = 100
+                }else if(100<=this.form.weightNum<1000){
+                    this.weightCost = 100+(this.form.weightNum-100)*0.6
+                }else if(this.form.weightNum>1000){
+                    this.weightCost = 100+(this.form.weightNum-100)*0.6+(this.form.weightNum-1000)*0.45
+                }
+            }else{
+                if(0<=this.form.weightNum<1){
+                    this.weightCost = 120
+                }else if(1<=this.form.weightNum<10){
+                    this.weightCost = 120+(this.form.weightNum-1)*100
+                }else if(this.form.weightNum>10){
+                    this.weightCost = 120+(this.form.weightNum-1)*100+(this.form.weightNum-10)*85
+                }
+            }
+            if(this.form.deliveryType===0){
+                this.deliveryCost = 0
+            }else if(this.form.deliveryType===1){
+                this.deliveryCost = 120
+
+            }else if(this.form.deliveryType===2){
+                this.deliveryCost = 70
+
+            }else if(this.form.deliveryType===3){
+                this.deliveryCost = 20
+
+            }
+            if(this.form.subsidyType===0){
+                this.subsidyCost = this.form.city.kmSubsidy
+
+            }else if(this.form.subsidyType===1){
+                this.subsidyCost = this.form.city.pSubsidy
+            }
+            return this.pickCost+this.weightCost+this.deliveryCost+this.subsidyCost
+
+        },
+        //蓝色底纹
+        
+        keyThree(){
+            if(this.form.pickType==='1'){
+                this.pickCost=0
+            }else{
+                if(this.form.pickNum<=5){
+                this.pickCost = 50
+                } else {
+                this.pickCost = 50+(this.form.pickNum-5)*2
+                }
+            }
+            if(this.form.transType==='元/公斤'){
+                var a,b,c
+                if(0<=this.form.weightNum<100){
+                    this.weightCost = 100
+                }else if(100<=this.form.weightNum<1000){
+                    this.weightCost = 100+(this.form.weightNum-100)*0.65
+                }else if(this.form.weightNum>1000){
+                    this.weightCost = 100+(this.form.weightNum-100)*0.65+(this.form.weightNum-1000)*0.5
+                }
+            }else{
+                if(0<=this.form.weightNum<1){
+                    this.weightCost = 120
+                }else if(1<=this.form.weightNum<10){
+                    this.weightCost = 120+(this.form.weightNum-1)*100
+                }else if(this.form.weightNum>10){
+                    this.weightCost = 100+(this.form.weightNum-1)*100+(this.form.weightNum-10)*85
+                }
+            }
+            if(this.form.deliveryType===0){
+                this.deliveryCost = 0
+            }else if(this.form.deliveryType===1){
+                this.deliveryCost = 120
+
+            }else if(this.form.deliveryType===2){
+                this.deliveryCost = 70
+
+            }else if(this.form.deliveryType===3){
+                this.deliveryCost = 20
+
+            }
+            if(this.form.subsidyType===0){
+                this.subsidyCost = this.form.city.kmSubsidy
+
+            }else if(this.form.subsidyType===1){
+                this.subsidyCost = this.form.city.pSubsidy
+            }
+            return this.pickCost+this.weightCost+this.deliveryCost+this.subsidyCost
+
+        },
+        //红色数据
+        keyFour(){
+            if(this.form.pickType==='1'){
+                this.pickCost=0
+            }else{
+                if(this.form.pickNum<=5){
+                this.pickCost = 50
+                } else {
+                this.pickCost = 50+(this.form.pickNum-5)*2
+                }
+            }
+            if(this.form.transType==='元/公斤'){
+                var a,b,c
+                if(0<=this.form.weightNum<100){
+                    this.weightCost = 100
+                }else if(100<=this.form.weightNum<1000){
+                    this.weightCost = 100+(this.form.weightNum-100)*0.5
+                }else if(this.form.weightNum>1000){
+                    this.weightCost = 100+(this.form.weightNum-100)*0.5+(this.form.weightNum-1000)*0.35
+                }
+            }else{
+                if(0<=this.form.weightNum<1){
+                    this.weightCost = 120
+                }else if(1<=this.form.weightNum<10){
+                    this.weightCost = 120+(this.form.weightNum-1)*90
+                }else if(this.form.weightNum>10){
+                    this.weightCost = 120+(this.form.weightNum-1)*90+(this.form.weightNum-10)*80
+                }
+            }
+            if(this.form.deliveryType===0){
+                this.deliveryCost = 0
+            }else if(this.form.deliveryType===1){
+                this.deliveryCost = 120
+
+            }else if(this.form.deliveryType===2){
+                this.deliveryCost = 70
+
+            }else if(this.form.deliveryType===3){
+                this.deliveryCost = 20
+
+            }
+            if(this.form.subsidyType===0){
+                this.subsidyCost = this.form.city.kmSubsidy
+
+            }else if(this.form.subsidyType===1){
+                this.subsidyCost = this.form.city.pSubsidy
+            }
+            return this.pickCost+this.weightCost+this.deliveryCost+this.subsidyCost
+
+        },
+        //绿色数据
+        keyFive(){
+            if(this.form.pickType==='1'){
+                this.pickCost=0
+            }else{
+                if(this.form.pickNum<=5){
+                this.pickCost = 50
+                } else {
+                this.pickCost = 50+(this.form.pickNum-5)*2
+                }
+            }
+            if(this.form.transType==='元/公斤'){
+                var a,b,c
+                if(0<=this.form.weightNum<100){
+                    this.weightCost = 100
+                }else if(100<=this.form.weightNum<1000){
+                    this.weightCost = 100+(this.form.weightNum-100)*0.75
+                }else if(this.form.weightNum>1000){
+                    this.weightCost = 100+(this.form.weightNum-100)*0.75+(this.form.weightNum-1000)*0.6
+                }
+            }else{
+                if(0<=this.form.weightNum<1){
+                    this.weightCost = 120
+                }else if(1<=this.form.weightNum<10){
+                    this.weightCost = 120+(this.form.weightNum-1)*120
+                }else if(this.form.weightNum>10){
+                    this.weightCost = 120+(this.form.weightNum-1)*120+(this.form.weightNum-10)*100
+                }
+            }
+            if(this.form.deliveryType===0){
+                this.deliveryCost = 0
+            }else if(this.form.deliveryType===1){
+                this.deliveryCost = 120
+
+            }else if(this.form.deliveryType===2){
+                this.deliveryCost = 70
+
+            }else if(this.form.deliveryType===3){
+                this.deliveryCost = 20
+
+            }
+            if(this.form.subsidyType===0){
+                this.subsidyCost = this.form.city.kmSubsidy
+
+            }else if(this.form.subsidyType===1){
+                this.subsidyCost = this.form.city.pSubsidy
+            }
+            return this.pickCost+this.weightCost+this.deliveryCost+this.subsidyCost
+
+        },
+        //黄色数据
+        keySix(){
+            if(this.form.pickType==='1'){
+                this.pickCost=0
+            }else{
+                if(this.form.pickNum<=5){
+                this.pickCost = 50
+                } else {
+                this.pickCost = 50+(this.form.pickNum-5)*2
+                }
+            }
+            if(this.form.transType==='元/公斤'){
+                var a,b,c
+                if(0<=this.form.weightNum<100){
+                    this.weightCost = 100
+                }else if(100<=this.form.weightNum<1000){
+                    this.weightCost = 100+(this.form.weightNum-100)*0.45
+                }else if(this.form.weightNum>1000){
+                    this.weightCost = 100+(this.form.weightNum-100)*0.45+(this.form.weightNum-1000)*0.3
+                }
+            }else{
+                if(0<=this.form.weightNum<1){
+                    this.weightCost = 120
+                }else if(1<=this.form.weightNum<10){
+                    this.weightCost = 120+(this.form.weightNum-1)*70
+                }else if(this.form.weightNum>10){
+                    this.weightCost = 120+(this.form.weightNum-1)*70+(this.form.weightNum-10)*60
+                }
+            }
+            if(this.form.deliveryType===0){
+                this.deliveryCost = 0
+            }else if(this.form.deliveryType===1){
+                this.deliveryCost = 120
+
+            }else if(this.form.deliveryType===2){
+                this.deliveryCost = 70
+
+            }else if(this.form.deliveryType===3){
+                this.deliveryCost = 20
+
+            }
+            if(this.form.subsidyType===0){
+                this.subsidyCost = this.form.city.kmSubsidy
+
+            }else if(this.form.subsidyType===1){
+                this.subsidyCost = this.form.city.pSubsidy
+            }
+            return this.pickCost+this.weightCost+this.deliveryCost+this.subsidyCost
+
+        },
+        //黑色数据
+        keySeven(){
+            if(this.form.pickType==='1'){
+                this.pickCost=0
+            }else{
+                if(this.form.pickNum<=5){
+                this.pickCost = 50
+                } else {
+                this.pickCost = 50+(this.form.pickNum-5)*2
+                }
+            }
+            if(this.form.transType==='元/公斤'){
+                var a,b,c
+                if(0<=this.form.weightNum<100){
+                    this.weightCost = 100
+                }else if(100<=this.form.weightNum<1000){
+                    this.weightCost = 100+(this.form.weightNum-100)*0.5
+                }else if(this.form.weightNum>1000){
+                    this.weightCost = 100+(this.form.weightNum-100)*0.5+(this.form.weightNum-1000)*0.35
+                }
+            }else{
+                if(0<=this.form.weightNum<1){
+                    this.weightCost = 120
+                }else if(1<=this.form.weightNum<10){
+                    this.weightCost = 120+(this.form.weightNum-1)*70
+                }else if(this.form.weightNum>10){
+                    this.weightCost = 120+(this.form.weightNum-1)*70+(this.form.weightNum-10)*60
+                }
+            }
+            if(this.form.deliveryType===0){
+                this.deliveryCost = 0
+            }else if(this.form.deliveryType===1){
+                this.deliveryCost = 120
+
+            }else if(this.form.deliveryType===2){
+                this.deliveryCost = 70
+
+            }else if(this.form.deliveryType===3){
+                this.deliveryCost = 20
+
+            }
+            if(this.form.subsidyType===0){
+                this.subsidyCost = this.form.city.kmSubsidy
+
+            }else if(this.form.subsidyType===1){
+                this.subsidyCost = this.form.city.pSubsidy
+            }
+            return this.pickCost+this.weightCost+this.deliveryCost+this.subsidyCost
+
+        },
+        changePick(val){
+            console.log(val)
+            if(val.id===0){
+
+            }
+
+        },
+        changeCity(){
+            console.log(this.form.city)
+        //    this.form =  {
+        //         pickType: '',
+        //         transType:'',
+        //         goodsWeight:'',
+        //         deliveryType:'',
+        //         subsidyType:''
+        //     }
+        },
+        onSubmit(form) {
+            this.$refs[form].validate((valid) => {
+                if (valid) {
+                    if(this.form.city.key===0){
+                        this.costAll = this.keyOne()
+                    }
+                    switch(this.form.city.key){
+                        case 0:
+                            this.costAll = this.keyOne()
+                            break;
+                        case 1:
+                            this.costAll = this.keyTwo()
+                            break;
+                        case 2:
+                            this.costAll = this.keyThree()
+                            break;
+                        case 3:
+                            this.costAll = this.keyFour()
+                            break;
+                        case 4:
+                            this.costAll = this.keyFive()
+                            break;
+                        case 5:
+                            this.costAll = this.keySeven()
+                            break;
+                        case 6:
+                            this.costAll = this.keySix()
+                            break;
+                        default:
+                            this.costAll = '数据有误'
+
+                    }
+
+                } else {
+                    console.log('error submit!!');
+                    return false;
+                }
+            });
+        },
+        formate(){
+            this.form.weightNum = this.form.weightNum.replace(/[^\d+\.?\d{0,2}]/g ,'')
+        } 
+      },
+    })
+  </script>
+</html>
