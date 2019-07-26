@@ -10,12 +10,29 @@
 <style>
     #costTitle{
         text-align: center;
+		margin-top:30px;
+		margin-bottom:30px;
     }
 </style>
 <body>
   <div id="app">
-        <p id="costTitle">测试demo</p>
-        <el-form ref="form" :model="form" :rules="rules" label-width="120px" >        
+        <p id="costTitle">质达零担冷链运费查询</p>
+        <el-form ref="form" :model="form" :rules="rules" label-width="120px" >  
+			<el-form-item label="发货地" prop="shipments">
+                <el-select 
+                v-model="form.shipments" 
+                filterable 
+                value-key="id"
+                placeholder="请选择发货地"
+                >
+					<el-option 
+					:label="item.pickType"  
+					v-for="item in shipmentsList" 
+					:key="item.pickType" 
+					:value="item.id">
+					</el-option>
+                </el-select>
+            </el-form-item>
             <el-form-item label="到站地点" prop="city">
                 <el-select 
                 v-model="form.city" 
@@ -24,7 +41,7 @@
                 placeholder="请选择到站地点"  
                 @change="changeCity"
                 >
-                    <el-option +
+                    <el-option 
                     v-for="item in cityList" 
                     :label="item.name"  
                     :key="item.id" 
@@ -133,7 +150,7 @@
                 deliveryType:[{ required: true, message: '必选项', trigger: 'blur' }],
                 subsidyType:[{ required: true, message: '必选项', trigger: 'blur' }],
                 weightNum:[{ required: true, message: '必选项', trigger: 'blur' }],
-
+				shipments:[{ required: true, message: '必选项', trigger: 'blur' }],
             },
             form: {
                 city: '',
@@ -157,6 +174,10 @@
             pickTypeList:[
                 {id:0,pickType:'上门提货'},
                 {id:1,pickType:'自寄'},
+            ],
+			//发货地
+            shipmentsList:[
+                {id:0,pickType:'武汉'}
             ],
             //干线运输方式
             transTypeList:[
@@ -557,6 +578,7 @@
                 this.subsidyCost = this.form.city.pSubsidy
             }
             return this.pickCost+this.weightCost+this.deliveryCost+this.subsidyCost
+
         },
         changePick(val){
             console.log(val)
