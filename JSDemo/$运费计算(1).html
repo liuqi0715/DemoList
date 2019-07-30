@@ -580,9 +580,6 @@
         onSubmit(form) {
             this.$refs[form].validate((valid) => {
                 if (valid) {
-                    // if(this.form.city.key===0){
-                    //     this.costAll = this.keyOne()
-                    // }
                     switch(this.form.city.key){
                         case 0:
                             this.costAll = this.keyOne()
@@ -608,7 +605,6 @@
                             break;
                         default:
                             this.costAll = '数据有误'
-
                     }
 
                 } else {
