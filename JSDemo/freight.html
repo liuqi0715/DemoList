@@ -213,6 +213,9 @@
           console.log(cityData)
       },
       methods: {
+        priceCalc(){
+            this.pickCost = this.form.pickType==='1'?0:50+(this.form.pickNum-5)*2
+        },
           //淡蓝色数据
         keyOne(){
             this.form.weightNum = Number(this.form.weightNum)
